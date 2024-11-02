@@ -1,0 +1,16 @@
+Package: GTFSwizard
+Type: Package
+Title: A set of tools for exploring and manipulating GTFS files.
+Version: 1.0.0
+Authors@R: c(
+    person(given="Nelson de O.", family="Quesado Filho", email="nquesado@gmail.com",role=c("aut")),
+    person(given="Caio G. C.", family="Guimarães", email="caiogcg.mobilidade@gmail.com",role=c("aut","cre")))
+Maintainer: Gustavo Guimarães <caiogcg.mobilidade@gmail.com> Nelson Quesado <nquesado@gmail.com>
+URL: https://github.com/OPATP/GTFSwizard
+BugReports: https://github.com/OPATP/GTFSwizard/issues
+Description: A set of tools for exploring and manipulating GTFS files.
+Imports: tidyverse, gtfstools, tidytransit, lubridate, sf, tidyr, data.table, tibble, shiny, plotly, leaflet, leaflet.extras, crayon, geosphere, COINr, stplanr, hrbrthemes, geodist
+Depends: R (>= 3.5.0)
+License: None
+Encoding: UTF-8
+LazyData: true
