@@ -3,8 +3,8 @@ Type: Package
 Title: A Set of Tools for Exploring and Manipulating GTFS Files
 Version: 1.0.0
 Authors@R: c(
-    person(given="Nelson de O.", family="Quesado Filho", email="nquesado@gmail.com",role=c("aut")),
-    person(given="Caio G. C.", family="Guimarães", email="caiogcg.mobilidade@gmail.com",role=c("aut", "cre")))
+    person(given="Nelson de O.", family="Quesado Filho", email="nquesado@gmail.com",role=c("aut", "cre")),
+    person(given="Caio G. C.", family="Guimarães", email="caiogcg.mobilidade@gmail.com",role=c("aut")))
 URL: https://github.com/OPATP/GTFSwizard
 BugReports: https://github.com/OPATP/GTFSwizard/issues
 Description: Provides a comprehensive suite of tools for exploring, analyzing, and manipulating General Transit Feed Specification (GTFS) files, which represent public transportation schedules and geographic data. The package allows users to filter data by routes, trips, stops, and time, generate spatial visualizations, and perform detailed analyses of transit networks, including headway, dwell times, and route frequencies. Designed for transit planners, researchers, and data analysts, GTFSwizard integrates functionalities from popular packages to enable efficient GTFS data manipulation and visualization.
