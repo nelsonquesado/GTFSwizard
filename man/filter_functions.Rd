@@ -71,6 +71,7 @@ Each `filter_` function targets a specific aspect of the GTFS data, applying fil
 These functions selectively subset the GTFS tables (`trips`, `stop_times`, `routes`, `agency`, `shapes`, etc.), maintaining only the records that meet the defined criteria. If a table or required column is missing from the GTFS data, the function will either attempt to infer it using available data or exclude the table as necessary.
 }
 \examples{
+\dontrun{
 # Filter by service pattern
 filtered_gtfs <- filter_servicepattern(gtfs = for_gtfs, servicepattern = "servicepattern-2")
 
@@ -85,6 +86,7 @@ filtered_gtfs <- filter_trip(gtfs = for_gtfs, trip = for_gtfs$trips$trip_id[1:2]
 
 # Filter by a time range
 filtered_gtfs <- filter_time(gtfs = for_gtfs, from = "06:30:00", to = "10:00:00")
+}
 
 }
 \seealso{

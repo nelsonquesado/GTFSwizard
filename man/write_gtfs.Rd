@@ -7,11 +7,11 @@
 write_gtfs(gtfs, zipfile, ...)
 }
 \arguments{
-\item{gtfs}{A GTFS object. This can be in `wizardgtfs`, list, `tidygtfs`, or `dt_gtfs` format.}
+\item{gtfs}{A GTFS object. This can be in `wizardgtfs` or list format.}
 
 \item{zipfile}{A character string specifying the path to the output zip file.}
 
-\item{...}{Additional arguments passed to the export function, depending on the object format.}
+\item{...}{Additional arguments to pass to `gtfsio::export_gtfs()`.}
 }
 \value{
 None. This function writes the GTFS data directly to the specified `zipfile`.

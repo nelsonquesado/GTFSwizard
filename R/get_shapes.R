@@ -18,8 +18,10 @@
 #' Note: This approximation may not perfectly represent real-world shapes, especially for complex or curved routes.
 #'
 #' @examples
+#' \dontrun{
 #' # Generate a shapes table for a GTFS object
 #' gtfs_with_shapes <- get_shapes(gtfs = for_gtfs)
+#' }
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_shapes_df()]

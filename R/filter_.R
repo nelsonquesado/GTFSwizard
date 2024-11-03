@@ -35,6 +35,7 @@
 #' @return A filtered `wizardgtfs` object containing only the records that match the specified criteria.
 #'
 #' @examples
+#' \dontrun{
 #' # Filter by service pattern
 #' filtered_gtfs <- filter_servicepattern(gtfs = for_gtfs, servicepattern = "servicepattern-2")
 #'
@@ -49,6 +50,7 @@
 #'
 #' # Filter by a time range
 #' filtered_gtfs <- filter_time(gtfs = for_gtfs, from = "06:30:00", to = "10:00:00")
+#' }
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]

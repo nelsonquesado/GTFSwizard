@@ -31,8 +31,10 @@ A GTFS object with the specified trip split into new sub-trips.
 - Be aware: `get_shapes` reconstructs shapes using euclidean approximation and may not be accurate.
 }
 \examples{
+\dontrun{
 # Split a trip into 3 segments
 gtfs_split <- split_trip(for_gtfs, trip = for_gtfs$trips$trip_id[1:3], split = 2)
+}
 
 }
 \seealso{
