@@ -19,7 +19,9 @@
 #' gtfs <- delay_trip(gtfs = for_gtfs, for_gtfs$trips$trip_id[1:2], duration = 300)
 #'
 #' # Delay trips by duration
-#' gtfs <- delay_trip(gtfs = for_gtfs, trip = for_gtfs$trips$trip_id[1], duration = lubridate::duration(10, "minutes"))
+#' gtfs <- delay_trip(gtfs = for_gtfs,
+#'                     trip = for_gtfs$trips$trip_id[1],
+#'                     duration = lubridate::duration(10, "minutes"))
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()] for converting GTFS objects to `wizardgtfs` class.
@@ -32,7 +34,7 @@ delay_trip <- function(gtfs, trip, duration){
   # checa os argumentos -------------------------------------------------------------------------
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThe first gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(!lubridate::is.duration(duration)) {

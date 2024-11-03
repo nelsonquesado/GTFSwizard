@@ -34,6 +34,7 @@
 #' If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 #'
 #' @examples
+#' \dontrun{
 #' # Calculate dwell times by hour
 #' dwelltimes_by_hour <- get_dwelltimes(gtfs = for_gtfs, max.dwelltime = 120, method = "by.hour")
 #'
@@ -45,6 +46,7 @@
 #'
 #' # Calculate detailed dwell times between stops
 #' detailed_dwelltimes <- get_dwelltimes(gtfs = for_gtfs, max.dwelltime = 120, method = "detailed")
+#' }
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]

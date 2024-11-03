@@ -4,7 +4,7 @@
 #'
 #' @param gtfs A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.
 #' @param servicepattern (Optional) A character vector of service patterns to retain. Defaults to the most frequent pattern (typical day) if `NULL`.
-#' @param date (Optional) A date or vector of dates (as "YYYY-MM-DD" character or POSIXct) to filter services active on those dates. Defaults to the last available date if `NULL`.
+#' @param dates (Optional) A date or vector of dates (as "YYYY-MM-DD" character or POSIXct) to filter services active on those dates. Defaults to the last available date if `NULL`.
 #' @param service (Optional) A character vector of service IDs to retain in the `wizardgtfs` object.
 #' @param route (Optional) A character vector of route IDs to retain in the `wizardgtfs` object. When `keep = FALSE`, excludes the specified routes.
 #' @param trip (Optional) A character vector of trip IDs to retain in the `wizardgtfs` object. When `keep = FALSE`, excludes the specified trips.
@@ -39,7 +39,7 @@
 #' filtered_gtfs <- filter_servicepattern(gtfs = for_gtfs, servicepattern = "servicepattern-2")
 #'
 #' # Filter by a specific date
-#' filtered_gtfs <- filter_date(gtfs = for_gtfs, date = "2023-01-01")
+#' filtered_gtfs <- filter_date(gtfs = for_gtfs, dates = "2023-01-01")
 #'
 #' # Filter by route ID, keeping only specified routes
 #' filtered_gtfs <- filter_route(gtfs = for_gtfs, route = for_gtfs$routes$route_id[1:2])
@@ -65,7 +65,7 @@ filter_servicepattern <- function(gtfs, servicepattern = NULL){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(is.null(servicepattern)){
@@ -170,14 +170,12 @@ filter_servicepattern <- function(gtfs, servicepattern = NULL){
   }
 
   if(!is_null(gtfs$dates_services)){
-    suppressWarnings(
-      gtfs$dates_services <-
-        gtfs$dates_services %>%
-        dplyr::left_join(service_patterns, by = 'service_id') %>%
-        na.omit() %>%
-        .[1:2]
-    )
+
+    gtfs$dates_services <- NULL
+
   }
+
+  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
 
   return(gtfs)
 
@@ -186,22 +184,22 @@ filter_servicepattern <- function(gtfs, servicepattern = NULL){
 #' @rdname filter_functions
 #' @aliases filter_date
 #' @export
-filter_date <- function(gtfs, date = NULL){
+filter_date <- function(gtfs, dates = NULL){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as_gtfswizard() is advised.')
+    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
-  if(is.null(date)) {
-    warning('\nNo date(s) provided.\nReturning furtherst date.')
+  if(is.null('dates')) {
+    message(crayon::red('No date(s) provided.'), '\nReturning furtherst date.')
     date <- gtfs$dates_services$date[length(gtfs$dates_services$date)] %>% as.Date()
   } else {
-    date <- as.Date(date)
+    date <- as.Date(dates)
     }
 
   if(any(!date %in% as.Date(gtfs$dates_services$date))){
-    message('\nDate(s) do not belongs to calendar.\nMust be either a "YYYY-MM-DD" character vector or a POSIXct object.\nPlease use get_calendar() to check available dates.')
+    message(crayon::red('Date(s) do not belongs to calendar.'), '\nMust be either a ', crayon::cyan('YYYY-MM-DD'), ' character vector or a ', crayon::cyan('POSIXct'), ' object.\nPlease use ', crayon::cyan('get_calendar()'), ' to check available dates.')
     stop()
   }
 
@@ -266,7 +264,7 @@ filter_date <- function(gtfs, date = NULL){
 
   if(!is_null(gtfs$calendar)){
     new.calendar.dates <-
-      tibble(service_id = services,
+      tibble(service_id = as.character(services),
              start_date = list(date),
              end_date = list(date)) %>%
       tidyr::unnest(cols = c('start_date', 'end_date'))
@@ -293,11 +291,12 @@ filter_date <- function(gtfs, date = NULL){
   }
 
   if(!is_null(gtfs$dates_services)){
-    suppressWarnings(
-      gtfs$dates_services <-
-        gtfs$dates_services[as.Date(gtfs$dates_services$date) %in% date, ]
-    )
+
+    gtfs$dates_services <- NULL
+
   }
+
+  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
 
   return(gtfs)
 
@@ -310,7 +309,7 @@ filter_service <- function(gtfs, service){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(is.null(service)){
@@ -404,16 +403,12 @@ filter_service <- function(gtfs, service){
   }
 
   if(!is_null(gtfs$dates_services)){
-    suppressWarnings(
-      gtfs$dates_services <-
-        gtfs$dates_services %>%
-        tidyr::unnest(cols = 'service_id') %>%
-        dplyr::filter(service_id %in% services) %>%
-        dplyr::group_by(date) %>%
-        dplyr::reframe(service_id = list(service_id))
 
-    )
+      gtfs$dates_services <- NULL
+
   }
+
+  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
 
   return(gtfs)
 
@@ -426,7 +421,7 @@ filter_route <- function(gtfs, route, keep = TRUE){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(is.null(route)){
@@ -526,16 +521,12 @@ filter_route <- function(gtfs, route, keep = TRUE){
   }
 
   if(!is_null(gtfs$dates_services)){
-    suppressWarnings(
-      gtfs$dates_services <-
-        gtfs$dates_services %>%
-        tidyr::unnest(cols = 'service_id') %>%
-        dplyr::filter(service_id %in% services) %>%
-        dplyr::group_by(date) %>%
-        dplyr::reframe(service_id = list(service_id))
 
-    )
+    gtfs$dates_services <- NULL
+
   }
+
+  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
 
   return(gtfs)
 
@@ -548,7 +539,7 @@ filter_trip <- function(gtfs, trip, keep = TRUE){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
 
@@ -649,15 +640,12 @@ filter_trip <- function(gtfs, trip, keep = TRUE){
   }
 
   if(!is_null(gtfs$dates_services)){
-    suppressWarnings(
-      gtfs$dates_services <-
-        gtfs$dates_services %>%
-        tidyr::unnest(cols = service_id) %>%
-        dplyr::filter(service_id %in% services) %>%
-        dplyr::group_by(date) %>%
-        dplyr::reframe(service_id = list(service_id))
-    )
+
+    gtfs$dates_services <- NULL
+
   }
+
+  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
 
   return(gtfs)
 
@@ -670,7 +658,7 @@ filter_stop <- function(gtfs, stop){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(is.null(stop)){
@@ -763,15 +751,12 @@ filter_stop <- function(gtfs, stop){
   }
 
   if(!is_null(gtfs$dates_services)){
-    suppressWarnings(
-      gtfs$dates_services <-
-        gtfs$dates_services %>%
-        tidyr::unnest(cols = service_id) %>%
-        dplyr::filter(service_id %in% services) %>%
-        dplyr::group_by(date) %>%
-        dplyr::reframe(service_id = list(service_id))
-    )
+
+      gtfs$dates_services <- NULL
+
   }
+
+  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
 
   return(gtfs)
 
@@ -782,9 +767,11 @@ filter_stop <- function(gtfs, stop){
 #' @export
 filter_time <- function(gtfs, from = '0:0:0', to = "48:00:00"){
 
+  message(crayon::cyan('filter_time()'), ' removes invalid stop times.')
+
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(suppressWarnings(is.na(stringr::str_split(from, ":") %>%
@@ -917,19 +904,14 @@ filter_time <- function(gtfs, from = '0:0:0', to = "48:00:00"){
   }
 
   if(!is_null(gtfs$dates_services)){
-    suppressWarnings(
-      gtfs$dates_services <-
-        gtfs$dates_services %>%
-        tidyr::unnest(cols = 'service_id') %>%
-        dplyr::filter(service_id %in% services) %>%
-        dplyr::group_by(date) %>%
-        dplyr::reframe(service_id = list(service_id))
-    )
+
+      gtfs$dates_services <- NULL
+
   }
 
-  return(gtfs)
+  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
 
-  message('filter_time() removes invalid stop times.')
+  return(gtfs)
 
 }
 

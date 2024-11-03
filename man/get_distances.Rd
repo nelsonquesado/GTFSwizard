@@ -40,6 +40,7 @@ The function calls specific sub-functions based on the selected method:
 If an invalid `method` is provided, the function defaults to `"by.route"` and issues a warning.
 }
 \examples{
+\dontrun{
 # Calculate average route distances
 distances_by_route <- get_distances(gtfs = for_gtfs, method = "by.route")
 
@@ -48,6 +49,7 @@ distances_by_trip <- get_distances(gtfs = for_gtfs, method = "by.trip")
 
 # Calculate detailed distances between stops
 detailed_distances <- get_distances(gtfs = for_gtfs, method = "detailed")
+}
 
 }
 \seealso{

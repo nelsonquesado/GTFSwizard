@@ -36,7 +36,7 @@ split_trip <- function(gtfs, trip, split = 1){
   # checa os argumentos --------------------------------------------  -----------------------------
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('The gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   checkmate::assert_int(split)

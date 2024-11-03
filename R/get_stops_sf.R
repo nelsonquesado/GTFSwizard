@@ -46,11 +46,11 @@ get_stops_sf.gtfs <- function(gtfs){
 
 #' @exportS3Method GTFSwizard::get_stops_sf
 get_stops_sf.data.frame <- function(gtfs){
-  if('sf'%in%class(gtfs$stops)){
-    st_crs(gtfs$stops) <- 4326
-    return(gtfs$stops)
+  if('sf'%in%class(gtfs)){
+    st_crs(gtfs) <- 4326
+    return(gtfs)
   }else{
-    gtfs$stops %>%
+    gtfs %>%
       sf::st_as_sf(coords = c('stop_lon','stop_lat'), crs = 4326) %>%
       return()
   }

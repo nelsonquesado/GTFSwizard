@@ -4,7 +4,7 @@
 \alias{get_shapes_sf}
 \title{Convert GTFS Shapes Table to Simple Features (sf) Format}
 \usage{
-get_shapes_sf(obj)
+get_shapes_sf(gtfs)
 }
 \arguments{
 \item{gtfs}{A GTFS object containing the `shapes` table or the shape table itself. If the `shapes` table is missing, it will be created using `get_shapes()`.}

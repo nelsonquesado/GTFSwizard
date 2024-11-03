@@ -30,7 +30,9 @@ The function checks that `trip` contains valid `trip_id`s and that `duration` is
 gtfs <- delay_trip(gtfs = for_gtfs, for_gtfs$trips$trip_id[1:2], duration = 300)
 
 # Delay trips by duration
-gtfs <- delay_trip(gtfs = for_gtfs, trip = for_gtfs$trips$trip_id[1], duration = lubridate::duration(10, "minutes"))
+gtfs <- delay_trip(gtfs = for_gtfs,
+                    trip = for_gtfs$trips$trip_id[1],
+                    duration = lubridate::duration(10, "minutes"))
 
 }
 \seealso{

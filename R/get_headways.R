@@ -33,6 +33,7 @@
 #' If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 #'
 #' @examples
+#' \dontrun{
 #' # Calculate average route headways
 #' headways_by_route <- get_headways(gtfs = for_gtfs, method = "by.route")
 #'
@@ -44,6 +45,7 @@
 #'
 #' # Calculate detailed stop-level headways
 #' detailed_headways <- get_headways(gtfs = for_gtfs, method = "detailed")
+#' }
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]

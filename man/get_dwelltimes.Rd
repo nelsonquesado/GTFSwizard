@@ -45,6 +45,7 @@ This function calls specific sub-functions based on the selected method:
 If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 }
 \examples{
+\dontrun{
 # Calculate dwell times by hour
 dwelltimes_by_hour <- get_dwelltimes(gtfs = for_gtfs, max.dwelltime = 120, method = "by.hour")
 
@@ -56,6 +57,7 @@ dwelltimes_by_trip <- get_dwelltimes(gtfs = for_gtfs, max.dwelltime = 120, metho
 
 # Calculate detailed dwell times between stops
 detailed_dwelltimes <- get_dwelltimes(gtfs = for_gtfs, max.dwelltime = 120, method = "detailed")
+}
 
 }
 \seealso{

@@ -28,57 +28,57 @@
 #' @importFrom tibble as_tibble
 #' @importFrom crayon blue red
 #' @export
-get_shapes_sf <- function(obj){
+get_shapes_sf <- function(gtfs){
   UseMethod('get_shapes_sf')
 }
 
 #' @exportS3Method GTFSwizard::get_shapes_sf
-get_shapes_sf.wizardgtfs <- function(obj){
-  if('shapes' %in% names(obj) == FALSE){
-    warning("Gtfs doesn't have a shapes table, using ", crayon::blue("get_shapes"), " to build it")
-    obj <- get_shapes(obj)
+get_shapes_sf.wizardgtfs <- function(gtfs){
+  if('shapes' %in% names(gtfs) == FALSE){
+    warning("GTFS doesn't have a shapes table. Using ", crayon::blue("get_shapes"), " to build it")
+    gtfs <- get_shapes(gtfs)
   }
-  obj$shapes <- get_shapes_sf.data.frame(obj$shapes)
-  return(obj)
+  gtfs$shapes <- get_shapes_sf.data.frame(gtfs$shapes)
+  return(gtfs)
 }
 
 #' @exportS3Method GTFSwizard::get_shapes_sf
-get_shapes_sf.list <- function(obj){
-  if('shapes' %in% names(obj) == FALSE){
-    warning("Gtfs doesn't have a shapes table, using ", crayon::blue("get_shapes"), " to build it")
-    obj <- get_shapes(obj)
+get_shapes_sf.list <- function(gtfs){
+  if('shapes' %in% names(gtfs) == FALSE){
+    warning("GTFS doesn't have a shapes table, using ", crayon::blue("get_shapes"), " to build it")
+    gtfs <- get_shapes(gtfs)
   }
-  obj$shapes <- get_shapes_sf.data.frame(obj$shapes)
-  return(obj)
+  gtfs$shapes <- get_shapes_sf.data.frame(gtfs$shapes)
+  return(gtfs)
 }
 
 #' @exportS3Method GTFSwizard::get_shapes_sf
-get_shapes_sf.gtfs <- function(obj){
-  if('shapes' %in% names(obj) == FALSE){
-    warning("Gtfs doesn't have a shapes table, using ", crayon::blue("get_shapes"), " to build it")
-    obj <- get_shapes(obj)
+get_shapes_sf.gtfs <- function(gtfs){
+  if('shapes' %in% names(gtfs) == FALSE){
+    warning("GTFS doesn't have a shapes table, using ", crayon::blue("get_shapes"), " to build it")
+    gtfs <- get_shapes(gtfs)
   }
-  obj$shapes <- get_shapes_sf.data.frame(obj$shapes)
-  return(obj)
+  gtfs$shapes <- get_shapes_sf.data.frame(gtfs$shapes)
+  return(gtfs)
 }
 
 #' @exportS3Method GTFSwizard::get_shapes_sf
-get_shapes_sf.data.frame <- function(obj){
-  if('sf'%in%class(obj)){
-    st_crs(obj) <- 4326
-    return(obj)
+get_shapes_sf.data.frame <- function(gtfs){
+  if('sf'%in%class(gtfs)){
+    st_crs(gtfs) <- 4326
+    return(gtfs)
   }else{
 
-    if('shape_pt_sequence' %in% names(obj)){
-      obj <- obj %>%
+    if('shape_pt_sequence' %in% names(gtfs)){
+      gtfs <- gtfs %>%
         dplyr::mutate(shape_pt_sequence = as.numeric(shape_pt_sequence)) %>%
         dplyr::arrange(shape_id,shape_pt_sequence)
     }else{
-      warning("When the ",crayon::blue('"shape_pt_sequence"')," column is not defined, the line will be built considering the points in order.")
+      warning("When the ", crayon::cyan('"shape_pt_sequence"')," column is not defined, the line will be built considering the points in order.")
     }
 
-    if('shape_dist_traveled' %in% names(obj)){
-      obj <- obj %>%
+    if('shape_dist_traveled' %in% names(gtfs)){
+      gtfs <- gtfs %>%
         dplyr::group_by(shape_id) %>%
         dplyr::mutate(geometry = paste0(shape_pt_lon,' ',shape_pt_lat)) %>%
         dplyr::group_by(shape_id) %>%
@@ -91,7 +91,7 @@ get_shapes_sf.data.frame <- function(obj){
         sf::st_as_sf()
 
     }else{
-      obj <- obj %>%
+      gtfs <- gtfs %>%
         dplyr::group_by(shape_id) %>%
         dplyr::mutate(geometry = paste0(shape_pt_lon,' ',shape_pt_lat)) %>%
         dplyr::group_by(shape_id)
@@ -103,6 +103,6 @@ get_shapes_sf.data.frame <- function(obj){
           sf::st_as_sf()
     }
 
-    return(obj)
+    return(gtfs)
   }
 }

@@ -43,6 +43,7 @@ This function calls specific sub-functions based on the selected method:
 If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 }
 \examples{
+\dontrun{
 # Calculate fleet requirements by route
 fleet_by_route <- get_fleet(gtfs = for_gtfs, method = "by.route")
 
@@ -54,6 +55,7 @@ fleet_peak <- get_fleet(gtfs = for_gtfs, method = "peak")
 
 # Calculate detailed fleet requirements over timepoints
 fleet_detailed <- get_fleet(gtfs = for_gtfs, method = "detailed")
+}
 
 }
 \seealso{

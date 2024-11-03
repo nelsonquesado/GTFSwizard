@@ -38,7 +38,7 @@ merge_gtfs <- function(gtfs.x, gtfs.y, suffix = TRUE){
 
   if(!"wizardgtfs" %in% class(gtfs.x)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs.x)
-    warning('\nThe first gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(!"wizardgtfs" %in% class(gtfs.y)){

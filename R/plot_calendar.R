@@ -16,11 +16,13 @@
 #' - If `facet_by_year = TRUE`, the plot will display each year in separate rows, and `ncol` is automatically set to zero.
 #'
 #' @examples
+#' \dontrun{
 #' # Plot a GTFS trip calendar with 4 columns
 #' plot_calendar(for_gtfs, ncol = 4)
 #'
 #' # Plot a GTFS trip calendar, faceting by year
 #' plot_calendar(for_gtfs, facet_by_year = TRUE)
+#' }
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()]

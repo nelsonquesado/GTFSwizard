@@ -30,6 +30,7 @@
 #' If an invalid `method` is provided, the function defaults to `"by.route"` and issues a warning.
 #'
 #' @examples
+#' \dontrun{
 #' # Calculate average route distances
 #' distances_by_route <- get_distances(gtfs = for_gtfs, method = "by.route")
 #'
@@ -38,6 +39,7 @@
 #'
 #' # Calculate detailed distances between stops
 #' detailed_distances <- get_distances(gtfs = for_gtfs, method = "detailed")
+#' }
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
