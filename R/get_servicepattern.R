@@ -15,8 +15,10 @@
 #' The function first checks if the input `gtfs` object is of class `wizardgtfs`. If not, it converts it using `as_wizardgtfs()`. It then groups services by common dates of operation, assigns a frequency to each unique pattern, and organizes these into service pattern identifiers, ordered by their frequency.
 #'
 #' @examples
+#' \dontrun{
 #' # Generate service patterns for a GTFS object
 #' service_patterns <- get_servicepattern(gtfs = for_gtfs)
+#' }
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()]

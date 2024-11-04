@@ -14,8 +14,10 @@
 #' - If the `stops` table is already in `sf` format, the function simply reassigns the CRS and returns it unchanged.
 #'
 #' @examples
+#' \dontrun{
 #' # Convert stops data in a GTFS object to sf format
 #' gtfs_sf <- get_stops_sf(for_gtfs)
+#' }
 #'
 #' @seealso
 #' [GTFSwizard::get_shapes()], [GTFSwizard::get_shapes_sf()], [GTFSwizard::get_shapes_df()]

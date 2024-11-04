@@ -19,8 +19,10 @@
 #' This function assumes that both input datasets follow GTFS structure. Non-standard tables or columns may be ignored or cause warnings.
 #'
 #' @examples
+#' \dontrun{
 #' # Merge two GTFS datasets with suffix handling
 #' merged_gtfs <- merge_gtfs(for_gtfs, for_gtfs, suffix = TRUE)
+#' }
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()]
@@ -29,7 +31,6 @@
 #' @importFrom checkmate assert_logical
 #' @importFrom crayon blue
 #' @export
-
 
 merge_gtfs <- function(gtfs.x, gtfs.y, suffix = TRUE){
 

@@ -410,6 +410,3 @@ explore_gtfs <-
     return(shiny::shinyApp(ui, server))
 
   }
-
-
-#explore_gtfs(gtfs)

@@ -6,7 +6,6 @@ seqs_table <- function(intervals){
     dplyr::mutate(date = purrr::map(period,function(x) seq(int_start(x),int_end(x),'1 day')))
 }
 
-
 label_wday <- function(x=1:7){
   c('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')[x]
 }
@@ -165,10 +164,6 @@ field_if_exist <- function(tbl,x){
   }
 }
 
-
-
-
-
 get_stop_dists <- function(gtfs){
   gtfs$stop_times %>%
     dplyr::left_join(gtfs$trips %>% select('route_id','trip_id', 'direction_id'[verify_field(gtfs$trips,'direction_id')]),by = 'trip_id') %>%
@@ -181,7 +176,6 @@ get_stop_dists <- function(gtfs){
     .$dists %>% unlist() %>% median(na.rm = T) %>%
     round(1)
 }
-
 
 get_trip_stops_dist <- function(lon,lat){
   coords<-matrix(c(lon,lat),ncol = 2)

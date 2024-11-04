@@ -26,8 +26,10 @@ An `sf` object with shapes as `LINESTRING` geometries:
 If `shape_pt_sequence` is missing, the function will assume that points are ordered, constructing the shape accordingly.
 }
 \examples{
+\dontrun{
 # Convert shapes data in a GTFS object to sf format
 gtfs_sf <- get_shapes_sf(for_gtfs)
+}
 
 }
 \seealso{

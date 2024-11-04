@@ -49,8 +49,6 @@
 
 
 # Main Function ----------------------------------------------------------------
-
-
 #' Select Subsets of GTFS Data
 #'
 #' The “selection” function makes a selection in the GTFS file without altering or filtering the GTFS file.
@@ -207,7 +205,6 @@ selection.wizardgtfs <- function(gtfs,...,add = FALSE){
 
   return(gtfs)
 }
-
 
 #' @exportS3Method GTFSwizard::selection wizardgtfs_selected
 selection.wizardgtfs_selected <- function(gtfs,...,add = FALSE){

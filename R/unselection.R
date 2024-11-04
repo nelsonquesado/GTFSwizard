@@ -1,13 +1,10 @@
-
 #' @rdname selection
 #' @aliases unselection
 #' @export
 
-
 unselection <- function(gtfs){
   UseMethod('unselection')
 }
-
 
 #' @exportS3Method GTFSwizard::unselection wizardgtfs_selected
 unselection.wizardgtfs_selected <- function(gtfs){

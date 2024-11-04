@@ -35,4 +35,4 @@
 #' head(for_gtfs$stops)
 #' }
 #'
-data("for_gtfs")
+data("for_gtfs", package = "GTFSwizard")

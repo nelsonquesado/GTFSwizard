@@ -1,5 +1,3 @@
-
-
 .onLoad <- function(libname,pkgname){
   invisible(
     suppressMessages(
@@ -10,8 +8,8 @@
           function(x){
             invisible(
               suppressPackageStartupMessages(
-                library(x,quietly = TRUE,character.only = TRUE)
-                #requireNamespace(x, quietly = TRUE)
+                #library(x,quietly = TRUE,character.only = TRUE)
+                requireNamespace(x, quietly = TRUE)
               )
             )
           })

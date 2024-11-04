@@ -1,5 +1,5 @@
-#' @aliases print
-print.wizardgtfs <- function(gtfs){
+#' @exportS3Method base::print wizardgtfs
+print.wizardgtfs <- function(gtfs, ...){
 
   cat(crayon::bold('A wizardgtfs object with: '),'\n')
   cat('\t',length(gtfs$agency$agency_id),' agencys')
@@ -19,8 +19,8 @@ print.wizardgtfs <- function(gtfs){
 
 }
 
-#' @aliases print
-print.summary.wizardgtfs <- function(ls.summ){
+#' @exportS3Method base::print
+print.summary.wizardgtfs <- function(ls.summ, ...){
   cat(crayon::bold('A wizardgtfs object with: '),'\n\n')
   cat(crayon::cyan(crayon::bold(ls.summ$n)),crayon::silver(' GTFS tables'),'\n')
   cat('With the following names and respective numbers of entries in each:','\n')
@@ -37,8 +37,8 @@ print.summary.wizardgtfs <- function(ls.summ){
       crayon::silver(' meters is the average distance between sequencial stops in a given route'),'\n')
 }
 
-#' @aliases print
-summary.wizardgtfs <- function(gtfs){
+#' @exportS3Method base::summary wizardgtfs
+summary.wizardgtfs <- function(gtfs, ...){
   summ <- list(
     n = length(gtfs)-1,
     tables = lapply(gtfs[names(gtfs)!='dates_services'],nrow ) %>% unlist(),
@@ -55,8 +55,8 @@ summary.wizardgtfs <- function(gtfs){
   print(summ)
 }
 
-#' @aliases print
-plot.wizardgtfs <- function(gtfs){
+#' @exportS3Method base::plot wizardgtfs
+plot.wizardgtfs <- function(gtfs, ...){
   nm = names(gtfs)
   if (sum(c("stops",'shapes') %in% nm) == 0) {
     stop(crayon::red("Feed doesn't contain a stops table nor a shapes table"),'\n\t',
@@ -122,8 +122,8 @@ plot.wizardgtfs <- function(gtfs){
 
 }
 
-#' @aliases plot
-plot_shapes.stops <- function(gtfs){
+#' @exportS3Method base::plot
+plot_shapes.stops <- function(gtfs, ...){
 
   if(nrow(gtfs$agency)==1){
 
@@ -214,8 +214,8 @@ plot_shapes.stops <- function(gtfs){
 
 }
 
-#' @aliases plot
-plot_shapes <- function(gtfs){
+#' @exportS3Method base::plot
+plot_shapes <- function(gtfs, ...){
 
   if(!verify_field(gtfs$trips,'shape_id')|!verify_field(gtfs$routes,'agency_id')){
 
@@ -256,15 +256,15 @@ plot_shapes <- function(gtfs){
 
 }
 
-#' @aliases plot
-plot_stops <- function(gtfs){
+#' @exportS3Method base::plot
+plot_stops <- function(gtfs, ...){
 
   if(!verify_field(gtfs$stop_times,'stop_id')|!verify_field(gtfs$routes,'agency_id')){
 
     return(
-      ggplot(stops)+
-        geom_sf(color = '#41A5E1',size=1)+
-        theme_light()+
+      ggplot(stops) +
+        geom_sf(color = '#41A5E1',size=1) +
+        theme_light() +
         theme(axis.title = element_blank(),
               panel.background = element_blank(),
               panel.grid = element_blank())+
@@ -323,4 +323,3 @@ get_fct_plot_cols <- function(x){
   }
 
 }
-
