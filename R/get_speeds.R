@@ -57,7 +57,7 @@ get_speeds_detailed <- function(gtfs){ ... }
 
 get_speeds <- function(gtfs, method = 'by.route'){
 
-  if(is_null(gtfs$shapes)){
+  if(purrr::is_null(gtfs$shapes)){
 
     gtfs <- GTFSwizard::get_shapes(gtfs)
 

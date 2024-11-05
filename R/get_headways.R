@@ -97,7 +97,7 @@ get_headway_byhour <- function(gtfs){
   hw <-
     gtfs$stop_times %>%
     dplyr::filter(!arrival_time == '') %>%
-    dplyr::left_join(gtfs$trips, by = join_by(trip_id)) %>%
+    dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
     group_by(route_id, trip_id, service_pattern, pattern_frequency) %>%
     reframe(arrival_time = arrival_time[1]) %>%
@@ -138,7 +138,7 @@ get_headway_byroute <- function(gtfs){
   hw <-
     gtfs$stop_times %>%
     dplyr::filter(!arrival_time == '') %>%
-    dplyr::left_join(gtfs$trips, by = join_by(trip_id)) %>%
+    dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
     group_by(route_id, trip_id, service_pattern, pattern_frequency) %>%
     reframe(arrival_time = arrival_time[1]) %>%
@@ -178,7 +178,7 @@ get_headway_bytrip <- function(gtfs){
   hw <-
     gtfs$stop_times %>%
     dplyr::filter(!arrival_time == '') %>%
-    dplyr::left_join(gtfs$trips, by = join_by(trip_id)) %>%
+    dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
     group_by(route_id, trip_id, service_pattern, pattern_frequency) %>%
     reframe(arrival_time = arrival_time[1]) %>% # assume headway constante ao longo das paradas

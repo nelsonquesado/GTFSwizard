@@ -48,8 +48,8 @@ get_shapes_df <- function(shape){
     stop()
   }
 
-  if(is_null(shape$shape_id)){
-    warning(crayon::cyan('shape'), ' dos not contains the ', crayon::cyan('shape_id'), ' column.')
+  if(purrr::is_null(shape$shape_id)){
+    warning(crayon::cyan('shape'), ' does not contains the ', crayon::cyan('shape_id'), ' column.')
     stop()
   }
 

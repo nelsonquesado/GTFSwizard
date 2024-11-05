@@ -131,12 +131,12 @@ filter_servicepattern <- function(gtfs, servicepattern = NULL){
     gtfs$trips$shape_id %>%
     unique
 
-  if(!is_null(gtfs$shapes)){
+  if(!purrr::is_null(gtfs$shapes)){
     gtfs$shapes <-
       gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
   }
 
-  if(!is_null(gtfs$fare_rules)){
+  if(!purrr::is_null(gtfs$fare_rules)){
     gtfs$fare_rules <-
       gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
 
@@ -145,33 +145,33 @@ filter_servicepattern <- function(gtfs, servicepattern = NULL){
       unique
   }
 
-  if(!is_null(gtfs$fare_attributes)){
+  if(!purrr::is_null(gtfs$fare_attributes)){
     gtfs$fare_attributes <-
       gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
   }
 
-  if(!is_null(gtfs$calendar)){
+  if(!purrr::is_null(gtfs$calendar)){
     gtfs$calendar <-
       gtfs$calendar[gtfs$calendar$service_id %in% services, ]
   }
 
-  # if(!is_null(gtfs$calendar_dates)){
+  # if(!purrr::is_null(gtfs$calendar_dates)){
   #   gtfs$calendar_dates <-
   #   gtfs$calendar_dates %>%
   #   dplyr::filter(service_id %in% services)
   # }
 
-  if(!is_null(gtfs$frequencies)){
+  if(!purrr::is_null(gtfs$frequencies)){
     gtfs$frequencies <-
       gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
   }
 
-  if(!is_null(gtfs$transfers)){
+  if(!purrr::is_null(gtfs$transfers)){
     gtfs$transfers <-
       gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
   }
 
-  if(!is_null(gtfs$dates_services)){
+  if(!purrr::is_null(gtfs$dates_services)){
 
     gtfs$dates_services <- NULL
 
@@ -245,12 +245,12 @@ filter_date <- function(gtfs, dates = NULL){
     gtfs$trips$shape_id %>%
     unique
 
-  if(!is_null(gtfs$shapes)){
+  if(!purrr::is_null(gtfs$shapes)){
     gtfs$shapes <-
       gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
   }
 
-  if(!is_null(gtfs$fare_rules)){
+  if(!purrr::is_null(gtfs$fare_rules)){
     gtfs$fare_rules <-
       gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
 
@@ -259,12 +259,12 @@ filter_date <- function(gtfs, dates = NULL){
       unique
   }
 
-  if(!is_null(gtfs$fare_attributes)){
+  if(!purrr::is_null(gtfs$fare_attributes)){
     gtfs$fare_attributes <-
       gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
   }
 
-  if(!is_null(gtfs$calendar)){
+  if(!purrr::is_null(gtfs$calendar)){
     new.calendar.dates <-
       tibble(service_id = as.character(services),
              start_date = list(date),
@@ -274,25 +274,25 @@ filter_date <- function(gtfs, dates = NULL){
     gtfs$calendar <-
       gtfs$calendar[gtfs$calendar$service_id %in% services, ] %>%
       .[, 1:8] %>%
-      dplyr::left_join(new.calendar.dates, by = join_by(service_id))
+      dplyr::left_join(new.calendar.dates, by = dplyr::join_by(service_id))
   }
 
-  if(!is_null(gtfs$calendar_dates)){
+  if(!purrr::is_null(gtfs$calendar_dates)){
     gtfs$calendar_dates <-
       gtfs$calendar_dates[gtfs$calendar_dates$date %in% date, ]
   }
 
-  if(!is_null(gtfs$frequencies)){
+  if(!purrr::is_null(gtfs$frequencies)){
     gtfs$frequencies <-
       gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
   }
 
-  if(!is_null(gtfs$transfers)){
+  if(!purrr::is_null(gtfs$transfers)){
     gtfs$transfers <-
       gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
   }
 
-  if(!is_null(gtfs$dates_services)){
+  if(!purrr::is_null(gtfs$dates_services)){
 
     gtfs$dates_services <- NULL
 
@@ -364,12 +364,12 @@ filter_service <- function(gtfs, service){
     gtfs$trips$shape_id %>%
     unique
 
-  if(!is_null(gtfs$shapes)){
+  if(!purrr::is_null(gtfs$shapes)){
     gtfs$shapes <-
       gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
   }
 
-  if(!is_null(gtfs$fare_rules)){
+  if(!purrr::is_null(gtfs$fare_rules)){
     gtfs$fare_rules <-
       gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
 
@@ -378,33 +378,33 @@ filter_service <- function(gtfs, service){
       unique
   }
 
-  if(!is_null(gtfs$fare_attributes)){
+  if(!purrr::is_null(gtfs$fare_attributes)){
     gtfs$fare_attributes <-
       gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
   }
 
-  if(!is_null(gtfs$calendar)){
+  if(!purrr::is_null(gtfs$calendar)){
     gtfs$calendar <-
       gtfs$calendar[gtfs$calendar$service_id %in% services, ]
   }
 
-  if(!is_null(gtfs$calendar_dates)){
+  if(!purrr::is_null(gtfs$calendar_dates)){
     gtfs$calendar_dates <-
       gtfs$calendar_dates %>%
       dplyr::filter(service_id %in% services)
   }
 
-  if(!is_null(gtfs$frequencies)){
+  if(!purrr::is_null(gtfs$frequencies)){
     gtfs$frequencies <-
       gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
   }
 
-  if(!is_null(gtfs$transfers)){
+  if(!purrr::is_null(gtfs$transfers)){
     gtfs$transfers <-
       gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
   }
 
-  if(!is_null(gtfs$dates_services)){
+  if(!purrr::is_null(gtfs$dates_services)){
 
       gtfs$dates_services <- NULL
 
@@ -426,7 +426,7 @@ filter_route <- function(gtfs, route, keep = TRUE){
     message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
-  if(is.null(route)){
+  if(purrr::is_null(route)){
     message('\nNo route(s) provided.\nRun gtfs$routes to check available routes.')
     stop()
   }
@@ -478,12 +478,12 @@ filter_route <- function(gtfs, route, keep = TRUE){
     gtfs$trips$shape_id %>%
     unique
 
-  if(!is_null(gtfs$shapes)){
+  if(!purrr::is_null(gtfs$shapes)){
     gtfs$shapes <-
       gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
   }
 
-  if(!is_null(gtfs$fare_rules)){
+  if(!purrr::is_null(gtfs$fare_rules)){
     gtfs$fare_rules <-
       gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
 
@@ -492,7 +492,7 @@ filter_route <- function(gtfs, route, keep = TRUE){
       unique
   }
 
-  if(!is_null(gtfs$fare_attributes)){
+  if(!purrr::is_null(gtfs$fare_attributes)){
     gtfs$fare_attributes <-
       gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
   }
@@ -501,28 +501,28 @@ filter_route <- function(gtfs, route, keep = TRUE){
     gtfs$trips$service_id %>%
     unique
 
-  if(!is_null(gtfs$calendar)){
+  if(!purrr::is_null(gtfs$calendar)){
     gtfs$calendar <-
       gtfs$calendar[gtfs$calendar$service_id %in% services, ]
   }
 
-  if(!is_null(gtfs$calendar_dates)){
+  if(!purrr::is_null(gtfs$calendar_dates)){
     gtfs$calendar_dates <-
       gtfs$calendar_dates %>%
       dplyr::filter(service_id %in% services)
   }
 
-  if(!is_null(gtfs$frequencies)){
+  if(!purrr::is_null(gtfs$frequencies)){
     gtfs$frequencies <-
       gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
   }
 
-  if(!is_null(gtfs$transfers)){
+  if(!purrr::is_null(gtfs$transfers)){
     gtfs$transfers <-
       gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
   }
 
-  if(!is_null(gtfs$dates_services)){
+  if(!purrr::is_null(gtfs$dates_services)){
 
     gtfs$dates_services <- NULL
 
@@ -597,12 +597,12 @@ filter_trip <- function(gtfs, trip, keep = TRUE){
     gtfs$trips$shape_id %>%
     unique
 
-  if(!is_null(gtfs$shapes)){
+  if(!purrr::is_null(gtfs$shapes)){
     gtfs$shapes <-
       gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
   }
 
-  if(!is_null(gtfs$fare_rules)){
+  if(!purrr::is_null(gtfs$fare_rules)){
     gtfs$fare_rules <-
       gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
 
@@ -611,7 +611,7 @@ filter_trip <- function(gtfs, trip, keep = TRUE){
       unique
   }
 
-  if(!is_null(gtfs$fare_attributes)){
+  if(!purrr::is_null(gtfs$fare_attributes)){
     gtfs$fare_attributes <-
       gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
   }
@@ -620,28 +620,28 @@ filter_trip <- function(gtfs, trip, keep = TRUE){
     gtfs$trips$service_id %>%
     unique
 
-  if(!is_null(gtfs$calendar)){
+  if(!purrr::is_null(gtfs$calendar)){
     gtfs$calendar <-
       gtfs$calendar[gtfs$calendar$service_id %in% services, ]
   }
 
-  if(!is_null(gtfs$calendar_dates)){
+  if(!purrr::is_null(gtfs$calendar_dates)){
     gtfs$calendar_dates <-
       gtfs$calendar_dates %>%
       dplyr::filter(service_id %in% services)
   }
 
-  if(!is_null(gtfs$frequencies)){
+  if(!purrr::is_null(gtfs$frequencies)){
     gtfs$frequencies <-
       gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
   }
 
-  if(!is_null(gtfs$transfers)){
+  if(!purrr::is_null(gtfs$transfers)){
     gtfs$transfers <-
       gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
   }
 
-  if(!is_null(gtfs$dates_services)){
+  if(!purrr::is_null(gtfs$dates_services)){
 
     gtfs$dates_services <- NULL
 
@@ -703,7 +703,7 @@ filter_stop <- function(gtfs, stop){
   gtfs$agency <-
     gtfs$agency[gtfs$agency$agency_id %in% agencies, ]
 
-  if(!is_null(gtfs$shapes)){
+  if(!purrr::is_null(gtfs$shapes)){
     shapes <-
       gtfs$trips$shape_id %>%
       unique
@@ -712,13 +712,13 @@ filter_stop <- function(gtfs, stop){
       gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
   }
 
-  if(!is_null(gtfs$fare_rules)){
+  if(!purrr::is_null(gtfs$fare_rules)){
     gtfs$fare_rules <-
       gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
 
   }
 
-  if(!is_null(gtfs$fare_attributes)){
+  if(!purrr::is_null(gtfs$fare_attributes)){
     fares <-
       gtfs$fare_rules$fare_id %>%
       unique
@@ -731,28 +731,28 @@ filter_stop <- function(gtfs, stop){
     gtfs$trips$service_id %>%
     unique
 
-  if(!is_null(gtfs$calendar)){
+  if(!purrr::is_null(gtfs$calendar)){
     gtfs$calendar <-
       gtfs$calendar[gtfs$calendar$service_id %in% services, ]
   }
 
-  if(!is_null(gtfs$calendar_dates)){
+  if(!purrr::is_null(gtfs$calendar_dates)){
     gtfs$calendar_dates <-
       gtfs$calendar_dates %>%
       dplyr::filter(service_id %in% services)
   }
 
-  if(!is_null(gtfs$frequencies)){
+  if(!purrr::is_null(gtfs$frequencies)){
     gtfs$frequencies <-
       gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
   }
 
-  if(!is_null(gtfs$transfers)){
+  if(!purrr::is_null(gtfs$transfers)){
     gtfs$transfers <-
       gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
   }
 
-  if(!is_null(gtfs$dates_services)){
+  if(!purrr::is_null(gtfs$dates_services)){
 
       gtfs$dates_services <- NULL
 
@@ -860,7 +860,7 @@ filter_time <- function(gtfs, from = '0:0:0', to = "48:00:00"){
   gtfs$agency <-
     gtfs$agency[gtfs$agency$agency_id %in% agencies, ]
 
-  if(!is_null(gtfs$shapes)){
+  if(!purrr::is_null(gtfs$shapes)){
     shapes <-
       gtfs$trips$shape_id %>%
       unique
@@ -869,13 +869,13 @@ filter_time <- function(gtfs, from = '0:0:0', to = "48:00:00"){
       gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
   }
 
-  if(!is_null(gtfs$fare_rules)){
+  if(!purrr::is_null(gtfs$fare_rules)){
     gtfs$fare_rules <-
       gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
 
   }
 
-  if(!is_null(gtfs$fare_attributes)){
+  if(!purrr::is_null(gtfs$fare_attributes)){
     fares <-
       gtfs$fare_rules$fare_id %>%
       unique
@@ -884,28 +884,28 @@ filter_time <- function(gtfs, from = '0:0:0', to = "48:00:00"){
       gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
   }
 
-  if(!is_null(gtfs$calendar)){
+  if(!purrr::is_null(gtfs$calendar)){
     gtfs$calendar <-
       gtfs$calendar[gtfs$calendar$service_id %in% services, ]
   }
 
-  if(!is_null(gtfs$calendar_dates)){
+  if(!purrr::is_null(gtfs$calendar_dates)){
     gtfs$calendar_dates <-
       gtfs$calendar_dates %>%
       dplyr::filter(service_id %in% services)
   }
 
-  if(!is_null(gtfs$frequencies)){
+  if(!purrr::is_null(gtfs$frequencies)){
     gtfs$frequencies <-
       gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
   }
 
-  if(!is_null(gtfs$transfers)){
+  if(!purrr::is_null(gtfs$transfers)){
     gtfs$transfers <-
       gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
   }
 
-  if(!is_null(gtfs$dates_services)){
+  if(!purrr::is_null(gtfs$dates_services)){
 
       gtfs$dates_services <- NULL
 

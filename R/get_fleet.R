@@ -353,7 +353,7 @@ get_fleet_peak <- function(gtfs){
     dplyr::reframe(fleet = max(fleet)) %>%
     dplyr::select(hour, fleet, service_pattern, pattern_frequency) %>%
     dplyr::group_by(service_pattern) %>%
-    dplyr::arrange(., service_pattern, desc(fleet)) %>%
+    dplyr::arrange(., service_pattern, dplyr::desc(fleet)) %>%
     dplyr::slice(1:3)
 
   return(fleet)

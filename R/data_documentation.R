@@ -35,4 +35,33 @@
 #' head(for_gtfs$stops)
 #' }
 #'
-data("for_gtfs", package = "GTFSwizard")
+#' @importFrom dplyr %>%
+#' @importFrom dplyr n
+#' @importFrom dplyr lag
+#' @importFrom dplyr lead
+#' @importFrom dplyr if_else
+#' @importFrom sf st_contains
+#' @importFrom sf st_crosses
+#' @importFrom sf st_crs<-
+#' @importFrom sf st_drop_geometry
+#' @importFrom sf st_equals
+#' @importFrom sf st_intersects
+#' @importFrom sf st_overlaps
+#' @importFrom sf st_point
+#' @importFrom sf st_sfc
+#' @importFrom sf st_touches
+#' @importFrom sf st_within
+#' @importFrom lubridate is.POSIXct
+#' @importFrom lubridate is.POSIXlt
+#' @importFrom lubridate is.Date
+#' @importFrom lubridate interval
+#' @importFrom lubridate int_start
+#' @importFrom lubridate int_end
+#' @importFrom ggplot2 element_blank
+#' @importFrom ggplot2 element_text
+#' @importFrom ggplot2 theme_light
+#' @importFrom ggplot2 theme_linedraw
+#' @importFrom data.table setnames
+#' @importFrom forcats as_factor
+utils::globalVariables(c("hour", "period", "n", "count"))
+# data(for_gtfs)

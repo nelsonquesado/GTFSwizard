@@ -185,6 +185,19 @@ get_trip_stops_dist <- function(lon,lat){
   return(distancias)
 }
 
+check_pkg_all <- function() {
+  required_packages <- c("shiny", "plotly", "leaflet", "leaflet.extras", "crayon", "geosphere",
+                         "stplanr", "hrbrthemes", "checkmate", "dplyr", "ggplot2", "glue",
+                         "gtfsio", "hms", "purrr", "rlang", "sfnetworks", "stringr",
+                         "gtfstools", "tidytransit", "lubridate", "sf", "tidyr", "data.table", "tibble")
+
+  lapply(required_packages, function(pkg) {
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+      stop(paste0("Package '", pkg, "' is needed for this function to work. Please install it."))
+    }
+  })
+}
+
 utils::globalVariables(c(
   "agency_id", "agency_name", "arrival_filter", "arrival_time",
   "average.distance", "average.duration", "average.dwelltime",

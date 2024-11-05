@@ -57,7 +57,7 @@ split_trip <- function(gtfs, trip, split = 1){
     dplyr::mutate(subtrip = if_else(split == T, ceiling(1:n()/n() * groups), NA),
            dupe = split == T & !subtrip == lead(subtrip)) %>%
     dplyr::ungroup() %>%
-    dplyr::bind_rows(slice(., .$dupe %>% which()) %>% mutate(subtrip = subtrip + 1))
+    dplyr::bind_rows(dplyr::slice(., .$dupe %>% which()) %>% mutate(subtrip = subtrip + 1))
 
   trip.dic <-
     split_data %>%
@@ -75,7 +75,7 @@ split_trip <- function(gtfs, trip, split = 1){
     mutate(trip_id = if_else(is.na(new.trip_id), trip_id, new.trip_id)) %>%
     select(-subtrip, -dupe, -new.trip_id)
 
-  if (!is_null(gtfs$stop_times$shape_dist_traveled)) {
+  if (!purrr::is_null(gtfs$stop_times$shape_dist_traveled)) {
 
     gtfs$stop_times <-
       gtfs$stop_times %>%
@@ -93,7 +93,7 @@ split_trip <- function(gtfs, trip, split = 1){
     dplyr::select(-new.trip_id, -subtrip)
 
   # frequencies ---------------------------------------------------------------------------------
-  if (!is_null(gtfs$frequencies$trip_id)) {
+  if (!purrr::is_null(gtfs$frequencies$trip_id)) {
 
     gtfs$frequencies <-
       dplyr::left_join(gtfs$frequencies, trip.dic, by = 'trip_id') %>%
@@ -103,7 +103,7 @@ split_trip <- function(gtfs, trip, split = 1){
   }
 
   # transfers -----------------------------------------------------------------------------------
-  if (!is_null(gtfs$transfers$trip_id)) {
+  if (!purrr::is_null(gtfs$transfers$trip_id)) {
 
     gtfs$transfers <-
       dplyr::left_join(gtfs$transfers, trip.dic, by = 'trip_id') %>%

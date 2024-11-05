@@ -41,7 +41,7 @@ get_shapes <- function(gtfs){
     message('\nThis gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
-  if(!is_null(gtfs$shapes)){
+  if(!purrr::is_null(gtfs$shapes)){
     warning('This gtfs object already contains a shapes table.\n', crayon::cyan('get_shapes()'), ' will', crayon::red(" overwrite"), ' it.')
   }
 
@@ -52,7 +52,7 @@ get_shapes <- function(gtfs){
     dplyr::left_join(gtfs$stops %>%
                        tidytransit::stops_as_sf() %>%
                        dplyr::select(stop_id),
-                     by = join_by(stop_id)
+                     by = dplyr::join_by(stop_id)
                      ) %>%
     sf::st_as_sf(crs = 4326) %>%
     dplyr::group_by(trip_id) %>%

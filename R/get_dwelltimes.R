@@ -94,7 +94,7 @@ get_dwelltime_byhour <- function(gtfs, max.dwelltime = 90){
   dwell_time <-
     gtfs$stop_times %>%
     dplyr::filter(!arrival_time == '' & !departure_time == "") %>%
-    dplyr::left_join(gtfs$trips, by = join_by(trip_id)) %>%
+    dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
     dplyr::group_by(arrival_time, departure_time, service_pattern, pattern_frequency) %>%
     dplyr::reframe(n = n()) %>%
@@ -140,7 +140,7 @@ get_dwelltime_byroute <- function(gtfs, max.dwelltime = 90){
   dwell_time <-
     gtfs$stop_times %>%
     dplyr::filter(!arrival_time == '' & !departure_time == "") %>%
-    dplyr::left_join(gtfs$trips, by = join_by(trip_id)) %>%
+    dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
     dplyr::group_by(route_id, trip_id, arrival_time, departure_time, service_pattern, pattern_frequency) %>%
     dplyr::reframe(n = n()) %>%
@@ -185,7 +185,7 @@ get_dwelltime_bytrip <- function(gtfs, max.dwelltime = 90){
   dwell_time <-
     gtfs$stop_times %>%
     dplyr::filter(!arrival_time == '' & !departure_time == "") %>%
-    dplyr::left_join(gtfs$trips, by = join_by(trip_id)) %>%
+    dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
     dplyr::group_by(route_id, trip_id, arrival_time, departure_time, service_pattern, pattern_frequency) %>%
     dplyr::reframe(n = n()) %>%
@@ -249,7 +249,7 @@ get_dwelltime_detailed <- function(gtfs, max.dwelltime = 90){
                   dwell_time = departure_time - arrival_time
     ) %>%
     dplyr::filter(dwell_time <= max.dwelltime) %>%
-    dplyr::left_join(gtfs$trips, by = join_by(trip_id)) %>%
+    dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
     dplyr::select(route_id, trip_id, stop_id, hour, dwell_time, service_pattern, pattern_frequency)
 

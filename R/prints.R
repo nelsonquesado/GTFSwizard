@@ -19,7 +19,7 @@ print.wizardgtfs <- function(gtfs, ...){
 
 }
 
-#' @exportS3Method base::print
+#' @exportS3Method base::print summary.wizardgtfs
 print.summary.wizardgtfs <- function(ls.summ, ...){
   cat(crayon::bold('A wizardgtfs object with: '),'\n\n')
   cat(crayon::cyan(crayon::bold(ls.summ$n)),crayon::silver(' GTFS tables'),'\n')
@@ -122,7 +122,7 @@ plot.wizardgtfs <- function(gtfs, ...){
 
 }
 
-#' @exportS3Method base::plot
+
 plot_shapes.stops <- function(gtfs, ...){
 
   if(nrow(gtfs$agency)==1){
@@ -214,7 +214,7 @@ plot_shapes.stops <- function(gtfs, ...){
 
 }
 
-#' @exportS3Method base::plot
+
 plot_shapes <- function(gtfs, ...){
 
   if(!verify_field(gtfs$trips,'shape_id')|!verify_field(gtfs$routes,'agency_id')){
@@ -256,7 +256,7 @@ plot_shapes <- function(gtfs, ...){
 
 }
 
-#' @exportS3Method base::plot
+
 plot_stops <- function(gtfs, ...){
 
   if(!verify_field(gtfs$stop_times,'stop_id')|!verify_field(gtfs$routes,'agency_id')){

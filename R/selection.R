@@ -141,7 +141,7 @@ selection.wizardgtfs <- function(gtfs,...,add = FALSE){
 
   expr <- substitute(...)
 
-  variables <- enquos(..., .ignore_empty = 'all') %>%
+  variables <- dplyr::enquos(..., .ignore_empty = 'all') %>%
     sapply(rlang::quo_get_expr) %>% as.character() %>%
     strsplit('&|\\|') %>% unlist() %>%
     stringr::str_trim() %>% sapply(function(x) unlist(strsplit(x,' '))[1])
@@ -213,7 +213,7 @@ selection.wizardgtfs_selected <- function(gtfs,...,add = FALSE){
 
     expr <- substitute(...)
 
-    variables <- enquos(..., .ignore_empty = 'all') %>%
+    variables <- dplyr::enquos(..., .ignore_empty = 'all') %>%
       sapply(rlang::quo_get_expr) %>% as.character() %>%
       strsplit('&|\\|') %>% unlist() %>%
       stringr::str_trim() %>% sapply(function(x) unlist(strsplit(x,' '))[1])

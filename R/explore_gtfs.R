@@ -46,7 +46,7 @@ explore_gtfs <-
 
     }
 
-    if(is_null(gtfs$shapes)){
+    if(purrr::is_null(gtfs$shapes)){
 
       gtfs <- GTFSwizard::get_shapes(gtfs)
 
@@ -355,15 +355,15 @@ explore_gtfs <-
 
       # BY ROOOOOOUTE -------
       # map by route ----
-      gtfs.filtered <- reactive({
+      gtfs.filtered <- shiny::reactive({
         GTFSwizard::filter_route(gtfs, route = input$selected.routes)
       })
 
-      gtfs.filtered.trips.shp <- reactive({
+      gtfs.filtered.trips.shp <- shiny::reactive({
         tidytransit::shapes_as_sf(gtfs.filtered() %>% .$shapes)
       })
 
-      gtfs.filtered.stops.shp <- reactive({
+      gtfs.filtered.stops.shp <- shiny::reactive({
         tidytransit::gtfs_as_sf(gtfs.filtered()) %>%
           .$stops %>%
           dplyr::left_join(
@@ -393,12 +393,12 @@ explore_gtfs <-
       })
 
       # frequency by route ----
-      route <- reactive({input$selected.routes})
+      route <- shiny::reactive({input$selected.routes})
 
       output$freq.sparkline.byroute <- plotly::renderPlotly({plot_routefrequency(gtfs, route())})
 
       # headway by route ----
-      headway.byroute <- reactive({
+      headway.byroute <- shiny::reactive({
         GTFSwizard::get_headways(gtfs.filtered(), method = 'detailed')
       })
 

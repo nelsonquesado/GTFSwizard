@@ -80,7 +80,7 @@ get_distances_byroute <- function(gtfs){
     warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
   }
 
-  if(is_null(gtfs$shapes)){
+  if(purrr::is_null(gtfs$shapes)){
 
     gtfs <- GTFSwizard::get_shapes(gtfs)
 
@@ -114,7 +114,7 @@ get_distances_bytrip <- function(gtfs){
     warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
   }
 
-  if(is_null(gtfs$shapes)){
+  if(purrr::is_null(gtfs$shapes)){
 
     gtfs <- GTFSwizard::get_shapes(gtfs)
 
@@ -145,7 +145,7 @@ get_distances_detailed <- function(gtfs){
     warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
   }
 
-  if(is_null(gtfs$shapes)){
+  if(purrr::is_null(gtfs$shapes)){
 
     gtfs <- GTFSwizard::get_shapes(gtfs)
 
