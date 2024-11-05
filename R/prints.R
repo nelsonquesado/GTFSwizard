@@ -38,7 +38,8 @@ print.summary.wizardgtfs <- function(x, ...){
 }
 
 #' @exportS3Method base::summary wizardgtfs
-summary.wizardgtfs <- function(x, ...){
+summary.wizardgtfs <- function(object, ...){
+  x <- object
   summ <- list(
     n = length(x)-1,
     tables = lapply(x[names(x)!='dates_services'],nrow ) %>% unlist(),
@@ -128,14 +129,14 @@ plot_shapes.stops <- function(gtfs, ...){
   if(nrow(gtfs$agency)==1){
 
     return(
-      ggplot::ggplot()+
-        ggplot::geom_sf(data = gtfs$stops,show.legend = F,color = '#41A5E1',size=1)+
-        ggplot::geom_sf(data = gtfs$shapes,ggplot::aes(color = shape_id),show.legend = F)+
-        ggplot::theme_linedraw()+
-        ggplot::theme(axis.title = element_blank(),
+      ggplot2::ggplot()+
+        ggplot2::geom_sf(data = gtfs$stops,show.legend = F,color = '#41A5E1',size=1)+
+        ggplot2::geom_sf(data = gtfs$shapes,ggplot2::aes(color = shape_id),show.legend = F)+
+        ggplot2::theme_linedraw()+
+        ggplot2::theme(axis.title = element_blank(),
               panel.background = element_blank(),
               panel.grid = element_blank())+
-        ggplot::labs( title = gtfs$agency$agency_name)
+        ggplot2::labs( title = gtfs$agency$agency_name)
     )
 
   }else{
@@ -194,14 +195,14 @@ plot_shapes.stops <- function(gtfs, ...){
             by = 'stop_id'
           ) %>% sf::st_as_sf()
 
-        ggplot::ggplot()+
-          ggplot::geom_sf(data = stops,show.legend = F,color = '#41A5E1',size=1)+
-          ggplot::geom_sf(data = shapes,ggplot::aes(color = shape_id),show.legend = F)+
-          ggplot::theme_linedraw()+
-          ggplot::theme(axis.title = ggplot::element_blank(),
-                panel.background = ggplot::element_blank(),
-                panel.grid = ggplot::element_blank())+
-          ggplot::facet_wrap(~agency_name,ncol = get_fct_plot_cols(gtfs))
+        ggplot2::ggplot()+
+          ggplot2::geom_sf(data = stops,show.legend = F,color = '#41A5E1',size=1)+
+          ggplot2::geom_sf(data = shapes,ggplot2::aes(color = shape_id),show.legend = F)+
+          ggplot2::theme_linedraw()+
+          ggplot2::theme(axis.title = ggplot2::element_blank(),
+                panel.background = ggplot2::element_blank(),
+                panel.grid = ggplot2::element_blank())+
+          ggplot2::facet_wrap(~agency_name,ncol = get_fct_plot_cols(gtfs))
 
 
       }
@@ -219,13 +220,13 @@ plot_shapes <- function(gtfs, ...){
 
   if(!verify_field(gtfs$trips,'shape_id')|!verify_field(gtfs$routes,'agency_id')){
 
-    ggplot::ggplot(shapes)+
-      ggplot::geom_sf(ggplot::aes(color = shape_id),show.legend = F)+
-      ggplot::theme_light()+
-      ggplot::theme(axis.title = ggplot::element_blank(),
-            panel.background = ggplot::element_blank(),
-            panel.grid = ggplot::element_blank())+
-      ggplot::labs(title = paste0(gtfs$agency$agency_name, collapse = ' ,'))
+    ggplot2::ggplot(shapes)+
+      ggplot2::geom_sf(ggplot2::aes(color = shape_id),show.legend = F)+
+      ggplot2::theme_light()+
+      ggplot2::theme(axis.title = ggplot2::element_blank(),
+            panel.background = ggplot2::element_blank(),
+            panel.grid = ggplot2::element_blank())+
+      ggplot2::labs(title = paste0(gtfs$agency$agency_name, collapse = ' ,'))
 
   }else{
     shapes <- gtfs$shapes %>%
@@ -244,13 +245,13 @@ plot_shapes <- function(gtfs, ...){
         by = 'agency_id'
       )%>% sf::st_as_sf()
 
-    ggplot::ggplot(shapes)+
-      ggplot::geom_sf(aes(color = route_id),show.legend = F)+
-      ggplot::theme_light()+
-      ggplot::theme(axis.title = ggplot::element_blank(),
-            panel.background = ggplot::element_blank(),
-            panel.grid = ggplot::element_blank())+
-      ggplot::facet_wrap(~agency_name,ncol = get_fct_plot_cols(gtfs))
+    ggplot2::ggplot(shapes)+
+      ggplot2::geom_sf(aes(color = route_id),show.legend = F)+
+      ggplot2::theme_light()+
+      ggplot2::theme(axis.title = ggplot2::element_blank(),
+            panel.background = ggplot2::element_blank(),
+            panel.grid = ggplot2::element_blank())+
+      ggplot2::facet_wrap(~agency_name,ncol = get_fct_plot_cols(gtfs))
   }
 
 
@@ -262,13 +263,13 @@ plot_stops <- function(gtfs, ...){
   if(!verify_field(gtfs$stop_times,'stop_id')|!verify_field(gtfs$routes,'agency_id')){
 
     return(
-      ggplot::ggplot(stops) +
-        ggplot::geom_sf(color = '#41A5E1',size=1) +
-        ggplot::theme_light() +
-        ggplot::theme(axis.title = ggplot::element_blank(),
-              panel.background = ggplot::element_blank(),
-              panel.grid = ggplot::element_blank())+
-        ggplot::labs(title = paste0(gtfs$agency$agency_name, collapse = ' ,'))
+      ggplot2::ggplot(stops) +
+        ggplot2::geom_sf(color = '#41A5E1',size=1) +
+        ggplot2::theme_light() +
+        ggplot2::theme(axis.title = ggplot2::element_blank(),
+              panel.background = ggplot2::element_blank(),
+              panel.grid = ggplot2::element_blank())+
+        ggplot2::labs(title = paste0(gtfs$agency$agency_name, collapse = ' ,'))
     )
 
   }else{
