@@ -311,7 +311,7 @@ Feeds are, then, exported using the `write_gtfs()` function. It saves a standard
 GTFSwizard::write_gtfs(for_gtfs, 'path-to-file.zip')
 ```
 
-## Handling Geografic Data
+## Handling Geographic Data
 GTFSwizard autodetects and reconstructs missing shape tables using the `get_shapes()` function. Variations of this function can create `simple feature` objects from `stops` or `shapes` tables, using `get_stops_sf()` or `get_shapes_sf()` functions, or even standard GTFS `shapes` data frame tables from `simple feature` shapes objects, using `get_shapes_df()` function.
 
 ``` r
