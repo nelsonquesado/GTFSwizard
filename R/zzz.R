@@ -1,6 +1,5 @@
 .onAttach <- function(libname, pkgname) {
   check_pkg_all()
-  packageStartupMessage(GTFSwizard.StartupMessage())
 }
 
 # Define check_pkg_all to ensure all required packages are available

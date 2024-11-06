@@ -227,7 +227,6 @@ plot_headways <- function(gtfs){
 #' @importFrom ggplot2 ggplot geom_boxplot geom_hline geom_line labs scale_x_continuous scale_y_continuous scale_color_manual
 #' @importFrom hrbrthemes theme_ipsum
 #' @importFrom plotly ggplotly
-#' @export
 
 plot_routeheadways <- function(gtfs, route = NULL){
 
