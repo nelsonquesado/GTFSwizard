@@ -769,7 +769,7 @@ filter_stop <- function(gtfs, stop){
 #' @export
 filter_time <- function(gtfs, from = '0:0:0', to = "48:00:00"){
 
-  message(crayon::cyan('filter_time()'), ' removes invalid stop times.')
+  message(crayon::cyan('filter_time()'), crayon::red(' removes'), ' invalid stop times.') # evitar isso em uma proxima versao
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
@@ -778,13 +778,13 @@ filter_time <- function(gtfs, from = '0:0:0', to = "48:00:00"){
 
   if(suppressWarnings(is.na(stringr::str_split(from, ":") %>%
                             lapply(FUN = as.numeric)))){
-    message('Wrong "from" time format. Please use "HH:MM:SS".')
+    warning('Wrong ', crayon::cyan('from'), ' time format. Please use ', crayon::cyan('HH:MM:SS'), '.')
     stop()
   }
 
   if(suppressWarnings(is.na(stringr::str_split(to, ":") %>%
                             lapply(FUN = as.numeric)))){
-    message('Wrong "to" time format. Please use "HH:MM:SS".')
+    warning('Wrong ', crayon::cyan('to'), ' time format. Please use ', crayon::cyan('HH:MM:SS'), '.')
     stop()
   }
 
