@@ -55,7 +55,7 @@ GTFS feeds are mainly browsed using the `explore_gtfs()` function. It pops-up an
 GTFSwizard::explore_gtfs(for_gtfs)
 ```
 
-<img align="center" src="figs/exploregtfs.png" width="550"/></a>
+<img align="middle" src="figs/exploregtfs.png" width="550"/>
 
 ## Service Patterns
 The concept of a `service_pattern` in GTFSwizard helps to address a common limitation of GTFS: its lack of a standardized way to distinguish distinct service patterns within the same route. GTFS files can have multiple `service_ids` for trips within the same route on the same day, such as regular and extra services. However, GTFS does not inherently identify unique service patterns, _i.e._ unique set of `service_id`s.
@@ -99,14 +99,14 @@ GTFSwizard::get_frequency(for_gtfs)
 GTFSwizard::plot_routefrequency(for_gtfs, route = for_gtfs$routes$route_id[3])
 ```
 
-<img align="center" src="figs/get_routefrequency.png" width="600"/></a>
+<img align="center" src="figs/get_routefrequency.png" width="600"/>
 
 You can use `plot_calendar()` to check the numer of trips along the calendar and get a better sense of the `service_pattern` rationale.
 ``` r
 GTFSwizard::plot_calendar(for_gtfs)
 ```
 
-<img align="center" src="figs/plot_calendar.png" width="600"/></a>
+<img align="center" src="figs/plot_calendar.png" width="600"/>
 
 ## Exploring
 
@@ -278,19 +278,19 @@ GTFSwizard offers interactive plotting tools to analyze trip frequencies and hea
 ``` r
 GTFSwizard::plot_frequency(for_gtfs)
 ```
-<img align="center" src="figs/plot_frequency.png" width="600"/></a>
+<img align="center" src="figs/plot_frequency.png" width="600"/>
 
 - Route Frequency by Hour: `plot_routefrequency()` displays frequency by hour for selected routes, illustrating different service patterns.
 ``` r
 GTFSwizard::plot_routefrequency(for_gtfs, route = for_gtfs$routes$route_id[4:5])
 ```
-<img align="center" src="figs/plot_routefrequency.png" width="600"/></a>
+<img align="center" src="figs/plot_routefrequency.png" width="600"/>
 
 - System Average Headway by Hour: `plot_headways()` shows average time between trips, highlighting hourly and overall headways to visualize service intervals.
 ``` r
 GTFSwizard::plot_headways(for_gtfs)
 ```
-<img align="center" src="figs/plot_headway.png" width="600"/></a>
+<img align="center" src="figs/plot_headway.png" width="600"/>
 
 ## Editing
 GTFSwizard provides functions to edit GTFS data directly - for delaying, splitting, and merging trips. The `delay_trip()` function allows users to apply a delay to specific trips. The `split_trip()` function equally divides a trip in `split` number of points, creating `split + 1` separate trips. This can be useful for analyzing partial routes or for simulating route adjustments. The `merge_gtfs()` function combines two GTFS files, allowing for the integration of distinct GTFS datasets into a single dataset.
@@ -393,7 +393,7 @@ gtfs <- GTFSwizard::for_data
 
 plot(gtfs)
 ```
-<img src="figs/plot.for_gtfs.png" alt="plot.for_gtfs" width="350"/></a>
+<img src="figs/plot.for_gtfs.png" alt="plot.for_gtfs" width="350"/>
 
 ## Cheat Sheet
 _Under development..._
