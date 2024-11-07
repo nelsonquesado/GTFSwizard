@@ -89,16 +89,16 @@
 #' attr(result, 'selection')
 #'
 #' # Use geometry selection
-#' bbox <- st_bbox(c(
-#'   xmin = -38.55219059002416,
+#' bbox <- sf::st_bbox(c(
+#'   xmin = -38.57219059002416,
 #'   ymin = -3.7999496173114118,
 #'   xmax = -38.50455165901261,
 #'   ymax = -3.756631724636505
 #' ),
-#' crs = st_crs(4326))  # Set CRS to WGS 84
+#' crs = sf::st_crs(4326))  # Set CRS to WGS 84
 #'
 #' # Convert the bounding box to a polygon
-#' polygon <- st_as_sfc(bbox)
+#' polygon <- sf::st_as_sfc(bbox)
 #'
 #' result <- for_rail_gtfs %>% selection(geometry %intersects% polygon)
 #'
@@ -181,7 +181,7 @@ selection.wizardgtfs <- function(gtfs,...,add = FALSE){
       dplyr::left_join(
         get_stops_sf(gtfs$stops)[,'stop_id'],
         by = 'stop_id'
-      ) %>% st_as_sf()
+      ) %>% sf::st_as_sf()
 
     selection <- eval(expr,stop_times)
     if(sum(selection)==0){
@@ -255,7 +255,7 @@ selection.wizardgtfs_selected <- function(gtfs,...,add = FALSE){
         dplyr::left_join(
           get_stops_sf(gtfs$stops)[,'stop_id'],
           by = 'stop_id'
-        ) %>% st_as_sf()
+        ) %>% sf::st_as_sf()
 
       selection <- eval(expr,stop_times)
       if(sum(selection)==0){
