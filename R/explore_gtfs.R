@@ -148,9 +148,6 @@ explore_gtfs <-
                           width = 5,
                           shiny::fluidRow(plotly::plotlyOutput('freq.sparkline.byroute',
                                                #shiny::plotOutput('freq.sparkline.byroute',
-                                               height = '350px')),
-                          shiny::fluidRow(plotly::plotlyOutput('headway.byroute.sparkline',
-                                               #shiny::plotOutput('freq.sparkline.byroute',
                                                height = '350px'))
                           )
                       ),
@@ -401,8 +398,6 @@ explore_gtfs <-
       headway.byroute <- shiny::reactive({
         GTFSwizard::get_headways(gtfs.filtered(), method = 'detailed')
       })
-
-      output$headway.byroute.sparkline <- plotly::renderPlotly({plot_routeheadways(gtfs, route())})
 
 
     }

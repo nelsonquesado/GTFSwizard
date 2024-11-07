@@ -421,5 +421,5 @@ A BibTeX entry for LaTeX users is
   }
   ```
 
-## Acknowledgement <a href="https://www.det.ufc.br/petran"><img align="right" src="figs/opatp.png" alt="OPA-TP" width="150" /></a>
+## Acknowledgement <a href="https://det.ufc.br/petran"><img align="right" src="figs/opatp.png" alt="OPA-TP" width="150" /></a>
 **GTFSwizard** is developed by [Nelson Quesado](https://github.com/nelsonquesado/) and [Caio Guimarães](https://github.com/cgmobility) at OPA-TP research group, Universidade Federal do Ceará.
