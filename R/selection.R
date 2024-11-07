@@ -80,10 +80,9 @@
 #' @details The function evaluates the provided expressions in an environment restricted to recognized variables (`stop_id`, `route_id`, `trip_id`, `geometry`). An error is thrown if an unrecognized variable is used, indicating that only specific variables are allowed.
 #'
 #' @examples
-#' \dontrun{
 #' # Apply the selection function
-#' result <- selection(for_gtfs,
-#'  stop_id == for_gtfs$stops$stop_id[1] & trip_id %in% for_gtfs$trips$trip_id[1:5])
+#' result <- selection(for_rail_gtfs,
+#'  stop_id == for_rail_gtfs$stops$stop_id[1] & trip_id %in% for_rail_gtfs$trips$trip_id[1:5])
 #'
 #' # Check the selection
 #' class(result)
@@ -101,9 +100,7 @@
 #' # Convert the bounding box to a polygon
 #' polygon <- st_as_sfc(bbox)
 #'
-#' result <- for_gtfs %>%
-#'   selection(geometry %intersects% polygon)
-#'   }
+#' result <- for_rail_gtfs %>% selection(geometry %intersects% polygon)
 #'
 #' @rdname selection
 #' @aliases selection
