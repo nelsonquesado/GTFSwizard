@@ -113,14 +113,18 @@ split_trip <- function(gtfs, trip, split = 1){
   }
 
   # corrigindo shapes ---------------------------------------------------------------------------
-  gtfs.x <-
-    GTFSwizard::filter_trip(gtfs, trip.dic$new.trip_id, keep = FALSE)
+  if(all(gtfs$trips$trip_id %in% trip.dic$new.trip_id)) {
+    gtfs <- GTFSwizard::get_shapes(gtfs)
+  } else {
+    gtfs.x <-
+      GTFSwizard::filter_trip(gtfs, trip.dic$new.trip_id, keep = FALSE)
 
-  gtfs.y <-
-    GTFSwizard::filter_trip(gtfs, trip.dic$new.trip_id, keep = TRUE) %>%
-    GTFSwizard::get_shapes()
+    gtfs.y <-
+      GTFSwizard::filter_trip(gtfs, trip.dic$new.trip_id, keep = TRUE) %>%
+      GTFSwizard::get_shapes()
 
-  gtfs <- GTFSwizard::merge_gtfs(gtfs.x, gtfs.y, suffix = FALSE)
+    gtfs <- GTFSwizard::merge_gtfs(gtfs.x, gtfs.y, suffix = FALSE)
+  }
 
   # retornando gtfs -----------------------------------------------------------------------------
   return(gtfs)
