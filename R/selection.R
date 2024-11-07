@@ -100,7 +100,7 @@
 #' # Convert the bounding box to a polygon
 #' polygon <- sf::st_as_sfc(bbox)
 #'
-#' result <- GTFSwizard::for_rail_gtfs %>% GTFSwizard::selection(geometry %intersects% polygon)
+#' result <- GTFSwizard::for_rail_gtfs |> GTFSwizard::selection(geometry %intersects% polygon)
 #'
 #' @rdname selection
 #' @aliases selection
