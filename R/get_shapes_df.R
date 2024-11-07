@@ -44,13 +44,11 @@
 get_shapes_df <- function(shape){
 
   if(!'sf' %in% class(shape)){
-    warning(crayon::cyan('shape'), ' is not a ', crayon::cyan('simple feature'), ' object.')
-    stop()
+    stop(crayon::cyan('shape'), ' is not a ', crayon::cyan('simple feature'), ' object.')
   }
 
   if(purrr::is_null(shape$shape_id)){
-    warning(crayon::cyan('shape'), ' does not contains the ', crayon::cyan('shape_id'), ' column.')
-    stop()
+    stop(crayon::cyan('shape'), ' does not contains the ', crayon::cyan('shape_id'), ' column.')
   }
 
   x <- 0

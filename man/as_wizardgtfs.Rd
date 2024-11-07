@@ -4,7 +4,7 @@
 \alias{as_wizardgtfs}
 \title{Convert GTFS Object to wizardgtfs Format}
 \usage{
-as_wizardgtfs(gtfs_list, build_shapes = T)
+as_wizardgtfs(gtfs_list, build_shapes = TRUE)
 }
 \arguments{
 \item{gtfs_list}{A GTFS object in list or `tidygtfs` format.}

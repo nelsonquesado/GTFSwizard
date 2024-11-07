@@ -28,7 +28,7 @@ If the provided `gtfs` object does not contain a `shapes` table, it will attempt
 \examples{
 \dontrun{
 # To run the Shiny application:
-# explore_gtfs(gtfs = for_gtfs)
+explore_gtfs(gtfs = for_gtfs)
 }
 
 }

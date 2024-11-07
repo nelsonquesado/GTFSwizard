@@ -19,7 +19,7 @@
 #' @examples
 #' \dontrun{
 #' # To run the Shiny application:
-#' # explore_gtfs(gtfs = for_gtfs)
+#' explore_gtfs(gtfs = for_gtfs)
 #' }
 #'
 #' @seealso

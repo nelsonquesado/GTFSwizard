@@ -42,8 +42,7 @@ delay_trip <- function(gtfs, trip, duration){
   if(!lubridate::is.duration(duration)) {
 
     if(!is.numeric(duration)) {
-      warning("'duration' muste be of the class duration or numeric (seconds)")
-      stop()
+      stop(crayon::cyan("duration"), " must be of the class duration or numeric (seconds)")
     }
 
     dur <- lubridate::duration(duration, units = 'seconds')
