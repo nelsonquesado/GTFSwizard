@@ -24,7 +24,7 @@ The function converts spatial data frames (e.g., shapes and stops) to standard d
 }
 \examples{
 # Export a wizardgtfs object to a zip file
-write_gtfs(for_rail, "gtfs_export.zip")
+write_gtfs(for_rail_gtfs, "gtfs_export.zip")
 
 }
 \seealso{
