@@ -268,7 +268,7 @@ stops <- sf::st_filter(GTFSwizard::get_stops_sf(for_gtfs$stops),
           tibble::tibble() |>
           dplyr::pull(stop_id)
 
-GTFSwizard::filter_stop(for_gtfs, stops)
+filtered_gtfs <- GTFSwizard::filter_stop(for_gtfs, stops)
 ```
 
 ## Visualizing
