@@ -1,5 +1,3 @@
-utils::globalVariables(c("hour", "period", "n", "count"))
-
 #' GTFS Data for Fortaleza (Bus System), Brazil.
 #'
 #' A dataset containing GTFS (General Transit Feed Specification) data for Fortaleza's transit system by bus. The data includes information on routes, trips, stops, stop times, and other elements necessary for transit planning and analysis.
@@ -63,6 +61,7 @@ utils::globalVariables(c("hour", "period", "n", "count"))
 #' @importFrom ggplot2 theme_linedraw
 #' @importFrom data.table setnames
 #' @importFrom forcats as_factor
+utils::globalVariables(c("hour", "period", "n", "count"))
 #data("for_bus_gtfs")
 
 ##' GTFS Data for Fortaleza (Rail System), Brazil

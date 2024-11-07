@@ -23,10 +23,8 @@ None. This function writes the GTFS data directly to the specified `zipfile`.
 The function converts spatial data frames (e.g., shapes and stops) to standard data frames, removes additional service pattern tables, and exports.
 }
 \examples{
-\dontrun{
 # Export a wizardgtfs object to a zip file
-write_gtfs(for_gtfs, "gtfs_export.zip")
-}
+write_gtfs(for_rail, "gtfs_export.zip")
 
 }
 \seealso{
