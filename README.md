@@ -265,7 +265,6 @@ spatial-filter <- GTFSwizard::get_shapes_sf(for_gtfs$shapes)
 
 stops <- sf::st_filter(GTFSwizard::get_stops_sf(for_gtfs$stops),
                        spatial-filter) |>
-          tibble::tibble() |>
           dplyr::pull(stop_id)
 
 filtered_gtfs <- GTFSwizard::filter_stop(for_gtfs, stops)
