@@ -411,7 +411,7 @@ To cite package ‘GTFSwizard’ in publications use:
 
 A BibTeX entry for LaTeX users is
 ``` tex
-  @Manual{,
+  @Manual{quesado.guimaraes.2024,
     title = {GTFSwizard: Exploring and Manipulating GTFS Files},
     author = {Nelson de O. {Quesado Filho} and Caio G. C. Guimarães},
     year = {2024},
