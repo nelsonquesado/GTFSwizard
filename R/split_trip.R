@@ -19,6 +19,9 @@
 #'
 #' - Be aware: `get_shapes` reconstructs shapes using euclidean approximation and may not be accurate.
 #'
+#' @note
+#' `split_trip()` uses stop sequences to recriate the shapes table of split trips; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
+#'
 #' @examples
 #' \dontrun{
 #' # Split a trip into 3 segments

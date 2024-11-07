@@ -306,6 +306,8 @@ split_gtfs <- split_trip(for_gtfs, trip_id = for_gtfs$trips$trip_id[1:2], split 
 merged_gtfs <- merge_gtfs(for_gtfs, for_gtfs)
 ```
 
+Please note that `split_trip()` uses stop sequences to recriate the shapes table of split trips; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
+
 Feeds are, then, exported using the `write_gtfs()` function. It saves a standard GTFS `.zip` file, located as declared.
 ``` r
 GTFSwizard::write_gtfs(for_gtfs, 'path-to-file.zip')
