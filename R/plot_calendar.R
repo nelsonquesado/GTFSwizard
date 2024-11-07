@@ -36,7 +36,7 @@ plot_calendar <- function(gtfs, ncol = 6, facet_by_year = FALSE){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as_gtfswizard() is advised.')
+    warning('This gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as_gtfswizard() is advised.')
   }
 
   services <-
@@ -62,7 +62,6 @@ plot_calendar <- function(gtfs, ncol = 6, facet_by_year = FALSE){
       by = 'date'
     ) %>%
     dplyr::mutate(
-      #count = if_else(is.na(count), 0, count),
       date = lubridate::ymd(date),
       day_of_month = lubridate::day(date),
       month = lubridate::month(date, label = TRUE, abbr = FALSE),
@@ -93,7 +92,7 @@ plot_calendar <- function(gtfs, ncol = 6, facet_by_year = FALSE){
   }
 
   if(facet_by_year == TRUE){
-    message("face_by_year = TRUE forces ncol = 0")
+    message(crayon::cyan("face_by_year = TRUE "), "forces",  crayon::cyan(" ncol = 0"))
     plot <-
       plot +
       ggplot2::facet_grid(year ~ month)
