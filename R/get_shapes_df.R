@@ -68,9 +68,9 @@ get_shapes_df <- function(shape){
     data.table::data.table() %>%
     stats::setNames(c('shape_id', 'shape_pt_lon', 'shape_pt_lat')) %>%
     dplyr::group_by(shape_id) %>%
-    st_as_sf(coords = c('shape_pt_lon', 'shape_pt_lat'), remove = F, crs = 4326) %>%
+    st_as_sf(coords = c('shape_pt_lon', 'shape_pt_lat'), remove = FALSE, crs = 4326) %>%
     dplyr::mutate(shape_pt_sequence = 1:n(),
-                  shape_dist_traveled = abs(sf::st_distance(geometry, lag(geometry), by_element = T)) %>%
+                  shape_dist_traveled = abs(sf::st_distance(geometry, lag(geometry), by_element = TRUE)) %>%
                     tidyr::replace_na(x) %>%
                     cumsum %>%
                     as.numeric()) %>%

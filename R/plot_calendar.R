@@ -58,7 +58,7 @@ plot_calendar <- function(gtfs, ncol = 6, facet_by_year = FALSE){
     dplyr::left_join(services,
                      by = 'service_id') %>%
     dplyr::group_by(date) %>%
-    dplyr::reframe(count = sum(trips, na.rm = T)) %>%
+    dplyr::reframe(count = sum(trips, na.rm = TRUE)) %>%
     dplyr::right_join(
       tibble(date = seq(min(gtfs$dates_services$date), max(gtfs$dates_services$date), 86400)),
       by = 'date'
@@ -67,9 +67,9 @@ plot_calendar <- function(gtfs, ncol = 6, facet_by_year = FALSE){
       #count = if_else(is.na(count), 0, count),
       date = lubridate::ymd(date),
       day_of_month = lubridate::day(date),
-      month = lubridate::month(date, label = T, abbr = F),
+      month = lubridate::month(date, label = TRUE, abbr = FALSE),
       year = lubridate::year(date),
-      weekday = lubridate::wday(date, label = T, abbr = T, week_start = 7),
+      weekday = lubridate::wday(date, label = TRUE, abbr = TRUE, week_start = 7),
       first_day_of_month = lubridate::wday(date - day_of_month,  week_start = 7),
       week_of_month = ceiling((day_of_month - as.numeric(weekday) - first_day_of_month) / 7)
     )

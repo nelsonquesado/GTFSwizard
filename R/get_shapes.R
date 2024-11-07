@@ -52,14 +52,14 @@ get_shapes <- function(gtfs){
     dplyr::select(trip_id, stop_id, stop_sequence) %>%
     dplyr::arrange(trip_id, stop_sequence) %>%
     dplyr::left_join(gtfs$stops %>%
-                       tidytransit::stops_as_sf() %>%
+                       GTFSwizard::get_stops_sf() %>%
                        dplyr::select(stop_id),
                      by = dplyr::join_by(stop_id)
                      ) %>%
     sf::st_as_sf(crs = 4326) %>%
     dplyr::group_by(trip_id) %>%
     dplyr::arrange(stop_sequence) %>%
-    dplyr::summarise(geometry = st_combine(geometry) %>% sf::st_cast('LINESTRING')) %>% #plot
+    dplyr::summarise(geometry = sf::st_combine(geometry) %>% sf::st_cast('LINESTRING')) |>
     dplyr::left_join(gtfs$trips %>%
                        dplyr::select(trip_id, route_id)) %>%
     dplyr::group_by(geometry) %>%

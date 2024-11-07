@@ -44,7 +44,7 @@ summary.wizardgtfs <- function(object, ...){
     n = length(x)-1,
     tables = lapply(x[names(x)!='dates_services'],nrow ) %>% unlist(),
     agency = stringr::str_flatten(x$agency$agency_name,collapse = ', ',last = ' and '),
-    service_days = c(min(x$dates_services$date,na.rm = T),max(x$dates_services$date,na.rm = T)),
+    service_days = c(min(x$dates_services$date,na.rm = TRUE),max(x$dates_services$date,na.rm = TRUE)),
     routes =  nrow(x$routes),
     stops = nrow(x$stops),
     trips = nrow(x$trips),
@@ -130,8 +130,8 @@ plot_shapes.stops <- function(gtfs, ...){
 
     return(
       ggplot2::ggplot()+
-        ggplot2::geom_sf(data = gtfs$stops,show.legend = F,color = '#41A5E1',size=1)+
-        ggplot2::geom_sf(data = gtfs$shapes,ggplot2::aes(color = shape_id),show.legend = F)+
+        ggplot2::geom_sf(data = gtfs$stops,show.legend = FALSE,color = '#41A5E1',size=1)+
+        ggplot2::geom_sf(data = gtfs$shapes,ggplot2::aes(color = shape_id),show.legend = FALSE)+
         ggplot2::theme_linedraw()+
         ggplot2::theme(axis.title = element_blank(),
               panel.background = element_blank(),
@@ -196,8 +196,8 @@ plot_shapes.stops <- function(gtfs, ...){
           ) %>% sf::st_as_sf()
 
         ggplot2::ggplot()+
-          ggplot2::geom_sf(data = stops,show.legend = F,color = '#41A5E1',size=1)+
-          ggplot2::geom_sf(data = shapes,ggplot2::aes(color = shape_id),show.legend = F)+
+          ggplot2::geom_sf(data = stops,show.legend = FALSE,color = '#41A5E1',size=1)+
+          ggplot2::geom_sf(data = shapes,ggplot2::aes(color = shape_id),show.legend = FALSE)+
           ggplot2::theme_linedraw()+
           ggplot2::theme(axis.title = ggplot2::element_blank(),
                 panel.background = ggplot2::element_blank(),
@@ -221,7 +221,7 @@ plot_shapes <- function(gtfs, ...){
   if(!verify_field(gtfs$trips,'shape_id')|!verify_field(gtfs$routes,'agency_id')){
 
     ggplot2::ggplot(shapes)+
-      ggplot2::geom_sf(ggplot2::aes(color = shape_id),show.legend = F)+
+      ggplot2::geom_sf(ggplot2::aes(color = shape_id),show.legend = FALSE)+
       ggplot2::theme_light()+
       ggplot2::theme(axis.title = ggplot2::element_blank(),
             panel.background = ggplot2::element_blank(),
@@ -246,7 +246,7 @@ plot_shapes <- function(gtfs, ...){
       )%>% sf::st_as_sf()
 
     ggplot2::ggplot(shapes)+
-      ggplot2::geom_sf(aes(color = route_id),show.legend = F)+
+      ggplot2::geom_sf(aes(color = route_id),show.legend = FALSE)+
       ggplot2::theme_light()+
       ggplot2::theme(axis.title = ggplot2::element_blank(),
             panel.background = ggplot2::element_blank(),

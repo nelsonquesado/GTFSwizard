@@ -173,7 +173,7 @@ get_stop_dists <- function(gtfs){
     dplyr::left_join(gtfs$stops %>% select(stop_id,stop_lon,stop_lat), by = 'stop_id') %>%
     dplyr::group_by(route_id) %>%
     dplyr::reframe(dists = list(get_trip_stops_dist(stop_lon,stop_lat))) %>%
-    .$dists %>% unlist() %>% median(na.rm = T) %>%
+    .$dists %>% unlist() %>% median(na.rm = TRUE) %>%
     round(1)
 }
 

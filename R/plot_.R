@@ -37,13 +37,13 @@ plot_frequency <- function(gtfs){
     dplyr::mutate(hour = as.numeric(hour))
 
   overall.average <-
-    weighted.mean(data$frequency, data$pattern_frequency, na.rm = T)
+    weighted.mean(data$frequency, data$pattern_frequency, na.rm = TRUE)
 
   plot <-
     ggplot2::ggplot() +
     ggplot2::geom_boxplot(data = data, ggplot2::aes(x = hour, y = frequency, color = 'Hourly\nDistribution\n', group = hour, weight = pattern_frequency), fill = 'gray', alpha = .65) +
     ggplot2::geom_hline(ggplot2::aes(yintercept = overall.average, color = paste0('Overall\nAverage\nFrequency\n', round(overall.average, 1), ' trips')), linetype = 'dashed', linewidth = .75) +
-    ggplot2::geom_line(data = dplyr::group_by(data, hour) %>% dplyr::reframe(frequency = round(weighted.mean(frequency, pattern_frequency, na.rm = T), 1)), ggplot2::aes(hour, frequency, color = 'Hourly\nAverage\nFrequency\n', group = NA), linewidth = 1) +
+    ggplot2::geom_line(data = dplyr::group_by(data, hour) %>% dplyr::reframe(frequency = round(weighted.mean(frequency, pattern_frequency, na.rm = TRUE), 1)), ggplot2::aes(hour, frequency, color = 'Hourly\nAverage\nFrequency\n', group = NA), linewidth = 1) +
     ggplot2::labs(x = 'Hour of the Day', y = 'Hourly Frequency', colour = '', title = 'System Frequency') +
     hrbrthemes::theme_ipsum() +
     ggplot2::scale_x_continuous(breaks = c(0, 6, 12, 18, 24), limits = c(0, 24)) +
@@ -169,7 +169,7 @@ plot_headways <- function(gtfs){
                   hour = as.numeric(hour))
 
   overall.average <-
-    weighted.mean(data$average.headway, data$weight, na.rm = T) %>%
+    weighted.mean(data$average.headway, data$weight, na.rm = TRUE) %>%
     round(., 1)
 
 
@@ -237,13 +237,13 @@ plot_routeheadways <- function(gtfs, route = NULL){
                   headway = headway/60)
 
   overall.average <-
-    weighted.mean(data$headway, data$pattern_frequency, na.rm = T)
+    weighted.mean(data$headway, data$pattern_frequency, na.rm = TRUE)
 
   plot <-
     ggplot2::ggplot() +
     ggplot2::geom_boxplot(data = data, ggplot2::aes(x = hour, y = headway, color = 'Hourly\nDistribution\n', group = hour, weight = pattern_frequency), fill = 'gray', alpha = .65) +
     ggplot2::geom_hline(ggplot2::aes(yintercept = overall.average, color = paste0('Overall\nAverage\nHeadway\n', round(overall.average, 1), ' trips')), linetype = 'dashed', linewidth = .75) +
-    ggplot2::geom_line(data = dplyr::group_by(data, hour) %>% dplyr::reframe(headway = round(weighted.mean(headway, pattern_frequency, na.rm = T), 1)), ggplot2::aes(hour, headway, color = 'Hourly\nAverage\nFrequency\n', group = NA), linewidth = 1) +
+    ggplot2::geom_line(data = dplyr::group_by(data, hour) %>% dplyr::reframe(headway = round(weighted.mean(headway, pattern_frequency, na.rm = TRUE), 1)), ggplot2::aes(hour, headway, color = 'Hourly\nAverage\nFrequency\n', group = NA), linewidth = 1) +
     ggplot2::labs(x = 'Hour of the Day', y = 'Hourly headway', colour = '', title = 'Route(s) headway') +
     hrbrthemes::theme_ipsum() +
     ggplot2::scale_x_continuous(breaks = c(0, 6, 12, 18, 24), limits = c(0, 24)) +

@@ -6,40 +6,40 @@
 
 `%intersects%` <- function(x,y){
   x_ <- st_sfc(unique(x),crs = 4326)
-  res_match <- st_intersects(x_,y,sparse = F) %>%
+  res_match <- st_intersects(x_,y,sparse = FALSE) %>%
     apply( MARGIN = 1, FUN = any)
   return(res_match[match(x,x_)])
 }
 
 `%touches%` <- function(x,y){
   x_ <- st_sfc(unique(x),crs = 4326)
-  res_match <- st_touches(x_,y,sparse = F) %>%
+  res_match <- st_touches(x_,y,sparse = FALSE) %>%
     apply( MARGIN = 1, FUN = any)
   return(res_match[match(x,x_)])
 }
 
 `%crosses%` <- function(x,y){
-  st_crosses(x,y,sparse = F) %>%
+  st_crosses(x,y,sparse = FALSE) %>%
     apply( MARGIN = 1, FUN = any)
 }
 
 `%within%` <- function(x,y){
-  st_within(x,y,sparse = F) %>%
+  st_within(x,y,sparse = FALSE) %>%
     apply( MARGIN = 1, FUN = any)
 }
 
 `%contains%` <- function(x,y){
-  st_contains(x,y,sparse = F) %>%
+  st_contains(x,y,sparse = FALSE) %>%
     apply( MARGIN = 1, FUN = any)
 }
 
 `%overlaps%` <- function(x,y){
-  st_overlaps(x,y,sparse = F) %>%
+  st_overlaps(x,y,sparse = FALSE) %>%
     apply( MARGIN = 1, FUN = any)
 }
 
 `%equals%` <- function(x,y){
-  st_equals(x,y,sparse = F) %>%
+  st_equals(x,y,sparse = FALSE) %>%
     apply( MARGIN = 1, FUN = any)
 }
 

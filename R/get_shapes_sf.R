@@ -85,7 +85,7 @@ get_shapes_sf.data.frame <- function(gtfs){
         dplyr::mutate(geometry = paste0(shape_pt_lon,' ',shape_pt_lat)) %>%
         dplyr::group_by(shape_id) %>%
         dplyr::reframe(
-          shape_dist_traveled = sum(as.numeric(shape_dist_traveled),na.rm = T),
+          shape_dist_traveled = sum(as.numeric(shape_dist_traveled),na.rm = TRUE),
           geometry = paste0('LINESTRING(',paste0(geometry,collapse = ', '), ')')
         ) %>%
         sf::st_as_sf(wkt = 'geometry',crs=4326) %>%

@@ -53,7 +53,7 @@ write_gtfs.dt_gtfs <- function(gtfs, zipfile, ...){
 
 sf_to_df <- function(gtfs){
   if('shapes' %in% names(gtfs)){
-    try({gtfs$shapes <- st_as_sf(gtfs$shapes)},silent = T)
+    try({gtfs$shapes <- st_as_sf(gtfs$shapes)},silent = TRUE)
     if('sf'%in%class(gtfs$shapes)){
       new_shapes <- gtfs$shapes %>%
         group_by(shape_id) %>%
@@ -75,7 +75,7 @@ sf_to_df <- function(gtfs){
   }
 
   if('stops' %in% names(gtfs)){
-    try({gtfs$stops <- st_as_sf(gtfs$stops)},silent = T)
+    try({gtfs$stops <- st_as_sf(gtfs$stops)},silent = TRUE)
     if('sf' %in% class('stops')){
       gtfs$stops <- gtfs$stops %>%
         mutate(coords_stops(geometry)) %>%

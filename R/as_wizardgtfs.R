@@ -22,14 +22,14 @@
 #' [GTFSwizard::get_shapes()]
 #'
 #' @export
-as_wizardgtfs <- function(gtfs_list,build_shapes = T){
+as_wizardgtfs <- function(gtfs_list,build_shapes = TRUE){
   UseMethod('as_wizardgtfs')
 }
 
 #' @exportS3Method GTFSwizard::as_wizardgtfs tidygtfs
-as_wizardgtfs.tidygtfs <- function(gtfs_list,build_shapes = T){
+as_wizardgtfs.tidygtfs <- function(gtfs_list,build_shapes = TRUE){
 
-  checkmate::assert_logical(build_shapes, len = 1, any.missing = F)
+  checkmate::assert_logical(build_shapes, len = 1, any.missing = FALSE)
 
   gtfs_list[['dates_services']] <- gtfs_list$.$dates_services %>%
     dplyr::group_by(date) %>%
@@ -45,10 +45,10 @@ as_wizardgtfs.tidygtfs <- function(gtfs_list,build_shapes = T){
 }
 
 #' @exportS3Method GTFSwizard::as_wizardgtfs list
-as_wizardgtfs.list <- function(gtfs_list,build_shapes = T){
+as_wizardgtfs.list <- function(gtfs_list,build_shapes = TRUE){
   duplicate_ids <- has_duplicate_primary(gtfs_list)
 
-  checkmate::assert_logical(build_shapes, len = 1, any.missing = F)
+  checkmate::assert_logical(build_shapes, len = 1, any.missing = FALSE)
 
   if(('calendar'%in%names(gtfs_list)==FALSE)&('calendar_dates'%in%names(gtfs_list)==FALSE)){
     ## Tentar formatar com cor e itálico

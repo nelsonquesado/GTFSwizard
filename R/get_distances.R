@@ -99,7 +99,7 @@ get_distances_byroute <- function(gtfs){
     dplyr::left_join(distances, by = 'shape_id') %>%
     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
     dplyr::group_by(route_id, service_pattern, pattern_frequency) %>%
-    dplyr::reframe(average.distance = mean(distance, na.rm = T),
+    dplyr::reframe(average.distance = mean(distance, na.rm = TRUE),
                    trips = n()) %>%
     select(route_id, trips, average.distance, service_pattern, pattern_frequency)
 
@@ -286,52 +286,3 @@ get_distances_detailed <- function(gtfs){
   return(dist_matrix)
 
 }
-
-
-# get_distances_byhour <- function(gtfs){
-
-#   if(!"wizardgtfs" %in% class(gtfs)){
-#     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-#     warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
-#   }
-#
-#   service_pattern <-
-#     GTFSwizard::get_servicepattern(gtfs)
-#
-#   distances <-
-#     GTFSwizard::get_shapes_sf(gtfs$shapes) %>%
-#     dplyr::mutate(distance = st_length(geometry))
-#
-#   hour.table <-
-#     tibble(hour = 0:23,
-#          starts = hour * 3600,
-#          ends = (hour + 1) * 3600 - 1)
-#
-#   gtfs$stop_times %>%
-#     dplyr::filter(!arrival_time == '') %>%
-#     dplyr::group_by(trip_id) %>%
-#     dplyr::reframe(starts = arrival_time[1] %>%
-#                      stringr::str_split(":") %>%
-#                      lapply(FUN = as.numeric) %>%
-#                      lapply(FUN = function(x){x[1]*60*60+x[2]*60+x[3]}) %>%
-#                      unlist() %>%
-#                      na.omit(),
-#                    ends = arrival_time[n()] %>%
-#                      stringr::str_split(":") %>%
-#                      lapply(FUN = as.numeric) %>%
-#                      lapply(FUN = function(x){x[1]*60*60+x[2]*60+x[3]}) %>%
-#                      unlist() %>%
-#                      na.omit())
-#
-#     dplyr::left_join(gtfs$trips %>%
-#                        select(trip_id, route_id, shape_id, service_id),
-#                      by = 'trip_id') %>%
-#     dplyr::left_join(distances, by = 'shape_id') %>%
-#     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
-#     dplyr::group_by(route_id, hour, service_pattern, pattern_frequency) %>%
-#     dplyr::reframe(average.distance = mean(distance, na.rm = T),
-#                    trips = n())
-#
-#   return(distances)
-#
-# }

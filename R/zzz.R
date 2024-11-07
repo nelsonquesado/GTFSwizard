@@ -20,7 +20,7 @@ check_pkg_all <- function() {
   })
 
   invisible(suppressMessages(suppressWarnings(
-    try(detach("package:tidylog", unload = TRUE),silent = T)
+    try(detach("package:tidylog", unload = TRUE),silent = TRUE)
   )))
   if(interactive())
     packageStartupMessage(GTFSwizard.StartupMessage())
