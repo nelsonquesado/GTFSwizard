@@ -100,7 +100,7 @@
 #' # Convert the bounding box to a polygon
 #' polygon <- sf::st_as_sfc(bbox)
 #'
-#' result <- for_rail_gtfs %>% selection(geometry %intersects% polygon)
+#' result <- for_rail_gtfs |> selection(geometry %intersects% polygon)
 #'
 #' @rdname selection
 #' @aliases selection
