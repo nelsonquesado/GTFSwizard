@@ -20,7 +20,6 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Example usage of read_gtfs
 #' gtfs_data <- read_gtfs("path/to/gtfs.zip")
 #' }
 #'
