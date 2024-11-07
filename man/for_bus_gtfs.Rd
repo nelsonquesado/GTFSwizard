@@ -1,7 +1,7 @@
 \docType{data}
-\name{for_gtfs}
-\alias{for_gtfs}
-\title{GTFS Data for Fortaleza, Brazil.}
+\name{for_bus_gtfs}
+\alias{for_bus_gtfs}
+\title{GTFS Data for Fortaleza (Bus System), Brazil.}
 \format{
 An object of class \code{wizardgtfs}, containing multiple data frames:
 \describe{
@@ -20,21 +20,19 @@ An object of class \code{wizardgtfs}, containing multiple data frames:
 Fortaleza transit agency (ETUFOR).
 }
 \description{
-A dataset containing GTFS (General Transit Feed Specification) data for Fortaleza's transit system. The data includes information on routes, trips, stops, stop times, and other elements necessary for transit planning and analysis.
+A dataset containing GTFS (General Transit Feed Specification) data for Fortaleza's transit system by bus. The data includes information on routes, trips, stops, stop times, and other elements necessary for transit planning and analysis.
 }
 \details{
 The GTFS data format is widely used for representing public transportation schedules and associated geographic information. This dataset follows the GTFS standard and includes elements for advanced analysis in transit planning.
 }
 \examples{
-\dontrun{
 # Load the dataset
-data(for_gtfs)
+data(for_bus_gtfs)
 
 # Access trips data
-head(for_gtfs$trips)
+head(for_bus_gtfs$trips)
 
 # Access stops data
-head(for_gtfs$stops)
-}
+head(for_bus_gtfs$stops)
 
 }
