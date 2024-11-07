@@ -81,7 +81,7 @@
 #'
 #' @examples
 #' # Apply the selection function
-#' result <- selection(for_rail_gtfs,
+#' result <- GTFSwizard::selection(for_rail_gtfs,
 #'  stop_id == for_rail_gtfs$stops$stop_id[1] & trip_id %in% for_rail_gtfs$trips$trip_id[1:5])
 #'
 #' # Check the selection
@@ -89,18 +89,18 @@
 #' attr(result, 'selection')
 #'
 #' # Use geometry selection
-#' bbox <- st_bbox(c(
+#' bbox <- sf::st_bbox(c(
 #'   xmin = -38.55219059002416,
 #'   ymin = -3.7699496173114118,
 #'   xmax = -38.54455165901261,
 #'   ymax = -3.756631724636505
 #' ),
-#' crs = st_crs(4326))  # Set CRS to WGS 84
+#' crs = sf::st_crs(4326))  # Set CRS to WGS 84
 #'
 #' # Convert the bounding box to a polygon
-#' polygon <- st_as_sfc(bbox)
+#' polygon <- sf::st_as_sfc(bbox)
 #'
-#' result <- for_rail_gtfs %>% selection(geometry %intersects% polygon)
+#' result <- GTFSwizard::for_rail_gtfs %>% GTFSwizard::selection(geometry %intersects% polygon)
 #'
 #' @rdname selection
 #' @aliases selection
