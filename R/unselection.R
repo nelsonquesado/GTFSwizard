@@ -15,6 +15,6 @@ unselection.wizardgtfs_selected <- function(gtfs){
 
 #' @exportS3Method GTFSwizard::unselection wizardgtfs
 unselection.wizardgtfs <- function(gtfs){
-  cat('There is no selection on the gtfsect')
+  message('There is no selection on the gtfsect')
   return(gtfs)
 }

@@ -136,7 +136,7 @@ selection.list <- function(gtfs,...,add = FALSE){
 selection.wizardgtfs <- function(gtfs,...,add = FALSE){
 
   if(add){
-    cat('add=TRUE, but there is no selection in the gtfsect')
+    message('add=TRUE, but there is no selection in the gtfsect')
   }
 
   expr <- substitute(...)
