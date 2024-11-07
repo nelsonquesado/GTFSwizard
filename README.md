@@ -404,5 +404,21 @@ Contributions are welcome! To report a bug, suggest a feature, or contribute cod
 ## Related Packages
 GTFSwizard mainly rellies on [dplyr](https://dplyr.tidyverse.org/) and [sf](https://r-spatial.github.io/sf/) for data wrangling, [leaflet](https://leafletjs.com/) for map rendering, [ggplot2](https://ggplot2.tidyverse.org/) and [plotly](https://plotly.com/r/) for data visualization, and [shiny](https://shiny.posit.co/) for the `explore_gtfs()` application assembling.
 
+## Citation
+To cite package ‘GTFSwizard’ in publications use:
+
+- Quesado Filho N, Guimarães C (2024). _GTFSwizard: Exploring and Manipulating 'GTFS' Files_. R package version 1.0.0, <https://github.com/nelsonquesado/GTFSwizard>.
+
+A BibTeX entry for LaTeX users is
+``` tex
+  @Manual{,
+    title = {GTFSwizard: Exploring and Manipulating 'GTFS' Files},
+    author = {Nelson de O. {Quesado Filho} and Caio G. C. Guimarães},
+    year = {2024},
+    note = {R package version 1.0.0},
+    url = {https://github.com/nelsonquesado/GTFSwizard},
+  }
+  ```
+
 ## Acknowledgement <a href="https://www.det.ufc.br/petran"><img align="right" src="figs/opatp.png" alt="OPA-TP" width="150" /></a>
 **GTFSwizard** is developed by [Nelson Quesado](https://github.com/nelsonquesado/) and [Caio Guimarães](https://github.com/cgmobility) at OPA-TP research group, Universidade Federal do Ceará.
