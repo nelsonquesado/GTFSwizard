@@ -23,8 +23,10 @@ This function constructs the `shapes` table by sequentially connecting stops alo
 - Connecting stops with line segments to form a path for each trip
 
 - Grouping unique paths into distinct shape IDs
-
-Note: This approximation may not perfectly represent real-world shapes, especially for complex or curved routes.
+}
+\note{
+This approximation may not perfectly represent real-world shapes, especially for complex or curved routes.
+`get_shapes()` uses stop sequences to recriate the shapes table; accordingly, should not be used after `filter_time()`, as this function removes invalid `stop_times`.
 }
 \examples{
 \dontrun{
