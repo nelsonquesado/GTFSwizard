@@ -36,7 +36,7 @@
 
 get_shapes <- function(gtfs){
 
-  message('\nThis algorithm reconstructs the shapes table using euclidean approximation, based on the coordinates and sequence of stops for each trip, and', crayon::cyan(' may not be accurate'), '.')
+  message(crayon::cyan('get_shapes()'), ' reconstructs the shapes table using euclidean approximation, based on the coordinates and sequence of stops for each trip, and', crayon::red(' may not be accurate'), '.')
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
