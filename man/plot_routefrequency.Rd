@@ -25,8 +25,10 @@ A `plotly` interactive plot displaying the frequency distribution by hour for ea
 The function filters the GTFS dataset by route and computes hourly frequencies for each service pattern. The plot shows variations in service frequency across hours and highlights the primary service pattern.
 }
 \examples{
-# Plot frequency by hour for specific routes
+if (interactive()) {
+#' # Plot frequency by hour for specific routes
 plot_routefrequency(for_rail_gtfs, route = for_rail_gtfs$routes$route_id[1:2])
+}
 
 }
 \seealso{
