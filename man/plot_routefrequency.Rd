@@ -26,7 +26,7 @@ The function filters the GTFS dataset by route and computes hourly frequencies f
 }
 \examples{
 if (interactive()) {
-#' # Plot frequency by hour for specific routes
+# Plot frequency by hour for specific routes
 plot_routefrequency(for_rail_gtfs, route = for_rail_gtfs$routes$route_id[1:2])
 }
 

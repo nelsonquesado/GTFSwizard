@@ -24,7 +24,7 @@ The function calculates hourly and overall average headways by weighting `patter
 }
 \examples{
 if (interactive()) {
-#' # Plot average headway by hour for a GTFS object
+# Plot average headway by hour for a GTFS object
 plot_headways(for_rail_gtfs)
 }
 

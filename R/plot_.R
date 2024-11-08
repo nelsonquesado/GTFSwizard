@@ -16,7 +16,7 @@
 #' The function first calculates hourly and overall average frequencies using a weighted mean based on `pattern_frequency`. Frequencies are plotted by hour of the day to visualize the system's trip distribution patterns.
 #'
 #' @examples
-#' #' if (interactive()) {
+#' if (interactive()) {
 #' # Plot the frequency of trips by hour for a GTFS object
 #' plot_frequency(for_rail_gtfs)
 #'}
@@ -79,7 +79,7 @@ plot_frequency <- function(gtfs){
 #'
 #' @examples
 #' if (interactive()) {
-#' #' # Plot frequency by hour for specific routes
+#' # Plot frequency by hour for specific routes
 #' plot_routefrequency(for_rail_gtfs, route = for_rail_gtfs$routes$route_id[1:2])
 #' }
 #'
@@ -135,7 +135,7 @@ plot_routefrequency <- function(gtfs, route = NULL){
 #'
 #' @examples
 #' if (interactive()) {
-#' #' # Plot average headway by hour for a GTFS object
+#' # Plot average headway by hour for a GTFS object
 #' plot_headways(for_rail_gtfs)
 #' }
 #'
