@@ -27,11 +27,13 @@ A `ggplot2` object showing a calendar heatmap of the daily trip counts across th
 - If `facet_by_year = TRUE`, the plot will display each year in separate rows, and `ncol` is automatically set to zero.
 }
 \examples{
+\donttest{
 # Plot a GTFS trip calendar with 4 columns
 plot_calendar(for_rail_gtfs, ncol = 4)
 
 # Plot a GTFS trip calendar, faceting by year
 plot_calendar(for_rail_gtfs, facet_by_year = TRUE)
+}
 
 }
 \seealso{
