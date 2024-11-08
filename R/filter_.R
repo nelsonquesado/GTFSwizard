@@ -35,22 +35,20 @@
 #' @return A filtered `wizardgtfs` object containing only the records that match the specified criteria.
 #'
 #' @examples
-#' \dontrun{
 #' # Filter by service pattern
-#' filtered_gtfs <- filter_servicepattern(gtfs = for_gtfs, servicepattern = "servicepattern-2")
+#' filtered_gtfs <- filter_servicepattern(gtfs = for_rail_gtfs, servicepattern = "servicepattern-1")
 #'
 #' # Filter by a specific date
-#' filtered_gtfs <- filter_date(gtfs = for_gtfs, dates = "2023-01-01")
+#' filtered_gtfs <- filter_date(gtfs = for_rail_gtfs, dates = "2021-02-10")
 #'
 #' # Filter by route ID, keeping only specified routes
-#' filtered_gtfs <- filter_route(gtfs = for_gtfs, route = for_gtfs$routes$route_id[1:2])
+#' filtered_gtfs <- filter_route(gtfs = for_rail_gtfs, route = for_rail_gtfs$routes$route_id[1:2])
 #'
 #' # Filter by trip ID, excluding specified trips
-#' filtered_gtfs <- filter_trip(gtfs = for_gtfs, trip = for_gtfs$trips$trip_id[1:2], keep = FALSE)
+#' filtered_gtfs <- filter_trip(gtfs = for_rail_gtfs, trip = for_rail_gtfs$trips$trip_id[1:2], keep = FALSE)
 #'
 #' # Filter by a time range
-#' filtered_gtfs <- filter_time(gtfs = for_gtfs, from = "06:30:00", to = "10:00:00")
-#' }
+#' filtered_gtfs <- filter_time(gtfs = for_rail_gtfs, from = "06:30:00", to = "10:00:00")
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]

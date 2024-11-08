@@ -39,16 +39,14 @@ This function calls specific sub-functions based on the selected method:
 If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 }
 \examples{
-\dontrun{
 # Calculate average route durations
-durations_by_route <- get_durations(gtfs = for_gtfs, method = "by.route")
+durations_by_route <- get_durations(gtfs = for_rail_gtfs, method = "by.route")
 
 # Calculate trip durations
-durations_by_trip <- get_durations(gtfs = for_gtfs, method = "by.trip")
+durations_by_trip <- get_durations(gtfs = for_rail_gtfs, method = "by.trip")
 
 # Calculate detailed durations between stops
-detailed_durations <- get_durations(gtfs = for_gtfs, method = "detailed")
-}
+detailed_durations <- get_durations(gtfs = for_rail_gtfs, method = "detailed")
 
 }
 \seealso{
