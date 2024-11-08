@@ -29,10 +29,8 @@ This approximation may not perfectly represent real-world shapes, especially for
 `get_shapes()` uses stop sequences to recriate the shapes table; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
 }
 \examples{
-\dontrun{
 # Generate a shapes table for a GTFS object
-gtfs_with_shapes <- get_shapes(gtfs = for_gtfs)
-}
+gtfs_with_shapes <- get_shapes(gtfs = for_rail_gtfs)
 
 }
 \seealso{

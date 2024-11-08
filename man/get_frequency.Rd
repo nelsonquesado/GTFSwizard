@@ -35,13 +35,11 @@ This function calls specific sub-functions based on the selected method:
 If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 }
 \examples{
-\dontrun{
 # Calculate daily route frequency
-frequency_by_route <- get_frequency(gtfs = for_gtfs, method = "by.route")
+frequency_by_route <- get_frequency(gtfs = for_rail_gtfs, method = "by.route")
 
 # Calculate detailed hourly frequency
-detailed_frequency <- get_frequency(gtfs = for_gtfs, method = "detailed")
-}
+detailed_frequency <- get_frequency(gtfs = for_rail_gtfs, method = "detailed")
 
 }
 \seealso{

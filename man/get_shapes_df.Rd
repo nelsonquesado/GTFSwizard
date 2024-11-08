@@ -34,11 +34,9 @@ The function performs the following steps:
 The resulting data frame conforms to the GTFS `shapes.txt` format. Distances are expressed in meters.
 }
 \examples{
-\dontrun{
 # Convert a shape geometry to a GTFS-compliant shapes data frame
-shape <- get_shapes_sf(for_gtfs$shapes)
+shape <- get_shapes_sf(for_rail_gtfs$shapes)
 shapes_df <- get_shapes_df(shape = shape)
-}
 
 }
 \seealso{

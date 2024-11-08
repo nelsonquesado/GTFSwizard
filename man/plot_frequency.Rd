@@ -25,10 +25,8 @@ A `plotly` interactive plot displaying hourly frequency distributions, including
 The function first calculates hourly and overall average frequencies using a weighted mean based on `pattern_frequency`. Frequencies are plotted by hour of the day to visualize the system's trip distribution patterns.
 }
 \examples{
-\dontrun{
 # Plot the frequency of trips by hour for a GTFS object
-plot_frequency(for_gtfs)
-}
+plot_frequency(for_rail_gtfs)
 
 }
 \seealso{

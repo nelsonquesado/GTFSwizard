@@ -20,10 +20,8 @@
 #' `get_shapes()` uses stop sequences to recriate the shapes table; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
 #'
 #' @examples
-#' \dontrun{
 #' # Generate a shapes table for a GTFS object
-#' gtfs_with_shapes <- get_shapes(gtfs = for_gtfs)
-#' }
+#' gtfs_with_shapes <- get_shapes(gtfs = for_rail_gtfs)
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_shapes_df()]
@@ -40,7 +38,7 @@ get_shapes <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('\nThis gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(!purrr::is_null(gtfs$shapes)){

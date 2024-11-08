@@ -38,15 +38,15 @@ A data frame containing speed calculations, depending on the specified method:
 - If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 }
 \examples{
- \dontrun{
 # Calculate average route speeds
-speeds_by_route <- get_speeds(gtfs = for_gtfs, method = "by.route")
+speeds_by_route <- get_speeds(gtfs = for_rail_gtfs, method = "by.route")
 
 # Calculate trip speeds
-speeds_by_trip <- get_speeds(gtfs = for_gtfs, method = "by.trip")
+speeds_by_trip <- get_speeds(gtfs = for_rail_gtfs, method = "by.trip")
 
+\donttest{
 # Calculate detailed speeds between stops
-detailed_speeds <- get_speeds(gtfs = for_gtfs, method = "detailed")
+detailed_speeds <- get_speeds(gtfs = for_rail_gtfs, method = "detailed")
 }
 
 }

@@ -25,13 +25,11 @@
 #' If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 #'
 #' @examples
-#' \dontrun{
 #' # Calculate daily route frequency
-#' frequency_by_route <- get_frequency(gtfs = for_gtfs, method = "by.route")
+#' frequency_by_route <- get_frequency(gtfs = for_rail_gtfs, method = "by.route")
 #'
 #' # Calculate detailed hourly frequency
-#' detailed_frequency <- get_frequency(gtfs = for_gtfs, method = "detailed")
-#' }
+#' detailed_frequency <- get_frequency(gtfs = for_rail_gtfs, method = "detailed")
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
@@ -51,7 +49,7 @@ get_frequency <- function(gtfs, method = 'by.route'){
 
   if (!method %in% c("by.route", "detailed")) {
     freq <- get_frequency_byroute(gtfs)
-    warning('\n"method" should be one of "by.route" or "detailed".\nReturning "method = "by.route"".')
+    message('"method" should be one of "by.route" or "detailed". Returning "method = "by.route"".')
   }
 
   return(freq)
@@ -62,7 +60,7 @@ get_frequency_byroute <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-
@@ -91,7 +89,7 @@ get_frequency_detailed <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-

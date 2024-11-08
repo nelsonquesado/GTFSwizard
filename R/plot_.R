@@ -16,10 +16,8 @@
 #' The function first calculates hourly and overall average frequencies using a weighted mean based on `pattern_frequency`. Frequencies are plotted by hour of the day to visualize the system's trip distribution patterns.
 #'
 #' @examples
-#' \dontrun{
 #' # Plot the frequency of trips by hour for a GTFS object
-#' plot_frequency(for_gtfs)
-#' }
+#' plot_frequency(for_rail_gtfs)
 #'
 #' @seealso
 #' [GTFSwizard::get_frequency()]
@@ -78,10 +76,8 @@ plot_frequency <- function(gtfs){
 #' The function filters the GTFS dataset by route and computes hourly frequencies for each service pattern. The plot shows variations in service frequency across hours and highlights the primary service pattern.
 #'
 #' @examples
-#' \dontrun{
 #' # Plot frequency by hour for specific routes
-#' plot_routefrequency(for_gtfs, route = for_gtfs$routes$route_id[1:2])
-#' }
+#' plot_routefrequency(for_rail_gtfs, route = for_rail_gtfs$routes$route_id[1:2])
 #'
 #' @seealso
 #' [GTFSwizard::filter_route()], [GTFSwizard::get_frequency()]
@@ -91,8 +87,6 @@ plot_frequency <- function(gtfs){
 #' @importFrom hrbrthemes theme_ipsum
 #' @importFrom plotly ggplotly
 #' @export
-
-#route = c('004', '011')
 plot_routefrequency <- function(gtfs, route = NULL){
 
   data <-
@@ -100,14 +94,6 @@ plot_routefrequency <- function(gtfs, route = NULL){
     GTFSwizard::get_frequency(method = 'detailed') %>%
     dplyr::mutate(hour = as.numeric(hour))
 
-  # data <-
-  #   tibble(route_id = rep(route, times = rep(24, times = length(route))),
-  #          hour = rep(1:24, times = length(route)),
-  #          service_pattern = list(unique(freq$service_pattern))) %>%
-  #   tidyr::unnest(cols = 'service_pattern') %>%
-  #   dplyr::full_join(freq, .) %>%
-  #   dplyr::mutate(frequency = dplyr::if_else(is.na(frequency), 0, frequency))
-  #
   plot <-
     ggplot2::ggplot() +
     ggplot2::geom_line(data = data, ggplot2::aes(x = hour, y = frequency, color = route_id, alpha = service_pattern), linewidth = 1) +
@@ -128,7 +114,6 @@ plot_routefrequency <- function(gtfs, route = NULL){
   return(plotly)
 }
 
-
 #' Plot System Average Headway by Hour
 #'
 #' `plot_headways` generates an interactive plot of the average headways (time between trips) by hour across the GTFS dataset. The plot displays hourly headway distributions for each service pattern and includes an overall average headway line.
@@ -145,10 +130,8 @@ plot_routefrequency <- function(gtfs, route = NULL){
 #' The function calculates hourly and overall average headways by weighting `pattern_frequency` and `trips` for each service pattern. The plot provides a visual representation of how average headways vary by hour and across service patterns.
 #'
 #' @examples
-#' \dontrun{
 #' # Plot average headway by hour for a GTFS object
-#' plot_headways(for_gtfs)
-#' }
+#' plot_headways(for_rail_gtfs)
 #'
 #' @seealso
 #' [GTFSwizard::get_headways()]
@@ -158,7 +141,6 @@ plot_routefrequency <- function(gtfs, route = NULL){
 #' @importFrom hrbrthemes theme_ipsum
 #' @importFrom plotly ggplotly
 #' @export
-
 # plot_headways
 plot_headways <- function(gtfs){
 

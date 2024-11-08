@@ -34,19 +34,17 @@
 #' If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 #'
 #' @examples
-#' \dontrun{
 #' # Calculate dwell times by hour
-#' dwelltimes_by_hour <- get_dwelltimes(gtfs = for_gtfs, max.dwelltime = 120, method = "by.hour")
+#' dwelltimes_by_hour <- get_dwelltimes(gtfs = for_rail_gtfs, max.dwelltime = 120, method = "by.hour")
 #'
 #' # Calculate dwell times by route
-#' dwelltimes_by_route <- get_dwelltimes(gtfs = for_gtfs, max.dwelltime = 120, method = "by.route")
+#' dwelltimes_by_route <- get_dwelltimes(gtfs = for_rail_gtfs, max.dwelltime = 90, method = "by.route")
 #'
 #' # Calculate dwell times by trip
-#' dwelltimes_by_trip <- get_dwelltimes(gtfs = for_gtfs, max.dwelltime = 120, method = "by.trip")
+#' dwelltimes_by_trip <- get_dwelltimes(gtfs = for_rail_gtfs, max.dwelltime = 45, method = "by.trip")
 #'
 #' # Calculate detailed dwell times between stops
-#' detailed_dwelltimes <- get_dwelltimes(gtfs = for_gtfs, max.dwelltime = 120, method = "detailed")
-#' }
+#' detailed_dwelltimes <- get_dwelltimes(gtfs = for_rail_gtfs, max.dwelltime = 60, method = "detailed")
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
@@ -74,7 +72,7 @@ get_dwelltimes <- function(gtfs, max.dwelltime = 90, method = 'by.route'){
 
   if (!method %in% c('by.hour', 'by.route', 'detailed', 'by.trip')) {
     dwell_time <- get_dwelltime_byroute(gtfs)
-    warning('\n"method" should be one of "by.hour", "by.route", "by.trip" or "detailed".\nReturning "method = "by.route"".')
+    warning('"method" should be one of "by.hour", "by.route", "by.trip" or "detailed". Returning "method = "by.route"".')
   }
 
   return(dwell_time)
@@ -85,7 +83,7 @@ get_dwelltime_byhour <- function(gtfs, max.dwelltime = 90){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-
@@ -131,7 +129,7 @@ get_dwelltime_byroute <- function(gtfs, max.dwelltime = 90){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-
@@ -176,7 +174,7 @@ get_dwelltime_bytrip <- function(gtfs, max.dwelltime = 90){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-
@@ -220,7 +218,7 @@ get_dwelltime_detailed <- function(gtfs, max.dwelltime = 90){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-

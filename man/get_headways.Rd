@@ -43,19 +43,17 @@ This function calls specific sub-functions based on the selected method:
 If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 }
 \examples{
-\dontrun{
 # Calculate average route headways
-headways_by_route <- get_headways(gtfs = for_gtfs, method = "by.route")
+headways_by_route <- get_headways(gtfs = for_rail_gtfs, method = "by.route")
 
 # Calculate hourly headways
-headways_by_hour <- get_headways(gtfs = for_gtfs, method = "by.hour")
+headways_by_hour <- get_headways(gtfs = for_rail_gtfs, method = "by.hour")
 
 # Calculate headways for each trip
-headways_by_trip <- get_headways(gtfs = for_gtfs, method = "by.trip")
+headways_by_trip <- get_headways(gtfs = for_rail_gtfs, method = "by.trip")
 
 # Calculate detailed stop-level headways
-detailed_headways <- get_headways(gtfs = for_gtfs, method = "detailed")
-}
+detailed_headways <- get_headways(gtfs = for_rail_gtfs, method = "detailed")
 
 }
 \seealso{

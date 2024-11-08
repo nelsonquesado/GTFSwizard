@@ -19,10 +19,8 @@
 #' This function assumes that both input datasets follow GTFS structure. Non-standard tables or columns may be ignored or cause warnings.
 #'
 #' @examples
-#' \dontrun{
 #' # Merge two GTFS datasets with suffix handling
-#' merged_gtfs <- merge_gtfs(for_gtfs, for_gtfs, suffix = TRUE)
-#' }
+#' merged_gtfs <- merge_gtfs(for_rail_gtfs, for_bus_gtfs, suffix = TRUE)
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()]
@@ -39,12 +37,12 @@ merge_gtfs <- function(gtfs.x, gtfs.y, suffix = TRUE){
 
   if(!"wizardgtfs" %in% class(gtfs.x)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs.x)
-    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+    message('The first gtfs (gtfs.x) object is not of the wizardgtfs class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(!"wizardgtfs" %in% class(gtfs.y)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs.y)
-    warning('\nThe first gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('The second gtfs (gtfs.y) object is not of the wizardgtfs class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
 

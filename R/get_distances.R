@@ -77,14 +77,14 @@ get_distances_byroute <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(purrr::is_null(gtfs$shapes)){
 
     gtfs <- GTFSwizard::get_shapes(gtfs)
 
-    warning('\nThis gtfs object does not contain a shapes table.\nUsing get_shapes().')
+    message('This gtfs object does not contain a shapes table. Using get_shapes().')
   }
 
   service_pattern <-
@@ -111,14 +111,14 @@ get_distances_bytrip <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(purrr::is_null(gtfs$shapes)){
 
     gtfs <- GTFSwizard::get_shapes(gtfs)
 
-    warning('\nThis gtfs object does not contain a shapes table.\nUsing get_shapes().')
+    message('This gtfs object does not contain a shapes table. Using get_shapes().')
   }
 
   service_pattern <-
@@ -142,14 +142,14 @@ get_distances_detailed <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   if(purrr::is_null(gtfs$shapes)){
 
     gtfs <- GTFSwizard::get_shapes(gtfs)
 
-    warning('\nThis gtfs object does not contain a shapes table.\nUsing get_shapes().')
+    message('This gtfs object does not contain a shapes table. Using get_shapes().')
   }
 
   service_pattern <-

@@ -23,10 +23,8 @@ A `plotly` interactive plot showing the hourly average headway (in minutes) acro
 The function calculates hourly and overall average headways by weighting `pattern_frequency` and `trips` for each service pattern. The plot provides a visual representation of how average headways vary by hour and across service patterns.
 }
 \examples{
-\dontrun{
 # Plot average headway by hour for a GTFS object
-plot_headways(for_gtfs)
-}
+plot_headways(for_rail_gtfs)
 
 }
 \seealso{

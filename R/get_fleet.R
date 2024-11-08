@@ -33,19 +33,17 @@
 #' If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 #'
 #' @examples
-#' \dontrun{
 #' # Calculate fleet requirements by route
-#' fleet_by_route <- get_fleet(gtfs = for_gtfs, method = "by.route")
+#' fleet_by_route <- get_fleet(gtfs = for_rail_gtfs, method = "by.route")
 #'
 #' # Calculate fleet requirements by hour
-#' fleet_by_hour <- get_fleet(gtfs = for_gtfs, method = "by.hour")
+#' fleet_by_hour <- get_fleet(gtfs = for_rail_gtfs, method = "by.hour")
 #'
 #' # Calculate fleet requirements for peak hours
-#' fleet_peak <- get_fleet(gtfs = for_gtfs, method = "peak")
+#' fleet_peak <- get_fleet(gtfs = for_rail_gtfs, method = "peak")
 #'
 #' # Calculate detailed fleet requirements over timepoints
-#' fleet_detailed <- get_fleet(gtfs = for_gtfs, method = "detailed")
-#' }
+#' fleet_detailed <- get_fleet(gtfs = for_rail_gtfs, method = "detailed")
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
@@ -74,7 +72,7 @@ get_fleet <- function(gtfs, method = 'by.route'){
 
   if (!method %in% c('by.route', 'detailed', 'peak', 'by.hour')) {
     durations <- get_durations_byroute(gtfs)
-    warning('\n"method" should be one of "by.route", "by.hour", "peak" or "detailed".\nReturning "method = by.route"".')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   return(durations)
@@ -87,7 +85,7 @@ get_fleet_byroute <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-
@@ -175,11 +173,11 @@ get_fleet_byroute <- function(gtfs){
 
 get_fleet_byhour <- function(gtfs){
 
-  message('\nThis method returns the maximum number of simultaneous trips for a given hour.')
+  message('This method returns the maximum number of simultaneous trips for a given hour.')
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-
@@ -267,11 +265,11 @@ get_fleet_byhour <- function(gtfs){
 
 get_fleet_peak <- function(gtfs){
 
-  message('\nThis method returns the number of simultaneous trips for the three busiest hours.')
+  message('This method returns the number of simultaneous trips for the three busiest hours.')
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-
@@ -364,7 +362,7 @@ get_fleet_detailed <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-

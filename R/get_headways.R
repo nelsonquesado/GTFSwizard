@@ -33,19 +33,17 @@
 #' If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 #'
 #' @examples
-#' \dontrun{
 #' # Calculate average route headways
-#' headways_by_route <- get_headways(gtfs = for_gtfs, method = "by.route")
+#' headways_by_route <- get_headways(gtfs = for_rail_gtfs, method = "by.route")
 #'
 #' # Calculate hourly headways
-#' headways_by_hour <- get_headways(gtfs = for_gtfs, method = "by.hour")
+#' headways_by_hour <- get_headways(gtfs = for_rail_gtfs, method = "by.hour")
 #'
 #' # Calculate headways for each trip
-#' headways_by_trip <- get_headways(gtfs = for_gtfs, method = "by.trip")
+#' headways_by_trip <- get_headways(gtfs = for_rail_gtfs, method = "by.trip")
 #'
 #' # Calculate detailed stop-level headways
-#' detailed_headways <- get_headways(gtfs = for_gtfs, method = "detailed")
-#' }
+#' detailed_headways <- get_headways(gtfs = for_rail_gtfs, method = "detailed")
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
@@ -57,17 +55,17 @@
 get_headways <- function(gtfs, method = 'by.route'){
 
   if (method == 'by.hour') {
-    message('\nThis method assumes constant headways along stops.')
+    message('This method assumes constant headways along stops.')
     hw <- get_headway_byhour(gtfs)
   }
 
   if (method == 'by.route') {
-    message('\nThis method assumes constant headways along stops.')
+    message('This method assumes constant headways along stops.')
     hw <- get_headway_byroute(gtfs)
   }
 
   if (method == 'by.trip') {
-    message('\nThis method assumes constant headways along stops.')
+    message('This method assumes constant headways along stops.')
     hw <- get_headway_bytrip(gtfs)
   }
 
@@ -77,7 +75,7 @@ get_headways <- function(gtfs, method = 'by.route'){
 
   if (!method %in% c("by.route", 'detailed', 'by.trip', 'by.hour')) {
     hw <- get_headway_byroute(gtfs)
-    warning('\n"method" should be one of "by.hour", "by.route", "by.trip" or "detailed".\nReturning "method = "by.route"".')
+    warning('"method" should be one of "by.hour", "by.route", "by.trip" or "detailed". Returning "method = "by.route"".')
   }
 
   return(hw)
@@ -88,7 +86,7 @@ get_headway_byhour <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-
@@ -129,7 +127,7 @@ get_headway_byroute <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-
@@ -169,7 +167,7 @@ get_headway_bytrip <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-
@@ -208,7 +206,7 @@ get_headway_detailed <- function(gtfs){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('\nThis gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   service_pattern <-

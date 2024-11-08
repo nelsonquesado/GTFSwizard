@@ -43,19 +43,17 @@ This function calls specific sub-functions based on the selected method:
 If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 }
 \examples{
-\dontrun{
 # Calculate fleet requirements by route
-fleet_by_route <- get_fleet(gtfs = for_gtfs, method = "by.route")
+fleet_by_route <- get_fleet(gtfs = for_rail_gtfs, method = "by.route")
 
 # Calculate fleet requirements by hour
-fleet_by_hour <- get_fleet(gtfs = for_gtfs, method = "by.hour")
+fleet_by_hour <- get_fleet(gtfs = for_rail_gtfs, method = "by.hour")
 
 # Calculate fleet requirements for peak hours
-fleet_peak <- get_fleet(gtfs = for_gtfs, method = "peak")
+fleet_peak <- get_fleet(gtfs = for_rail_gtfs, method = "peak")
 
 # Calculate detailed fleet requirements over timepoints
-fleet_detailed <- get_fleet(gtfs = for_gtfs, method = "detailed")
-}
+fleet_detailed <- get_fleet(gtfs = for_rail_gtfs, method = "detailed")
 
 }
 \seealso{

@@ -17,10 +17,8 @@
 #' If `shape_pt_sequence` is missing, the function will assume that points are ordered, constructing the shape accordingly.
 #'
 #' @examples
-#' \dontrun{
 #' # Convert shapes data in a GTFS object to sf format
-#' gtfs_sf <- get_shapes_sf(for_gtfs)
-#' }
+#' gtfs_sf <- get_shapes_sf(for_rail_gtfs)
 #'
 #' @seealso
 #' [GTFSwizard::get_shapes()], [GTFSwizard::get_shapes_df()]
@@ -76,7 +74,7 @@ get_shapes_sf.data.frame <- function(gtfs){
         dplyr::mutate(shape_pt_sequence = as.numeric(shape_pt_sequence)) %>%
         dplyr::arrange(shape_id,shape_pt_sequence)
     }else{
-      warning("When the ", crayon::cyan('"shape_pt_sequence"')," column is not defined, the line will be built considering the points in order.")
+      warning("If ", crayon::cyan('"shape_pt_sequence"')," column is not defined, shapes are built considering the arrange of rows in the data.")
     }
 
     if('shape_dist_traveled' %in% names(gtfs)){

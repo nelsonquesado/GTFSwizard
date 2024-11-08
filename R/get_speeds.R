@@ -28,15 +28,15 @@
 #' - If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 #'
 #' @examples
-#'  \dontrun{
 #' # Calculate average route speeds
-#' speeds_by_route <- get_speeds(gtfs = for_gtfs, method = "by.route")
+#' speeds_by_route <- get_speeds(gtfs = for_rail_gtfs, method = "by.route")
 #'
 #' # Calculate trip speeds
-#' speeds_by_trip <- get_speeds(gtfs = for_gtfs, method = "by.trip")
+#' speeds_by_trip <- get_speeds(gtfs = for_rail_gtfs, method = "by.trip")
 #'
+#' \donttest{
 #' # Calculate detailed speeds between stops
-#' detailed_speeds <- get_speeds(gtfs = for_gtfs, method = "detailed")
+#' detailed_speeds <- get_speeds(gtfs = for_rail_gtfs, method = "detailed")
 #' }
 #'
 #' @seealso
@@ -46,22 +46,12 @@
 #' @importFrom GTFSwizard get_servicepattern get_distances get_durations
 #' @export
 get_speeds <- function(gtfs, method = 'by.route'){
-  # Function code here...
-}
-
-# Internal functions for different methods
-get_speeds_byroute <- function(gtfs){ ... }
-get_speeds_bytrip <- function(gtfs){ ... }
-get_speeds_detailed <- function(gtfs){ ... }
-
-
-get_speeds <- function(gtfs, method = 'by.route'){
 
   if(purrr::is_null(gtfs$shapes)){
 
     gtfs <- GTFSwizard::get_shapes(gtfs)
 
-    warning('\nThis gtfs object does not contain a shapes table.\nUsing get_shapes().')
+    warning("GTFS doesn't have a shapes table, using ", crayon::blue("get_shapes"), " to build it")
   }
 
   if (method == 'by.route') {
@@ -80,7 +70,7 @@ get_speeds <- function(gtfs, method = 'by.route'){
                      'by.trip',
                      'detailed')) {
     speeds <- get_speeds_byroute(gtfs)
-    warning('\n"method" should be one of "by.route", "by.trip" or "detailed".\nReturning "method = by.route"".')
+    warning('"method" should be one of "by.route", "by.trip" or "detailed". Returning "method = by.route"".')
   }
 
   return(speeds)
@@ -93,7 +83,7 @@ get_speeds_byroute <- function(gtfs){
 
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
 
-    warning('\nThis gtfs object is not of wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
 
   }
 
@@ -126,7 +116,7 @@ get_speeds_bytrip <- function(gtfs){
 
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
 
-    warning('\nThis gtfs object is not of wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
 
   }
 
@@ -158,7 +148,7 @@ get_speeds_detailed <- function(gtfs){
 
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
 
-    warning('\nThis gtfs object is not of wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
 
   }
 
