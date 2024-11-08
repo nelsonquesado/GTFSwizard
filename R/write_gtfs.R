@@ -12,8 +12,10 @@
 #' The function converts spatial data frames (e.g., shapes and stops) to standard data frames, removes additional service pattern tables, and exports.
 #'
 #' @examples
+#' \donttest
 #' # Export a wizardgtfs object to a zip file
 #' write_gtfs(for_rail_gtfs, "gtfs_export.zip")
+#' }
 #'
 #' @seealso
 #' [GTFSwizard::read_gtfs()], [GTFSwizard::as_wizardgtfs()],

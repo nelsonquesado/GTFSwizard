@@ -17,9 +17,9 @@
 #' @return A Shiny app object that, when run, opens an interactive dashboard for GTFS data exploration.
 #'
 #' @examples
-#' \dontrun{
-#' # To run the Shiny application:
-#' explore_gtfs(gtfs = for_gtfs)
+#' if (interactive()) {
+#'   # To run the Shiny application:
+#'   explore_gtfs(gtfs = for_gtfs)
 #' }
 #'
 #' @seealso

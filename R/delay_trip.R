@@ -15,15 +15,13 @@
 #' @return A modified `wizardgtfs` object with updated arrival and departure times for the specified trips.
 #'
 #' @examples
-#' \dontrun{
 #' # Delay trips by 5 minutes
-#' gtfs <- delay_trip(gtfs = for_gtfs, for_gtfs$trips$trip_id[1:2], duration = 300)
+#' gtfs <- delay_trip(gtfs = for_rail_gtfs, for_rail_gtfs$trips$trip_id[1:2], duration = 300)
 #'
 #' # Delay trips by duration
-#' gtfs <- delay_trip(gtfs = for_gtfs,
-#'                     trip = for_gtfs$trips$trip_id[1],
+#' gtfs <- delay_trip(gtfs = for_rail_gtfs,
+#'                     trip = for_rail_gtfs$trips$trip_id[1],
 #'                     duration = lubridate::duration(10, "minutes"))
-#'  }
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()] for converting GTFS objects to `wizardgtfs` class.
