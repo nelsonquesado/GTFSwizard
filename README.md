@@ -388,9 +388,9 @@ GTFSwizard::get_stops_sf(for_gtfs$stops)
 ```
 
 ## Objects
-GTFSwizard features the `for_data` object, a GTFS sample of the real urban regular bus system in the city of Fortaleza, Brazil, on the 2020's.
+GTFSwizard features two toy examples, a small `for_rail_gtfs` `wizardgtfs` object, and a rather bigger `for_bus_gtfs` `wizardgtfs` object. They are real GTFS samples, the first being the urban subway system, and the second one the regular bus system; both for the city of Fortaleza, Brazil, on the 2020's.
 ``` r
-gtfs <- GTFSwizard::for_data
+gtfs <- GTFSwizard::for_bus_gtfs
 
 plot(gtfs)
 ```
