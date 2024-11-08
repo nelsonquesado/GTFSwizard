@@ -26,15 +26,13 @@ If `gtfs` is not a `wizardgtfs` object, the function will attempt to convert it 
 The function checks that `trip` contains valid `trip_id`s and that `duration` is either a `duration` or numeric (seconds).
 }
 \examples{
-\dontrun{
 # Delay trips by 5 minutes
-gtfs <- delay_trip(gtfs = for_gtfs, for_gtfs$trips$trip_id[1:2], duration = 300)
+gtfs <- delay_trip(gtfs = for_rail_gtfs, for_rail_gtfs$trips$trip_id[1:2], duration = 300)
 
 # Delay trips by duration
-gtfs <- delay_trip(gtfs = for_gtfs,
-                    trip = for_gtfs$trips$trip_id[1],
+gtfs <- delay_trip(gtfs = for_rail_gtfs,
+                    trip = for_rail_gtfs$trips$trip_id[1],
                     duration = lubridate::duration(10, "minutes"))
- }
 
 }
 \seealso{

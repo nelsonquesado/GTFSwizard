@@ -23,10 +23,8 @@ An object of class `wizardgtfs`, which includes multiple data frames for transit
 - The `wizardgtfs` format includes additional processing and checks, such as validation of unique IDs and structure formatting.
 }
 \examples{
-\dontrun{
 # Convert a GTFS object to wizardgtfs format
-gtfs_wizard <- as_wizardgtfs(for_gtfs, build_shapes = TRUE)
-}
+gtfs_wizard <- as_wizardgtfs(for_rail_gtfs, build_shapes = TRUE)
 
 }
 \seealso{

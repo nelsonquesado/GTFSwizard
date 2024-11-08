@@ -19,7 +19,7 @@
 #' @examples
 #' if (interactive()) {
 #'   # To run the Shiny application:
-#'   explore_gtfs(gtfs = for_gtfs)
+#'   explore_gtfs(gtfs = GTFSwizard::for_rail_gtfs)
 #' }
 #'
 #' @seealso
