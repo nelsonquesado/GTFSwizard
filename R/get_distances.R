@@ -84,7 +84,7 @@ get_distances_byroute <- function(gtfs){
 
     gtfs <- GTFSwizard::get_shapes(gtfs)
 
-    message('This gtfs object does not contain a shapes table. Using get_shapes().')
+    message('This gtfs object does not contain a shapes table. Using ', crayon::cyan('get_shapes()'), '.')
   }
 
   service_pattern <-
@@ -92,7 +92,7 @@ get_distances_byroute <- function(gtfs){
 
   distances <-
     GTFSwizard::get_shapes_sf(gtfs$shapes) %>%
-    dplyr::mutate(distance = st_length(geometry))
+    dplyr::mutate(distance = sf::st_length(geometry))
 
   distances <-
     gtfs$trips %>%
@@ -126,7 +126,7 @@ get_distances_bytrip <- function(gtfs){
 
   distances <-
     GTFSwizard::get_shapes_sf(gtfs$shapes) %>%
-    dplyr::mutate(distance = st_length(geometry))
+    dplyr::mutate(distance = sf::st_length(geometry))
 
   distances <-
     gtfs$trips %>%
