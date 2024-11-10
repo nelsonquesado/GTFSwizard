@@ -8,20 +8,20 @@ Its main purpose is to provide researchers and practitioners with a seamless and
 
 ## Installation
 ``` r
-> install.packages('remotes') # if not already installed
+install.packages('remotes') # if not already installed
 # wait for the installation to complete
 
-> remotes::install_github('OPATP/GTFSwizard')
+remotes::install_github('OPATP/GTFSwizard')
 ```
 ## Basics
 GTFS feeds are read using the `read_gtfs()` function. `read_gtfs()` returns a `wizardgtfs` object, which is a slightly improved `gtfs` object. You can also convert a regular `gtfs` object to a `wizardgtfs` object using the `as_wizardgtfs()` function. You can take a glance at the feed using the base `summary()` function.
 ``` r
-> library(GTFSwizard)
+library(GTFSwizard)
 
 gtfs <- GTFSwizard::read_gtfs('path-to-gtfs.zip') # or
 gtfs <- GTFSwizard::as_wizardgtfs(gtfs_obj)
 
-> names(gtfs)
+names(gtfs)
 # [1] "agency"          "calendar"
 # [3] "calendar_dates"  "fare_attributes"
 # [5] "fare_rules"      "routes"
@@ -29,10 +29,10 @@ gtfs <- GTFSwizard::as_wizardgtfs(gtfs_obj)
 # [9] "stops"           "trips"
 # [11] "dates_services"
 
-> class(gtfs)
+class(gtfs)
 # [1] "wizardgtfs" "gtfs" "list"
 
-> summary(gtfs)
+summary(gtfs)
 #A wizardgtfs object with:  
 
 #10  GTFS tables 
