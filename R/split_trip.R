@@ -33,7 +33,6 @@
 #' @importFrom checkmate assert_int assert_subset
 #' @importFrom crayon cyan
 #' @export
-#split_trip <- function(gtfs, trip, method = 'equal.size', split = 1){
 split_trip <- function(gtfs, trip, split = 1){
 
   # checa os argumentos --------------------------------------------  -----------------------------
@@ -45,8 +44,6 @@ split_trip <- function(gtfs, trip, split = 1){
   checkmate::assert_int(split)
 
   checkmate::assert_subset(trip, choices = gtfs$trips$trip_id)
-
-  #checkmate::assert_choice(method, choices = c('equal.size'))
 
   # identifica trips -------------------------------------------------------------------------
   groups <- split + 1

@@ -45,7 +45,6 @@ merge_gtfs <- function(gtfs.x, gtfs.y, suffix = TRUE){
     message('The second gtfs (gtfs.y) object is not of the wizardgtfs class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
-
   if (isTRUE(suffix)) {
 
     gtfs.x$agency$agency_id <- paste0(gtfs.x$agency$agency_id, '.x')

@@ -54,17 +54,18 @@ get_shapes_df <- function(shape){
 
   shapes_df <-
     shape %>%
-    select(shape_id) %>%
+    dplyr::select(shape_id) %>%
     dplyr::as_tibble() %>%
     stats::setNames(c('shape_id', 'geometry')) %>%
     dplyr::group_by(shape_id) %>%
-    dplyr::mutate(geometry = list(st_coordinates(geometry) %>% .[, -3])) %>%
+    dplyr::mutate(geometry = list(sf::st_coordinates(geometry))) %>%
     dplyr::ungroup() %>%
-    tidyr::unnest(cols = geometry) %>%
+    tidyr::unnest_longer(geometry) %>%
     data.table::data.table() %>%
+    .[, -4] %>%
     stats::setNames(c('shape_id', 'shape_pt_lon', 'shape_pt_lat')) %>%
     dplyr::group_by(shape_id) %>%
-    st_as_sf(coords = c('shape_pt_lon', 'shape_pt_lat'), remove = FALSE, crs = 4326) %>%
+    sf::st_as_sf(coords = c('shape_pt_lon', 'shape_pt_lat'), remove = FALSE, crs = 4326) %>%
     dplyr::mutate(shape_pt_sequence = 1:n(),
                   shape_dist_traveled = abs(sf::st_distance(geometry, lag(geometry), by_element = TRUE)) %>%
                     tidyr::replace_na(x) %>%

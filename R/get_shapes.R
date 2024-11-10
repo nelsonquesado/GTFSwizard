@@ -53,13 +53,15 @@ get_shapes <- function(gtfs){
                        GTFSwizard::get_stops_sf() %>%
                        dplyr::select(stop_id),
                      by = dplyr::join_by(stop_id)
-                     ) %>%
+    ) %>%
     sf::st_as_sf(crs = 4326) %>%
     dplyr::group_by(trip_id) %>%
     dplyr::arrange(stop_sequence) %>%
-    dplyr::summarise(geometry = sf::st_combine(geometry) %>% sf::st_cast('LINESTRING')) |>
+    dplyr::reframe(geometry = sf::st_cast(geometry, to = 'LINESTRING', ids = trip_id)) %>%
     dplyr::left_join(gtfs$trips %>%
-                       dplyr::select(trip_id, route_id)) %>%
+                       dplyr::select(trip_id, route_id),
+                     by = dplyr::join_by(trip_id)
+    ) %>%
     dplyr::group_by(geometry) %>%
     dplyr::reframe(trip_id = list(trip_id)) %>%
     dplyr::mutate(shape_id = paste0('shape-', 1:n()))
@@ -73,11 +75,11 @@ get_shapes <- function(gtfs){
     dplyr::select(-shape_id) %>%
     dplyr::left_join(shapes.dic %>%
                        dplyr::select(-geometry) %>%
-                       tidyr::unnest(cols = 'trip_id'))
+                       tidyr::unnest(cols = 'trip_id'),
+                     dplyr::join_by(trip_id))
 
   gtfs$shapes <-
     GTFSwizard::get_shapes_df(gtfs$shapes)
-
 
   return(gtfs)
 
