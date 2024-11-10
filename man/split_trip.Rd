@@ -29,6 +29,8 @@ A GTFS object with the specified trip split into new sub-trips.
 - After the split, the function re-generates the shapes table for the new trips using `get_shapes`, and merges it back into the `wizardgtfs` object.
 
 - Be aware: `get_shapes` reconstructs shapes using euclidean approximation and may not be accurate.
+
+- The maximum number of sections in a given trip is restricted by its amount of stops
 }
 \note{
 `split_trip()` uses stop sequences to recriate the shapes table of split trips; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.

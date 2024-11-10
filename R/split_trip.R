@@ -19,6 +19,8 @@
 #'
 #' - Be aware: `get_shapes` reconstructs shapes using euclidean approximation and may not be accurate.
 #'
+#' - The maximum number of sections in a given trip is restricted by its amount of stops
+#'
 #' @note
 #' `split_trip()` uses stop sequences to recriate the shapes table of split trips; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
 #'
@@ -38,7 +40,7 @@ split_trip <- function(gtfs, trip, split = 1){
   # checa os argumentos --------------------------------------------  -----------------------------
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   checkmate::assert_int(split)
@@ -52,7 +54,7 @@ split_trip <- function(gtfs, trip, split = 1){
     gtfs$stop_times %>%
     dplyr::mutate(split = trip_id %in% trip) %>%
     dplyr::group_by(trip_id) %>%
-    dplyr::mutate(subtrip = if_else(split == TRUE, ceiling(1:n()/n() * groups), NA),
+    dplyr::mutate(subtrip = if_else(split == TRUE, ceiling(1:n()/n() * groups), NA) |> forcats::as_factor() |> as.numeric(),
            dupe = split == TRUE & !subtrip == lead(subtrip)) %>%
     dplyr::ungroup() %>%
     dplyr::bind_rows(dplyr::slice(., .$dupe %>% which()) %>% mutate(subtrip = subtrip + 1))
@@ -112,7 +114,9 @@ split_trip <- function(gtfs, trip, split = 1){
 
   # corrigindo shapes ---------------------------------------------------------------------------
   if(all(gtfs$trips$trip_id %in% trip.dic$new.trip_id)) {
+
     gtfs <- GTFSwizard::get_shapes(gtfs)
+
   } else {
     gtfs.x <-
       GTFSwizard::filter_trip(gtfs, trip.dic$new.trip_id, keep = FALSE)
