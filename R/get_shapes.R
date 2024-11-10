@@ -42,7 +42,7 @@ get_shapes <- function(gtfs){
   }
 
   if(!purrr::is_null(gtfs$shapes)){
-    warning('This gtfs object already contains a shapes table.\n', crayon::cyan('get_shapes()'), ' will', crayon::red(" overwrite"), ' it.')
+    warning('This gtfs object already contains a shapes table. ', crayon::cyan('get_shapes()'), ' will', crayon::red(" overwrite"), ' it.')
   }
 
   shapes.dic <-
