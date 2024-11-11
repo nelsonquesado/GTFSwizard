@@ -8,10 +8,14 @@ Its main purpose is to provide researchers and practitioners with a seamless and
 
 ## Installation
 ``` r
+install.packages("GTFSwizard")
+
+# dev version:
 install.packages('remotes') # if not already installed
 # wait for the installation to complete
 
-remotes::install_github('OPATP/GTFSwizard')
+remotes::install_github('OPATP/GTFSwizard@main')
+
 ```
 ## Basics
 GTFS feeds are read using the `read_gtfs()` function. `read_gtfs()` returns a `wizardgtfs` object, which is a slightly improved `gtfs` object. You can also convert a regular `gtfs` object to a `wizardgtfs` object using the `as_wizardgtfs()` function. You can take a glance at the feed using the base `summary()` function.
@@ -305,7 +309,7 @@ split_gtfs <- split_trip(for_bus_gtfs, trip_id = for_bus_gtfs$trips$trip_id[1:2]
 merged_gtfs <- merge_gtfs(for_bus_gtfs, for_rail_gtfs)
 ```
 
-Please note that `split_trip()` uses stop sequences to recriate the shapes table of split trips; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
+Please note that `split_trip()` uses stop sequences to recreate the shapes table of split trips; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
 
 Feeds are, then, exported using the `write_gtfs()` function. It saves a standard GTFS `.zip` file, located as declared.
 ``` r
@@ -313,7 +317,7 @@ GTFSwizard::write_gtfs(for_bus_gtfs, 'path-to-file.zip')
 ```
 
 ## Handling Geographic Data
-GTFSwizard autodetects and reconstructs missing shape tables using the `get_shapes()` function. Variations of this function can create `simple feature` objects from `stops` or `shapes` tables, using `get_stops_sf()` or `get_shapes_sf()` functions, or even standard GTFS `shapes` data frame tables from `simple feature` shapes objects, using `get_shapes_df()` function. Please note that `get_shapes()` uses stop sequences to recriate the shapes table; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
+GTFSwizard autodetects and reconstructs missing shape tables using the `get_shapes()` function. Variations of this function can create `simple feature` objects from `stops` or `shapes` tables, using `get_stops_sf()` or `get_shapes_sf()` functions, or even standard GTFS `shapes` data frame tables from `simple feature` shapes objects, using `get_shapes_df()` function. Please note that `get_shapes()` uses stop sequences to recreate the shapes table; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
 
 ``` r
 gtfs <- for_bus_gtfs
@@ -403,7 +407,7 @@ _Under development..._
 Contributions are welcome! To report a bug, suggest a feature, or contribute code, please use the repository’s [Issues](https://github.com/OPATP/GTFSwizard/issues).
 
 ## Related Packages
-GTFSwizard mainly rellies on [dplyr](https://dplyr.tidyverse.org/) and [sf](https://r-spatial.github.io/sf/) for data wrangling, [leaflet](https://leafletjs.com/) for map rendering, [ggplot2](https://ggplot2.tidyverse.org/) and [plotly](https://plotly.com/r/) for data visualization, and [shiny](https://shiny.posit.co/) for the `explore_gtfs()` application assembling.
+GTFSwizard mainly relies on [dplyr](https://dplyr.tidyverse.org/) and [sf](https://r-spatial.github.io/sf/) for data wrangling, [leaflet](https://leafletjs.com/) for map rendering, [ggplot2](https://ggplot2.tidyverse.org/) and [plotly](https://plotly.com/r/) for data visualization, and [shiny](https://shiny.posit.co/) for the `explore_gtfs()` application assembling.
 
 ## Citation
 To cite package ‘GTFSwizard’ in publications use:
