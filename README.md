@@ -1,6 +1,8 @@
 # GTFSwizard <img align="right" src="figs/GTFSwizard_logo.png?raw=true" alt="logo" width="180">
-[![Lifecycle:
-experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+
+[![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+
+[![CRAN/METACRAN Total downloads](https://cranlogs.r-pkg.org/badges/grand-total/GTFSwizard?color=blue)](https://CRAN.R-project.org/package=GTFSwizard) <br />
 
 GTFSwizard is a set of tools for exploring and manipulating [General Transit Feed Specification (GTFS)](https://gtfs.org/) files in R.
 
@@ -9,13 +11,14 @@ Its main purpose is to provide researchers and practitioners with a seamless and
 ## Installation
 ``` r
 install.packages("GTFSwizard")
+library(GTFSwizard)
 
 # dev version:
 install.packages('remotes') # if not already installed
 # wait for the installation to complete
 
 remotes::install_github('OPATP/GTFSwizard@main')
-
+library(GTFSwizard)
 ```
 ## Basics
 GTFS feeds are read using the `read_gtfs()` function. `read_gtfs()` returns a `wizardgtfs` object, which is a slightly improved `gtfs` object. You can also convert a regular `gtfs` object to a `wizardgtfs` object using the `as_wizardgtfs()` function. You can take a glance at the feed using the base `summary()` function.
@@ -422,6 +425,7 @@ A BibTeX entry for LaTeX users is
     year = {2024},
     note = {R package version 1.0.0},
     url = {https://github.com/nelsonquesado/GTFSwizard},
+    doi = {10.32614/CRAN.package.GTFSwizard},
   }
   ```
 
