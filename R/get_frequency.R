@@ -49,7 +49,7 @@ get_frequency <- function(gtfs, method = 'by.route'){
 
   if (!method %in% c("by.route", "detailed")) {
     freq <- get_frequency_byroute(gtfs)
-    message('"method" should be one of "by.route" or "detailed". Returning "method = "by.route"".')
+    warning(crayon::cyan('method '), 'should be one of ', crayon::cyan('by.route'), ' or ', crayon::cyan('detailed'), '. Returning ', crayon::cyan('method = by.route.'))
   }
 
   return(freq)
@@ -76,10 +76,10 @@ get_frequency_byroute <- function(gtfs){
     dplyr::left_join(service_pattern,
                      by = 'service_id',
                      relationship = "many-to-many") %>%
-    dplyr::group_by(route_id, service_pattern, pattern_frequency) %>%
+    dplyr::group_by(route_id, , direction_id, service_pattern, pattern_frequency) %>%
     dplyr::reframe(daily.frequency = n()) %>%
     #filter(route_id %in% c() & service_id %in% c()) # filtrar por dia e por rota
-    dplyr::select(route_id, daily.frequency, service_pattern, pattern_frequency)
+    dplyr::select(route_id, direction_id, daily.frequency, service_pattern, pattern_frequency)
 
   return(freq)
 
@@ -106,10 +106,10 @@ get_frequency_detailed <- function(gtfs){
                      by = 'service_id',
                      relationship = "many-to-many") %>%
     dplyr::mutate(hour = str_extract(as.character(departure), '\\d+')) %>%
-    dplyr::group_by(route_id, hour, service_pattern, pattern_frequency) %>%
+    dplyr::group_by(route_id, direction_id, hour, service_pattern, pattern_frequency) %>%
     dplyr::reframe(frequency = n()) %>%
     #filter(route_id %in% c() & service_id %in% c()) # filtrar por dia e por rota
-    dplyr::select(route_id, hour, frequency, service_pattern, pattern_frequency)
+    dplyr::select(route_id, direction_id, hour, frequency, service_pattern, pattern_frequency)
 
   return(freq)
 
