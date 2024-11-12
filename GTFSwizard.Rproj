@@ -19,6 +19,6 @@ BuildType: Package
 PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
 
-UseNativePipeOperator: Yes
+UseNativePipeOperator: No
 
 SpellingDictionary: en_GB
