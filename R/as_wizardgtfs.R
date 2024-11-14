@@ -2,6 +2,7 @@
 #'
 #' `as_wizardgtfs` transforms a GTFS object into the `wizardgtfs` format, providing enhanced functionality and compatibility with the GTFSwizard package. This function supports GTFS objects in various formats, including `tidygtfs` and list-based structures, and can optionally create a shapes table if it is missing.
 #'
+#'
 #' @param gtfs_list A GTFS object in list or `tidygtfs` format.
 #' @param build_shapes Logical. If `TRUE`, builds the shapes table if it is missing in the provided GTFS object. Default is `TRUE`.
 #'
