@@ -401,7 +401,7 @@ gtfs <- GTFSwizard::for_bus_gtfs
 
 plot(gtfs)
 ```
-<img src="figs/plot.for_bus_gtfs.png" alt="plot.for_bus_gtfs" width="350"/>
+<img src="figs/plot.for_gtfs.png" alt="plot.for_gtfs" width="350"/>
 
 ## Cheat Sheet
 _Under development..._
