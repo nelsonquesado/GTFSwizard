@@ -534,16 +534,16 @@ filter_trip <- function(gtfs, trip, keep = TRUE){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+    message('The gtfs object is not of the ', crayon::cyan('gtfswizard'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
 
   if(is.null(trip)){
-    stop('\nNo trip(s) provided.\nRun gtfs$trips to check available trips.')
+    stop('\nNo ', crayon::cyan('trip(s)'), ' provided. Run ', crayon::cyan('gtfs$trips'), ' to check available trips.')
   }
 
   if(any(!trip %in% gtfs$trips$trip_id)){
-    stop('\nThere is no such trip(s).\nRun gtfs$trips to check available trips.')
+    stop('\nThere is no such ', crayon::cyan('trip(s)'), '. Run ', crayon::cyan('gtfs$trips'), ' to check available trips.')
 
   }
 
