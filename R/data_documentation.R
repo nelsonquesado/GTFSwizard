@@ -61,7 +61,7 @@
 #' @importFrom ggplot2 theme_linedraw
 #' @importFrom data.table setnames
 #' @importFrom forcats as_factor
-utils::globalVariables(c("hour", "period", "n", "count"))
+utils::globalVariables(c("hour", "period", "n", "count", "direction_id"))
 #data("for_bus_gtfs")
 
 ##' GTFS Data for Fortaleza (Rail System), Brazil

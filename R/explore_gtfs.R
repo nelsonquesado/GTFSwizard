@@ -44,7 +44,7 @@ explore_gtfs <- function(gtfs){
 explore_gtfs.list <- function(gtfs){
   gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
   warning('\nThis gtfs object is not of wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
-  return(GTFSwizard:::explore_gtfs.wizardgtfs(gtfs))
+  return(explore_gtfs.wizardgtfs(gtfs))
 }
 
 
