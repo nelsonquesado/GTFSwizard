@@ -2,6 +2,8 @@
 
 S3method(GTFSwizard::as_wizardgtfs,list)
 S3method(GTFSwizard::as_wizardgtfs,tidygtfs)
+S3method(GTFSwizard::explore_gtfs,list)
+S3method(GTFSwizard::explore_gtfs,wizardgtfs)
 S3method(GTFSwizard::get_shapes_sf,data.frame)
 S3method(GTFSwizard::get_shapes_sf,gtfs)
 S3method(GTFSwizard::get_shapes_sf,list)

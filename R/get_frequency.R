@@ -76,7 +76,7 @@ get_frequency_byroute <- function(gtfs){
     dplyr::left_join(service_pattern,
                      by = 'service_id',
                      relationship = "many-to-many") %>%
-    dplyr::group_by(route_id, , direction_id, service_pattern, pattern_frequency) %>%
+    dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
     dplyr::reframe(daily.frequency = n()) %>%
     #filter(route_id %in% c() & service_id %in% c()) # filtrar por dia e por rota
     dplyr::select(route_id, direction_id, daily.frequency, service_pattern, pattern_frequency)

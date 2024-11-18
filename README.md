@@ -415,7 +415,7 @@ GTFSwizard mainly relies on [dplyr](https://dplyr.tidyverse.org/) and [sf](https
 ## Citation
 To cite package ‘GTFSwizard’ in publications use:
 
-- Quesado Filho, N. O. de, & Guimarães, C. G. C. (2024). _GTFSwizard: Exploring and Manipulating GTFS Files._ R package version 1.0.0. [doi:10.32614/CRAN.package.GTFSwizard](https://cran.r-project.org/web/packages/GTFSwizard/index.html).
+- Quesado Filho, N. O. de, & Guimarães, C. G. C. (2024). _GTFSwizard: Exploring and Manipulating GTFS Files._ R package version 1.0.0. [doi:10.32614/CRAN.package.GTFSwizard](https://cran.r-project.org/package=GTFSwizard).
 
 A BibTeX entry for LaTeX users is
 ``` tex
@@ -424,7 +424,7 @@ A BibTeX entry for LaTeX users is
     author = {Nelson de O. {Quesado Filho} and Caio G. C. Guimarães},
     year = {2024},
     note = {R package version 1.0.0},
-    url = {https://cran.r-project.org/web/packages/GTFSwizard/index.html},
+    url = {https://cran.r-project.org/package=GTFSwizard},
     doi = {10.32614/CRAN.package.GTFSwizard},
   }
   ```
