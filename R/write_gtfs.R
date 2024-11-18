@@ -107,10 +107,10 @@ as_df_ordinary <- function(df){
 
   df2 <- lapply(df, function(col){
     if(hms::is_hms(col)){
-      col = as.character(col)
+      col = as.character(col) %>% gsub('-','',x = .)
     }
-    if(is.POSIXct(col)|is.POSIXlt(col)|is.Date(col)){
-      col = as.character(col)
+    if(lubridate::is.POSIXct(col)|lubridate::is.POSIXlt(col)|lubridate::is.Date(col)){
+      col = as.character(col) %>% gsub('-','',x = .)
     }
     if(is.character(.col)){
       col[is.na(col)] <- ""
@@ -120,11 +120,12 @@ as_df_ordinary <- function(df){
 
   attributes(df2) <- attributes(df)
 
-  return(df)
+  return(df2)
 
 }
 
 rm_servicepattern <- function(gtfs){
   gtfs[names(gtfs) != "dates_services"]
 }
+
 

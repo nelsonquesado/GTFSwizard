@@ -35,16 +35,22 @@
 #' @importFrom GTFSwizard as_wizardgtfs get_shapes plot_frequency get_fleet get_headways plot_calendar
 #' @export
 # corrigir os by dos left_join
-explore_gtfs <-
+
+explore_gtfs <- function(gtfs){
+  UseMethod('explore_gtfs')
+}
+
+#' @exportS3Method GTFSwizard::explore_gtfs list
+explore_gtfs.list <- function(gtfs){
+  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
+  warning('\nThis gtfs object is not of wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
+  return(GTFSwizard:::explore_gtfs.wizardgtfs(gtfs))
+}
+
+
+#' @exportS3Method GTFSwizard::explore_gtfs wizardgtfs
+explore_gtfs.wizardgtfs <-
   function(gtfs){
-
-    if(!"wizardgtfs" %in% class(gtfs)){
-
-      gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-
-      warning('\nThis gtfs object is not of wizardgtfs class.\nComputation may take longer.\nUsing as.gtfswizard() is advised.')
-
-    }
 
     if(purrr::is_null(gtfs$shapes)){
 
