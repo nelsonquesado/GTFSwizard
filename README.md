@@ -268,10 +268,10 @@ filtered_gtfs <- GTFSwizard::filter_trip(for_bus_gtfs, for_bus_gtfs$trips$trip_i
 filtered_gtfs <- GTFSwizard::filter_time(gtfs = for_bus_gtfs, "06:30:00", "10:00:00")
 
 # Spatial filter using filter_stop
-spatial-filter <- GTFSwizard::get_shapes_sf(for_bus_gtfs$shapes)
+spatial.filter <- GTFSwizard::get_shapes_sf(for_bus_gtfs$shapes)
 
 stops <- sf::st_filter(GTFSwizard::get_stops_sf(for_bus_gtfs$stops),
-                       spatial-filter) |>
+                       spatial.filter) |>
           dplyr::pull(stop_id)
 
 filtered_gtfs <- GTFSwizard::filter_stop(for_bus_gtfs, stops)

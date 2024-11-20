@@ -1,10 +1,10 @@
 #' Filter GTFS Data by Service, Route, Date, Stop, Trip, and Time
 #'
-#' The `filter_` functions allow you to selectively filter data within a `wizardgtfs` object based on criteria such as service patterns, specific dates, service IDs, route IDs, trip IDs, stop IDs, or time ranges.
+#' The `filter_` functions selectively filter data within a `wizardgtfs` object based on criteria such as service patterns, specific dates, service IDs, route IDs, trip IDs, stop IDs, or time ranges.
 #'
 #' @param gtfs A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.
 #' @param servicepattern (Optional) A character vector of service patterns to retain. Defaults to the most frequent pattern (typical day) if `NULL`.
-#' @param dates (Optional) A date or vector of dates (as "YYYY-MM-DD" character or POSIXct) to filter services active on those dates. Defaults to the last available date if `NULL`.
+#' @param dates (Optional) A date or vector of dates (as "YYYY-MM-DD" character or POSIXct) to filter services active on those dates. Return the furtherst available date if `NULL`.
 #' @param service (Optional) A character vector of service IDs to retain in the `wizardgtfs` object.
 #' @param route (Optional) A character vector of route IDs to retain in the `wizardgtfs` object. When `keep = FALSE`, excludes the specified routes.
 #' @param trip (Optional) A character vector of trip IDs to retain in the `wizardgtfs` object. When `keep = FALSE`, excludes the specified trips.
@@ -80,8 +80,7 @@ filter_servicepattern <- function(gtfs, servicepattern = NULL){
 
     stop(paste0('\nService pattern should be one of ',
                 paste(unique(service_pattern$service_pattern), collapse = ', '),
-                '.',
-                '\nUse get_paservicepattern() function to check service patterns.'))
+                '. Use ', crayon::cyan('get_servicepattern()'), ' function to check service patterns.'))
 
   }
 
@@ -192,7 +191,7 @@ filter_date <- function(gtfs, dates = NULL){
   }
 
   if(is.null('dates')) {
-    message(crayon::red('No date(s) provided.'), '\nReturning furtherst date.')
+    warning(crayon::red('No date(s) provided.'), ' Returning furtherst date.')
     date <- gtfs$dates_services$date[length(gtfs$dates_services$date)] %>% as.Date()
   } else {
     date <- as.Date(dates)
