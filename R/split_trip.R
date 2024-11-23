@@ -130,7 +130,7 @@ split_trip <- function(gtfs, trip, split = 1){
       GTFSwizard::filter_trip(gtfs, trip.dic$new.trip_id, keep = TRUE) %>%
       GTFSwizard::get_shapes()
 
-    gtfs <- GTFSwizard::merge_gtfs(gtfs.x, gtfs.y, suffix = FALSE)
+    gtfs <- GTFSwizard::merge_gtfs(gtfs.x, gtfs.y, suffix = TRUE)
   }
 
   # retornando gtfs -----------------------------------------------------------------------------
