@@ -21,12 +21,12 @@
 #' [GTFSwizard::get_shapes()]
 #'
 #' @export
-as_wizardgtfs <- function(gtfs_list,build_shapes = TRUE){
+as_wizardgtfs <- function(gtfs_list, build_shapes = TRUE){
   UseMethod('as_wizardgtfs')
 }
 
 #' @exportS3Method GTFSwizard::as_wizardgtfs tidygtfs
-as_wizardgtfs.tidygtfs <- function(gtfs_list,build_shapes = TRUE){
+as_wizardgtfs.tidygtfs <- function(gtfs_list, build_shapes = TRUE){
 
   checkmate::assert_logical(build_shapes, len = 1, any.missing = FALSE)
 
@@ -36,26 +36,23 @@ as_wizardgtfs.tidygtfs <- function(gtfs_list,build_shapes = TRUE){
   gtfs_list<-gtfs_list[names(gtfs_list)!='.']
   class(gtfs_list) <- c('wizardgtfs','gtfs','list')
   if(build_shapes){
-    if('shapes' %in% names(gtfs_obj) == FALSE){
-      gtfs_obj <- get_shapes(gtfs_obj)
+    if('shapes' %in% names(gtfs_list) == FALSE){
+      gtfs_list <- get_shapes(gtfs_list)
     }
   }
   return(gtfs_list)
 }
 
 #' @exportS3Method GTFSwizard::as_wizardgtfs list
-as_wizardgtfs.list <- function(gtfs_list,build_shapes = TRUE){
+as_wizardgtfs.list <- function(gtfs_list, build_shapes = TRUE){
   duplicate_ids <- has_duplicate_primary(gtfs_list)
 
   checkmate::assert_logical(build_shapes, len = 1, any.missing = FALSE)
 
   if(('calendar'%in%names(gtfs_list)==FALSE)&('calendar_dates'%in%names(gtfs_list)==FALSE)){
-    ## Tentar formatar com cor e itálico
 
-
-    warning(crayon::italic(crayon::red(paste0("Can't find calendar nor calendar_dates tables in GTFS files.\nReturning a gtfs object."))))
+    warning(crayon::red("Can't"), " find ", crayon::cyan("calendar"), " nor ", crayon::cyan('calendar_dates'), " tables in GTFS files. Returning a gtfs object.")
     return(gtfs_list)
-
 
   }
   if(any(unlist(duplicate_ids))){
