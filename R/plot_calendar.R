@@ -13,7 +13,7 @@
 #'
 #' - Days with no trips are marked in black, while other days are shaded on a gradient from pink (low trip count) to red (high trip count).
 #'
-#' - If `facet_by_year = TRUE`, the plot will display each year in separate rows, and `ncol` is automatically set to zero.
+#' - If `facet_by_year = TRUE`, the plot will display each year in separate rows, and `ncol` is ignored.
 #'
 #' @examples
 #' \donttest{
@@ -38,7 +38,7 @@ plot_calendar <- function(gtfs, ncol = 6, facet_by_year = FALSE){
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    warning('This gtfs object is not of the wizardgtfs class.\nComputation may take longer.\nUsing as_gtfswizard() is advised.')
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
   services <-
@@ -93,7 +93,7 @@ plot_calendar <- function(gtfs, ncol = 6, facet_by_year = FALSE){
   }
 
   if(facet_by_year == TRUE){
-    message(crayon::cyan("face_by_year = TRUE "), "forces",  crayon::cyan(" ncol = 0"))
+    message(crayon::cyan("face_by_year = TRUE "), "ignores",  crayon::cyan(" ncol"))
     plot <-
       plot +
       ggplot2::facet_grid(year ~ month)

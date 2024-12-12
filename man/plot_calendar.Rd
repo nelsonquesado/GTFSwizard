@@ -24,7 +24,7 @@ A `ggplot2` object showing a calendar heatmap of the daily trip counts across th
 
 - Days with no trips are marked in black, while other days are shaded on a gradient from pink (low trip count) to red (high trip count).
 
-- If `facet_by_year = TRUE`, the plot will display each year in separate rows, and `ncol` is automatically set to zero.
+- If `facet_by_year = TRUE`, the plot will display each year in separate rows, and `ncol` is ignored.
 }
 \examples{
 \donttest{
