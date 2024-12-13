@@ -45,7 +45,9 @@
 #' filtered_gtfs <- filter_route(gtfs = for_rail_gtfs, route = for_rail_gtfs$routes$route_id[1:2])
 #'
 #' # Filter by trip ID, excluding specified trips
-#' filtered_gtfs <- filter_trip(gtfs = for_rail_gtfs, trip = for_rail_gtfs$trips$trip_id[1:2], keep = FALSE)
+#' filtered_gtfs <- filter_trip(gtfs = for_rail_gtfs,
+#'                               trip = for_rail_gtfs$trips$trip_id[1:2],
+#'                               keep = FALSE)
 #'
 #' # Filter by a time range
 #' filtered_gtfs <- filter_time(gtfs = for_rail_gtfs, from = "06:30:00", to = "10:00:00")

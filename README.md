@@ -117,7 +117,7 @@ GTFSwizard::plot_calendar(for_bus_gtfs)
 
 ## Exploring
 
-Routes, frequency, headways, dell times, speeds, shapes, stops, durations, distances, and fleet are retrieved using the `get_frequency()`, the `get_headways()`, the `get_dwelltimes()`, the `get_duration()`, the `get_distances()`, the `get_speed()`, and the `get_fleet()` functions. These functions support several `methods`, such as `by.trip` or `detailed`. Refer to documentation `?` for more information.
+Routes, frequency, headways, dell times, speeds, shapes, stops, durations, distances, fleet, and first departures are retrieved using the `get_frequency()`, the `get_headways()`, the `get_dwelltimes()`, the `get_duration()`, the `get_distances()`, the `get_speed()`, the `get_fleet()`, and the `get_1stdeparture()` functions. Some of these functions support several `methods`, such as `by.trip` or `detailed`. Refer to documentation `?` for more information.
 
 ``` r
 GTFSwizard::get_headways(for_bus_gtfs, method = 'by.hour')
@@ -239,6 +239,23 @@ GTFSwizard::get_fleet(for_bus_gtfs, method = 'peak')
 #7     7   381 servicepattern-3                13
 #8     6   380 servicepattern-3                13
 #9     4   374 servicepattern-3                13
+
+GTFSwizard::get_1stdeparture(for_bus_gtfs)
+## A tibble: 35,456 × 4
+#   route_id trip_id          departure_time stop_id
+#   <chr>    <chr>            <chr>          <chr>  
+# 1 004      U004-T01V01B01-I 08:43:00       5810   
+# 2 004      U004-T01V01B01-V 09:45:00       5813   
+# 3 004      U004-T01V02B01-I 11:13:00       5810   
+# 4 004      U004-T01V02B01-V 12:13:00       5813   
+# 5 004      U004-T01V03B02-I 15:25:00       5810   
+# 6 004      U004-T01V03B02-V 16:31:00       5813   
+# 7 004      U004-T01V04B02-I 17:40:00       5810   
+# 8 004      U004-T02V01B01-I 09:15:00       5810   
+# 9 004      U004-T02V01B01-V 10:17:00       5813   
+#10 004      U004-T02V02B02-I 12:09:00       5810   
+# ℹ 35,446 more rows
+# ℹ Use `print(n = ...)` to see more rows
 ```
 ## Filtering
 Filtering tools allows customized GTFS data by service patterns, specific dates, service IDs, route IDs, trip IDs, stop IDs, and time ranges. These `filter_` functions help retain only the relevant data, making analysis easier and more focused.

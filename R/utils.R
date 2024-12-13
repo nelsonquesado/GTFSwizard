@@ -213,5 +213,6 @@ utils::globalVariables(c(
   "starts", "stop_id", "stop_lat", "stop_lon", "stop_sequence",
   "subtrip", "time", "to_stop_id", "trip_id", "trips",
   "txtProgressBar", "type", "value", "week_of_month", "weekday",
-  "weighted.mean", "."
+  "weighted.mean", ".",
+  "average_headway_minutes", "headway_minutes", "valid_trips"
 ))
