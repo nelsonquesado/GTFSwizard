@@ -8,14 +8,18 @@
 #'     \item{"by.route"}{Calculates the average headway for each route, assuming constant headways along stops.}
 #'     \item{"by.hour"}{Calculates the hourly headway for each route, assuming constant headways along stops.}
 #'     \item{"by.trip"}{Calculates headways for each trip, assuming constant headways along stops.}
+#'     \item{"by.stop"}{Calculates headways for each stop.}
+#'     \item{"by.shape"}{Calculates headways for each shape}
 #'     \item{"detailed"}{Calculates detailed headways between consecutive stops within each route and trip.}
 #'   }
 #'
 #' @return A data frame containing service headways based on the specified method:
 #'   \describe{
-#'     \item{If `method = "by.route"`}{Returns a data frame with columns: `route_id`, `trips`, `average.headway`, `service_pattern`, and `pattern_frequency`.}
-#'     \item{If `method = "by.hour"`}{Returns a data frame with columns: `hour`, `trips`, `average.headway`, `service_pattern`, and `pattern_frequency`.}
+#'     \item{If `method = "by.route"`}{Returns a data frame with columns: `route_id`, `valid_trips`, `average_headway`, `service_pattern`, and `pattern_frequency`.}
+#'     \item{If `method = "by.hour"`}{Returns a data frame with columns: `hour`, `valid_trips`, `average_headway`, `service_pattern`, and `pattern_frequency`.}
 #'     \item{If `method = "by.trip"`}{Returns a data frame with columns: `route_id`, `trip_id`, `headway`, `service_pattern`, and `pattern_frequency`.}
+#'     \item{If `method = "by.stop"`}{Returns a data frame with columns: `stop_id`, `direction_id`, `valid_trips`, `headway`, `service_pattern`, and `pattern_frequency`.}
+#'     \item{If `method = "by.shape"`}{Returns a data frame with columns: `shape_id`, `direction_id`, `valid_trips`, `headway`, `service_pattern`, and `pattern_frequency`.}
 #'     \item{If `method = "detailed"`}{Returns a data frame with columns: `route_id`, `trip_id`, `stop_id`, `hour`, `headway`, `service_pattern`, and `pattern_frequency`.}
 #'   }
 #'
@@ -27,6 +31,10 @@
 #' - "by.hour": Calculates the hourly headway for each route, grouping trips by hour.
 #'
 #' - "by.trip": Calculates headways for each trip, considering only the first stop time.
+#'
+#' - "by.stop": Calculates headways for each stop.
+#'
+#' - "by.shape": Calculates headways for each shape.
 #'
 #' - "detailed": Provides headway calculations for each consecutive stop within each trip.
 #'
@@ -41,6 +49,12 @@
 #'
 #' # Calculate headways for each trip
 #' headways_by_trip <- get_headways(gtfs = for_rail_gtfs, method = "by.trip")
+#'
+#' # Calculate headways for each stop
+#' headways_by_stop <- get_headways(gtfs = for_rail_gtfs, method = "by.stop")
+#'
+#' # Calculate headways for each shape
+#' headways_by_shape <- get_headways(gtfs = for_rail_gtfs, method = "by.shape")
 #'
 #' # Calculate detailed stop-level headways
 #' detailed_headways <- get_headways(gtfs = for_rail_gtfs, method = "detailed")
@@ -73,9 +87,17 @@ get_headways <- function(gtfs, method = 'by.route'){
     hw <- get_headway_detailed(gtfs)
   }
 
-  if (!method %in% c("by.route", 'detailed', 'by.trip', 'by.hour')) {
+  if (method == 'by.stop') {
+    hw <- get_headway_bystop(gtfs)
+  }
+
+  if (method == 'by.shape') {
+    hw <- get_headway_byshape(gtfs)
+  }
+
+  if (!method %in% c("by.route", 'detailed', 'by.trip', 'by.hour', 'by.stop', 'by.shape')) {
     hw <- get_headway_byroute(gtfs)
-    warning(crayon::cyan("method"), ' should be one of ', crayon::cyan("by.hour"), ', ', crayon::cyan("by.route"), ', ', crayon::cyan("by.trip"), ' or ', crayon::cyan("detailed"), '. Returning  ', crayon::cyan('method = "by.route"'), '.')
+    warning(crayon::cyan("method"), ' should be one of ', crayon::cyan("by.hour"), ', ', crayon::cyan("by.route"), ', ', crayon::cyan("by.trip"), ', ', crayon::cyan("by.shape"), ', ', crayon::cyan("by.stop"), ' or ', crayon::cyan("detailed"), '. Returning  ', crayon::cyan('method = "by.route"'), '.')
   }
 
   return(hw)
@@ -92,12 +114,14 @@ get_headway_byhour <- function(gtfs){
   service_pattern <-
     GTFSwizard::get_servicepattern(gtfs)
 
-  hw <-
+  if(purrr::is_null(gtfs$trips$direction_id)) {
+
+    hw <-
     gtfs$stop_times %>%
     dplyr::filter(!arrival_time == '') %>%
     dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
-    group_by(route_id, trip_id, direction_id, service_pattern, pattern_frequency) %>%
+    group_by(route_id, trip_id, service_pattern, pattern_frequency) %>%
     reframe(arrival_time = arrival_time[1]) %>%
     dplyr::mutate(hour = str_extract(arrival_time, '\\d+'),
                   arrival_time = arrival_time %>%
@@ -109,8 +133,8 @@ get_headway_byhour <- function(gtfs){
                     unlist() %>%
                     na.omit(),
     ) %>%
-    dplyr::arrange(route_id, direction_id, arrival_time) %>%
-    dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
+    dplyr::arrange(route_id, arrival_time) %>%
+    dplyr::group_by(route_id, service_pattern, pattern_frequency) %>%
     dplyr::mutate(headway.minutes = (-lag(arrival_time) + arrival_time) / 60) %>%
     dplyr::filter(headway.minutes >= 0) %>%
     dplyr::group_by(hour, service_pattern, pattern_frequency) %>%
@@ -118,6 +142,37 @@ get_headway_byhour <- function(gtfs){
                    valid_trips = n()) %>%
     dplyr::select(hour, headway_minutes, valid_trips, service_pattern, pattern_frequency) %>%
     na.omit()
+
+  } else {
+
+    hw <-
+      gtfs$stop_times %>%
+      dplyr::filter(!arrival_time == '') %>%
+      dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
+      dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
+      group_by(route_id, trip_id, direction_id, service_pattern, pattern_frequency) %>%
+      reframe(arrival_time = arrival_time[1]) %>%
+      dplyr::mutate(hour = str_extract(arrival_time, '\\d+'),
+                    arrival_time = arrival_time %>%
+                      stringr::str_split(":") %>%
+                      lapply(FUN = as.numeric) %>%
+                      lapply(FUN = function(x){
+                        x[1] * 60 * 60 + x[2] * 60 + x[3]
+                      }) %>%
+                      unlist() %>%
+                      na.omit(),
+      ) %>%
+      dplyr::arrange(route_id, direction_id, arrival_time) %>%
+      dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
+      dplyr::mutate(headway.minutes = (-lag(arrival_time) + arrival_time) / 60) %>%
+      dplyr::filter(headway.minutes >= 0) %>%
+      dplyr::group_by(hour, service_pattern, pattern_frequency) %>%
+      dplyr::reframe(headway_minutes = mean(headway.minutes, na.rm = TRUE),
+                     valid_trips = n()) %>%
+      dplyr::select(hour, headway_minutes, valid_trips, service_pattern, pattern_frequency) %>%
+      na.omit()
+
+  }
 
   return(hw)
 
@@ -133,31 +188,63 @@ get_headway_byroute <- function(gtfs){
   service_pattern <-
     GTFSwizard::get_servicepattern(gtfs)
 
-  hw <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '') %>%
-    dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
-    dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
-    group_by(route_id, trip_id, direction_id, service_pattern, pattern_frequency) %>%
-    reframe(arrival_time = arrival_time[1]) %>%
-    dplyr::mutate(arrival_time = arrival_time %>%
-                    stringr::str_split(":") %>%
-                    lapply(FUN = as.numeric) %>%
-                    lapply(FUN = function(x){
-                      x[1] * 60 * 60 + x[2] * 60 + x[3]
-                    }) %>%
-                    unlist() %>%
-                    na.omit(),
-    ) %>%
-    dplyr::arrange(route_id, direction_id, arrival_time) %>%
-    dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
-    dplyr::mutate(headway_minutes = (-lag(arrival_time) + arrival_time) / 60) %>%
-    dplyr::filter(headway_minutes >= 0) %>%
-    dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
-    dplyr::reframe(headway_minutes = mean(headway_minutes, na.rm = TRUE),
-                   valid_trips = n()) %>%
-    dplyr::select(route_id, direction_id, headway_minutes, valid_trips, service_pattern, pattern_frequency) %>%
-    na.omit()
+  if(purrr::is_null(gtfs$trips$direction_id)) {
+
+    hw <-
+      gtfs$stop_times %>%
+      dplyr::filter(!arrival_time == '') %>%
+      dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
+      dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
+      group_by(route_id, trip_id, service_pattern, pattern_frequency) %>%
+      reframe(arrival_time = arrival_time[1]) %>%
+      dplyr::mutate(arrival_time = arrival_time %>%
+                      stringr::str_split(":") %>%
+                      lapply(FUN = as.numeric) %>%
+                      lapply(FUN = function(x){
+                        x[1] * 60 * 60 + x[2] * 60 + x[3]
+                      }) %>%
+                      unlist() %>%
+                      na.omit(),
+      ) %>%
+      dplyr::arrange(route_id, arrival_time) %>%
+      dplyr::group_by(route_id, service_pattern, pattern_frequency) %>%
+      dplyr::mutate(headway_minutes = (-lag(arrival_time) + arrival_time) / 60) %>%
+      dplyr::filter(headway_minutes >= 0) %>%
+      dplyr::group_by(route_id, service_pattern, pattern_frequency) %>%
+      dplyr::reframe(headway_minutes = mean(headway_minutes, na.rm = TRUE),
+                     valid_trips = n()) %>%
+      dplyr::select(route_id, headway_minutes, valid_trips, service_pattern, pattern_frequency) %>%
+      na.omit()
+
+  } else {
+
+    hw <-
+      gtfs$stop_times %>%
+      dplyr::filter(!arrival_time == '') %>%
+      dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
+      dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
+      group_by(route_id, trip_id, direction_id, service_pattern, pattern_frequency) %>%
+      reframe(arrival_time = arrival_time[1]) %>%
+      dplyr::mutate(arrival_time = arrival_time %>%
+                      stringr::str_split(":") %>%
+                      lapply(FUN = as.numeric) %>%
+                      lapply(FUN = function(x){
+                        x[1] * 60 * 60 + x[2] * 60 + x[3]
+                      }) %>%
+                      unlist() %>%
+                      na.omit(),
+      ) %>%
+      dplyr::arrange(route_id, direction_id, arrival_time) %>%
+      dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
+      dplyr::mutate(headway_minutes = (-lag(arrival_time) + arrival_time) / 60) %>%
+      dplyr::filter(headway_minutes >= 0) %>%
+      dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
+      dplyr::reframe(headway_minutes = mean(headway_minutes, na.rm = TRUE),
+                     valid_trips = n()) %>%
+      dplyr::select(route_id, direction_id, headway_minutes, valid_trips, service_pattern, pattern_frequency) %>%
+      na.omit()
+
+  }
 
   return(hw)
 
@@ -173,29 +260,59 @@ get_headway_bytrip <- function(gtfs){
   service_pattern <-
     GTFSwizard::get_servicepattern(gtfs)
 
-  hw <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '') %>%
-    dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
-    dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
-    group_by(route_id, trip_id, direction_id, service_pattern, pattern_frequency) %>%
-    reframe(arrival_time = arrival_time[1]) %>% # assume headway constante ao longo das paradas
-    dplyr::mutate(arrival_time = arrival_time %>%
-                    stringr::str_split(":") %>%
-                    lapply(FUN = as.numeric) %>%
-                    lapply(FUN = function(x){
-                      x[1] * 60 * 60 + x[2] * 60 + x[3]
-                    }) %>%
-                    unlist() %>%
-                    na.omit(),
-    ) %>%
-    dplyr::arrange(route_id, direction_id, arrival_time) %>%
-    dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
-    dplyr::mutate(headway_minutes = (-lag(arrival_time) + arrival_time) / 60) %>%
-    dplyr::filter(headway_minutes >= 0) %>%
-    stats::na.omit() %>%
-    dplyr::select(route_id, trip_id, direction_id, headway_minutes, service_pattern, pattern_frequency) %>%
-    dplyr::ungroup()
+  if(purrr::is_null(gtfs$trips$direction_id)) {
+
+    hw <-
+      gtfs$stop_times %>%
+      dplyr::filter(!arrival_time == '') %>%
+      dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
+      dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
+      group_by(route_id, trip_id, service_pattern, pattern_frequency) %>%
+      reframe(arrival_time = arrival_time[1]) %>% # assume headway constante ao longo das paradas
+      dplyr::mutate(arrival_time = arrival_time %>%
+                      stringr::str_split(":") %>%
+                      lapply(FUN = as.numeric) %>%
+                      lapply(FUN = function(x){
+                        x[1] * 60 * 60 + x[2] * 60 + x[3]
+                      }) %>%
+                      unlist() %>%
+                      na.omit(),
+      ) %>%
+      dplyr::arrange(route_id, arrival_time) %>%
+      dplyr::group_by(route_id, service_pattern, pattern_frequency) %>%
+      dplyr::mutate(headway_minutes = (-lag(arrival_time) + arrival_time) / 60) %>%
+      dplyr::filter(headway_minutes >= 0) %>%
+      stats::na.omit() %>%
+      dplyr::select(route_id, trip_id, headway_minutes, service_pattern, pattern_frequency) %>%
+      dplyr::ungroup()
+
+  } else {
+
+    hw <-
+      gtfs$stop_times %>%
+      dplyr::filter(!arrival_time == '') %>%
+      dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id)) %>%
+      dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
+      group_by(route_id, trip_id, direction_id, service_pattern, pattern_frequency) %>%
+      reframe(arrival_time = arrival_time[1]) %>% # assume headway constante ao longo das paradas
+      dplyr::mutate(arrival_time = arrival_time %>%
+                      stringr::str_split(":") %>%
+                      lapply(FUN = as.numeric) %>%
+                      lapply(FUN = function(x){
+                        x[1] * 60 * 60 + x[2] * 60 + x[3]
+                      }) %>%
+                      unlist() %>%
+                      na.omit(),
+      ) %>%
+      dplyr::arrange(route_id, direction_id, arrival_time) %>%
+      dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
+      dplyr::mutate(headway_minutes = (-lag(arrival_time) + arrival_time) / 60) %>%
+      dplyr::filter(headway_minutes >= 0) %>%
+      stats::na.omit() %>%
+      dplyr::select(route_id, trip_id, direction_id, headway_minutes, service_pattern, pattern_frequency) %>%
+      dplyr::ungroup()
+
+  }
 
 
   return(hw)
@@ -212,28 +329,110 @@ get_headway_detailed <- function(gtfs){
   service_pattern <-
     GTFSwizard::get_servicepattern(gtfs)
 
-  hw <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '') %>%
-    dplyr::mutate(hour = str_extract(arrival_time, "\\d+") %>% as.numeric(),
-                  arrival_time = arrival_time %>%
-                    stringr::str_split(":") %>%
-                    lapply(FUN = as.numeric) %>%
-                    lapply(FUN = function(x){
-                      x[1]*60*60+x[2]*60+x[3]
-                    }) %>%
-                    unlist() %>%
-                    na.omit(),
-    ) %>%
-    dplyr::left_join(gtfs$trips, by = 'trip_id') %>%
-    dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
-    dplyr::arrange(route_id, direction_id, arrival_time) %>%
-    dplyr::group_by(route_id, direction_id, stop_id, service_pattern, pattern_frequency) %>%
-    dplyr::mutate(headway_minutes = (lead(arrival_time) - arrival_time) / 60) %>%
-    dplyr::filter(headway_minutes >= 0) %>%
-    ungroup() %>%
-    dplyr::select(route_id, trip_id, direction_id, stop_id, hour, headway_minutes, service_pattern, pattern_frequency) %>%
-    na.omit()
+  if(purrr::is_null(gtfs$trips$direction_id)) {
+
+    hw <-
+      gtfs$stop_times %>%
+      dplyr::filter(!arrival_time == '') %>%
+      dplyr::mutate(hour = str_extract(arrival_time, "\\d+") %>% as.numeric(),
+                    arrival_time = arrival_time %>%
+                      stringr::str_split(":") %>%
+                      lapply(FUN = as.numeric) %>%
+                      lapply(FUN = function(x){
+                        x[1]*60*60+x[2]*60+x[3]
+                      }) %>%
+                      unlist() %>%
+                      na.omit(),
+      ) %>%
+      dplyr::left_join(gtfs$trips, by = 'trip_id') %>%
+      dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
+      dplyr::arrange(route_id, arrival_time) %>%
+      dplyr::group_by(route_id, stop_id, service_pattern, pattern_frequency) %>%
+      dplyr::mutate(headway_minutes = (-lag(arrival_time) + arrival_time) / 60) %>%
+      dplyr::filter(headway_minutes >= 0) %>%
+      ungroup() %>%
+      dplyr::select(route_id, trip_id, stop_id, hour, headway_minutes, service_pattern, pattern_frequency) %>%
+      na.omit()
+
+  } else {
+
+    hw <-
+      gtfs$stop_times %>%
+      dplyr::filter(!arrival_time == '') %>%
+      dplyr::mutate(hour = str_extract(arrival_time, "\\d+") %>% as.numeric(),
+                    arrival_time = arrival_time %>%
+                      stringr::str_split(":") %>%
+                      lapply(FUN = as.numeric) %>%
+                      lapply(FUN = function(x){
+                        x[1]*60*60+x[2]*60+x[3]
+                      }) %>%
+                      unlist() %>%
+                      na.omit(),
+      ) %>%
+      dplyr::left_join(gtfs$trips, by = 'trip_id') %>%
+      dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
+      dplyr::arrange(route_id, direction_id, arrival_time) %>%
+      dplyr::group_by(route_id, direction_id, stop_id, service_pattern, pattern_frequency) %>%
+      dplyr::mutate(headway_minutes = (-lag(arrival_time) + arrival_time) / 60) %>%
+      dplyr::filter(headway_minutes >= 0) %>%
+      ungroup() %>%
+      dplyr::select(route_id, trip_id, direction_id, stop_id, hour, headway_minutes, service_pattern, pattern_frequency) %>%
+      na.omit()
+
+  }
+
+  return(hw)
+
+}
+
+get_headway_bystop <- function(gtfs){
+
+  if(purrr::is_null(gtfs$trips$direction_id)) {
+
+    hw <-
+      GTFSwizard::get_headways(gtfs, method = "detailed") %>%
+      dplyr::group_by(stop_id, service_pattern, pattern_frequency) %>%
+      dplyr::reframe(headway_minutes = mean(headway_minutes),
+                     valid_trips = n())
+
+  } else {
+
+    hw <-
+      GTFSwizard::get_headways(gtfs, method = "detailed") %>%
+      dplyr::group_by(stop_id, direction_id, service_pattern, pattern_frequency) %>%
+      dplyr::reframe(headway_minutes = mean(headway_minutes),
+                     valid_trips = n())
+
+  }
+
+  return(hw)
+
+}
+
+get_headway_byshape <- function(gtfs){
+
+  if(purrr::is_null(gtfs$trips$direction_id)) {
+
+    hw <-
+      GTFSwizard::get_headways(gtfs, 'by.trip') %>%
+      dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id, route_id)) %>%
+      dplyr::group_by(shape_id, service_pattern, pattern_frequency) %>%
+      dplyr::reframe(headway_minutes = mean(headway_minutes),
+                     valid_trips = n()) %>%
+      dplyr::select(shape_id, headway_minutes, valid_trips, service_pattern, pattern_frequency)
+
+  } else {
+
+    hw <-
+      GTFSwizard::get_headways(gtfs, 'by.trip') %>%
+      dplyr::left_join(gtfs$trips, by = dplyr::join_by(trip_id, route_id, direction_id)) %>%
+      dplyr::group_by(shape_id, direction_id, service_pattern, pattern_frequency) %>%
+      dplyr::reframe(headway_minutes = mean(headway_minutes),
+                     valid_trips = n()) %>%
+      dplyr::select(shape_id, direction_id, headway_minutes, valid_trips, service_pattern, pattern_frequency)
+
+  }
+
 
   return(hw)
 
