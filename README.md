@@ -122,20 +122,20 @@ Routes, frequency, headways, dell times, speeds, shapes, stops, durations, dista
 ``` r
 GTFSwizard::get_headways(for_bus_gtfs, method = 'by.hour')
 #This method assumes constant headways along stops.
-## A tibble: 75 × 5
-#   hour  trips average.headway service_pattern  pattern_frequency
-#   <chr> <int>           <dbl> <fct>                        <int>
-# 1 00       15           5248  servicepattern-1                65
-# 2 00       15           5248  servicepattern-2                13
-# 3 00       15           5248  servicepattern-3                13
-# 4 01       15           5848  servicepattern-1                65
-# 5 01       14           6107. servicepattern-2                13
-# 6 01       14           6060  servicepattern-3                13
-# 7 02        6          10610  servicepattern-1                65
-# 8 02        6           4320  servicepattern-2                13
-# 9 02        5           3132  servicepattern-3                13
-#10 03        7           3720  servicepattern-1                65
-## ℹ 65 more rows
+## A tibble: 73 × 5
+#   hour  average_headway_minutes valid_trips service_pattern  pattern_frequency
+#   <chr>                   <dbl>       <int> <fct>                        <int>
+# 1 00                       59.8          43 servicepattern-1               586
+# 2 00                       59.8          43 servicepattern-2               121
+# 3 00                       59.8          43 servicepattern-3               116
+# 4 01                       68.6          39 servicepattern-1               586
+# 5 01                       68.6          39 servicepattern-2               121
+# 6 01                       68.6          39 servicepattern-3               116
+# 7 02                       60.9          34 servicepattern-1               586
+# 8 02                       60.9          34 servicepattern-2               121
+# 9 02                       60.9          34 servicepattern-3               116
+#10 03                       52.8          26 servicepattern-1               586
+## ℹ 63 more rows
 ## ℹ Use `print(n = ...)` to see more rows
 
 GTFSwizard::get_dwelltimes(for_bus_gtfs, max.dwelltime = 60, method = 'by.trip')
@@ -240,7 +240,7 @@ GTFSwizard::get_fleet(for_bus_gtfs, method = 'peak')
 #8     6   380 servicepattern-3                13
 #9     4   374 servicepattern-3                13
 
-GTFSwizard::get_1stdeparture(for_bus_gtfs)
+GTFSwizard::get_1stdeparture(for_bus_gtfs) # (dev only)
 ## A tibble: 35,456 × 4
 #   route_id trip_id          departure_time stop_id
 #   <chr>    <chr>            <chr>          <chr>  

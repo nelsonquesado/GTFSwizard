@@ -75,7 +75,7 @@ get_headways <- function(gtfs, method = 'by.route'){
 
   if (!method %in% c("by.route", 'detailed', 'by.trip', 'by.hour')) {
     hw <- get_headway_byroute(gtfs)
-    warning('"method" should be one of "by.hour", "by.route", "by.trip" or "detailed". Returning "method = "by.route"".')
+    warning(crayon::cyan("method"), ' should be one of ', crayon::cyan("by.hour"), ', ', crayon::cyan("by.route"), ', ', crayon::cyan("by.trip"), ' or ', crayon::cyan("detailed"), '. Returning  ', crayon::cyan('method = "by.route"'), '.')
   }
 
   return(hw)
@@ -109,6 +109,7 @@ get_headway_byhour <- function(gtfs){
                     unlist() %>%
                     na.omit(),
     ) %>%
+    dplyr::arrange(route_id, direction_id, arrival_time) %>%
     dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
     dplyr::mutate(headway.minutes = (lead(arrival_time) - arrival_time) / 60) %>%
     dplyr::filter(headway.minutes >= 0) %>%
@@ -148,6 +149,7 @@ get_headway_byroute <- function(gtfs){
                     unlist() %>%
                     na.omit(),
     ) %>%
+    dplyr::arrange(route_id, direction_id, arrival_time) %>%
     dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
     dplyr::mutate(headway_minutes = (lead(arrival_time) - arrival_time) / 60) %>%
     dplyr::filter(headway_minutes >= 0) %>%
@@ -187,6 +189,7 @@ get_headway_bytrip <- function(gtfs){
                     unlist() %>%
                     na.omit(),
     ) %>%
+    dplyr::arrange(route_id, direction_id, arrival_time) %>%
     dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
     dplyr::mutate(headway_minutes = (lead(arrival_time) - arrival_time) / 60) %>%
     dplyr::filter(headway_minutes >= 0) %>%
@@ -224,6 +227,7 @@ get_headway_detailed <- function(gtfs){
     ) %>%
     dplyr::left_join(gtfs$trips, by = 'trip_id') %>%
     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
+    dplyr::arrange(route_id, direction_id, arrival_time) %>%
     dplyr::group_by(route_id, direction_id, stop_id, service_pattern, pattern_frequency) %>%
     dplyr::mutate(headway_minutes = (lead(arrival_time) - arrival_time) / 60) %>%
     dplyr::filter(headway_minutes >= 0) %>%
