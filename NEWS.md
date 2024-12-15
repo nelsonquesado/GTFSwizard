@@ -4,6 +4,7 @@ New functions
  
 New methods
   - get_headways() now accepts 'method = "by.stop"' and 'method = "by.shape"'.
+  - get_frequency() now accepts 'method = "by.shape"'.
   
 Bug fix & improvements
   - Better column naming;
