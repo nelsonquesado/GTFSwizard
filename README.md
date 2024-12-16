@@ -1,4 +1,6 @@
 # GTFSwizard <img align="right" src="figs/GTFSwizard_logo.png?raw=true" alt="logo" width="180">
+##### v1.0.0
+release 2024-11-11
 
 [![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 
