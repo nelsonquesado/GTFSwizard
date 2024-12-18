@@ -119,7 +119,7 @@ GTFSwizard::plot_calendar(for_bus_gtfs)
 
 ## Exploring
 
-Routes, frequency, headways, dell times, speeds, shapes, stops, durations, distances, fleet, and first departures are retrieved using the `get_frequency()`, the `get_headways()`, the `get_dwelltimes()`, the `get_duration()`, the `get_distances()`, the `get_speed()`, the `get_fleet()`, and the `get_1stdeparture()` functions. Some of these functions support several `methods`, such as `by.trip` or `detailed`. Refer to documentation `?` for more information.
+Routes, frequency, headways, dell times, speeds, shapes, stops, durations, distances, fleet, first departures, and corridors are retrieved using the `get_frequency()`, the `get_headways()`, the `get_dwelltimes()`, the `get_duration()`, the `get_distances()`, the `get_speed()`, the `get_fleet()`, the `get_1stdeparture()`, and the `get_corridor()` functions. Some of these functions support several `methods`, such as `by.trip` or `detailed`. Refer to documentation `?` for more information.
 
 ``` r
 GTFSwizard::get_headways(for_bus_gtfs, method = 'by.hour')
@@ -258,6 +258,23 @@ GTFSwizard::get_1stdeparture(for_bus_gtfs) # (dev only)
 #10 004      U004-T02V02B02-I 12:09:00       5810   
 # ℹ 35,446 more rows
 # ℹ Use `print(n = ...)` to see more rows
+
+GTFSwizard::get_corridor(for_bus_gtfs, i = .01, min.length = 1500) # (dev only)
+#Simple feature collection with 7 features and 3 fields
+#Geometry type: GEOMETRY
+#Dimension:     XY
+#Bounding box:  xmin: -38.58585 ymin: -3.795361 xmax: -38.47989 ymax: -3.723135
+#Geodetic CRS:  WGS 84
+## A tibble: 7 × 4
+#  corridor   stops      length                                 geometry
+#  <chr>      <list>        [m]                           <GEOMETRY [°]>
+#1 corridor-1 <chr [20]>  5155. LINESTRING (-38.47989 -3.795361, -38.48…
+#2 corridor-2 <chr [18]>  4123. LINESTRING (-38.58585 -3.737602, -38.58…
+#3 corridor-3 <chr [18]>  4083. LINESTRING (-38.54677 -3.731971, -38.55…
+#4 corridor-4 <chr [16]>  3691. LINESTRING (-38.48669 -3.758195, -38.48…
+#5 corridor-5 <chr [15]>  3690. MULTILINESTRING ((-38.48341 -3.737655, …
+#6 corridor-6 <chr [10]>  1913. LINESTRING (-38.54209 -3.741748, -38.54…
+#7 corridor-7 <chr [11]>  1632. MULTILINESTRING ((-38.53348 -3.72369, -…
 ```
 ## Filtering
 Filtering tools allows customized GTFS data by service patterns, specific dates, service IDs, route IDs, trip IDs, stop IDs, and time ranges. These `filter_` functions help retain only the relevant data, making analysis easier and more focused.

@@ -9,7 +9,7 @@ Date/Publication: 2024
 URL: https://github.com/OPATP/GTFSwizard
 BugReports: https://github.com/OPATP/GTFSwizard/issues
 Description: Exploring, analyzing, and manipulating General Transit Feed Specification (GTFS) files, which represent public transportation schedules and geographic data. The package allows users to filter data by routes, trips, stops, and time, generate spatial visualizations, and perform detailed analyses of transit networks, including headway, dwell times, and route frequencies. Designed for transit planners, researchers, and data analysts, 'GTFSwizard' integrates functionalities from popular packages to enable efficient GTFS data manipulation and visualization.
-Imports: lubridate, sf, tidyr, data.table, shiny, leaflet, checkmate, dplyr, ggplot2, gtfsio, purrr, rlang, crayon, forcats, hrbrthemes, stringr, tibble, plotly, leaflet.extras, geosphere, stplanr, glue, hms, sfnetworks, gtfstools, tidytransit
+Imports: lubridate, sf, tidyr, data.table, shiny, leaflet, checkmate, dplyr, ggplot2, gtfsio, purrr, rlang, crayon, forcats, hrbrthemes, stringr, tibble, plotly, leaflet.extras, geosphere, stplanr, glue, hms, sfnetworks, gtfstools, tidytransit, igraph
 Depends: R (>= 3.5.0)
 License: GPL-3
 Encoding: UTF-8
