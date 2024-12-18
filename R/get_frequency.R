@@ -1,12 +1,13 @@
 #' Calculate Route Frequency in GTFS Data
 #'
-#' The `get_frequency` function calculates route frequency within a `wizardgtfs` object using different methods. Depending on the selected `method`, it can provide daily frequencies by route or detailed hourly frequencies.
+#' The `get_frequency` function calculates route frequency within a `wizardgtfs` object using different methods. Depending on the selected `method`, it can provide daily frequencies by route, shape, stop or detailed hourly frequencies.
 #'
 #' @param gtfs A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.
 #' @param method A character string specifying the calculation method. Options include:
 #'   \describe{
 #'     \item{"by.route"}{Calculates the total daily frequency for each route.}
 #'     \item{"by.shape"}{Calculates the total daily frequency for each shape.}
+#'     \item{"by.stop"}{Calculates the total daily frequency for each stop.}
 #'     \item{"detailed"}{Calculates the hourly frequency for each route.}
 #'   }
 #'
@@ -14,6 +15,7 @@
 #'   \describe{
 #'     \item{If `method = "by.route"`}{Returns a data frame with columns: `route_id`, `direction_id`, `daily.frequency`, `service_pattern`, and `pattern_frequency`.}
 #'     \item{If `method = "by.shape"`}{Returns a data frame with columns: `shape_id`, `direction_id`, `daily.frequency`, `service_pattern`, and `pattern_frequency`.}
+#'     \item{If `method = "by.stop"`}{Returns a data frame with columns: `stop_id`, `direction_id`, `daily.frequency`, `service_pattern`, and `pattern_frequency`.}
 #'     \item{If `method = "detailed"`}{Returns a data frame with columns: `route_id`, `direction_id`, `hour`, `frequency`, `service_pattern`, and `pattern_frequency`.}
 #'   }
 #'
@@ -23,6 +25,8 @@
 #' - "by.route": Calculates the total daily frequency for each route.
 #'
 #' - "by.shape": Calculates the total daily frequency for each shape.
+#'
+#' - "by.stop": Calculates the total daily frequency for each stop.
 #'
 #' - "detailed": Provides an hourly breakdown of frequency, showing the number of departures per hour for each route and direction.
 #'
@@ -34,6 +38,9 @@
 #'
 #' # Calculate daily shape frequency
 #' frequency_by_shape <- get_frequency(gtfs = for_rail_gtfs, method = "by.shape")
+#'
+#' # Calculate daily stop frequency
+#' frequency_by_stop <- get_frequency(gtfs = for_rail_gtfs, method = "by.stop")
 #'
 #' # Calculate detailed hourly frequency
 #' detailed_frequency <- get_frequency(gtfs = for_rail_gtfs, method = "detailed")
@@ -164,6 +171,50 @@ get_frequency_byshape <- function(gtfs){
       group_by(shape_id, direction_id, service_pattern, pattern_frequency) %>%
       reframe(daily.frequency = sum(daily.frequency)) %>%
       select(shape_id, direction_id, daily.frequency, service_pattern, pattern_frequency)
+
+  }
+
+  return(freq)
+
+}
+
+get_frequency_bystop <- function(gtfs){
+
+  if(!"wizardgtfs" %in% class(gtfs)){
+    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
+    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+  }
+
+  service_pattern <-
+    GTFSwizard::get_servicepattern(gtfs)
+
+  if(purrr::is_null(gtfs$trips$direction_id)) {
+
+    freq <-
+      gtfs$stop_times %>%
+      dplyr::filter(!arrival_time == '') %>%
+      dplyr::left_join(gtfs$trips,
+                       by = 'trip_id') %>%
+      dplyr::left_join(service_pattern,
+                       by = 'service_id',
+                       relationship = "many-to-many") %>%
+      dplyr::group_by(stop_id, service_pattern, pattern_frequency) %>%
+      dplyr::reframe(daily.frequency = n()) %>%
+      select(stop_id, daily.frequency, service_pattern, pattern_frequency)
+
+  } else {
+
+    freq <-
+      gtfs$stop_times %>%
+      dplyr::filter(!arrival_time == '') %>%
+      dplyr::left_join(gtfs$trips,
+                       by = 'trip_id') %>%
+      dplyr::left_join(service_pattern,
+                       by = 'service_id',
+                       relationship = "many-to-many") %>%
+      dplyr::group_by(stop_id, direction_id, service_pattern, pattern_frequency) %>%
+      dplyr::reframe(daily.frequency = n()) %>%
+      select(stop_id, direction_id, daily.frequency, service_pattern, pattern_frequency)
 
   }
 
