@@ -61,13 +61,17 @@ get_frequency <- function(gtfs, method = 'by.route'){
     freq <- get_frequency_byshape(gtfs)
   }
 
+  if (method == "by.stop") {
+    freq <- get_frequency_bystop(gtfs)
+  }
+
   if (method == "detailed") {
     freq <- get_frequency_detailed(gtfs)
   }
 
-  if (!method %in% c("by.route", "detailed", 'by.shape')) {
+  if (!method %in% c("by.route", "detailed", 'by.shape', 'by.stop')) {
     freq <- get_frequency_byroute(gtfs)
-    warning(crayon::cyan('method '), 'should be one of ', crayon::cyan('by.route'), ', ', crayon::cyan('by.shape'), ' or ', crayon::cyan('detailed'), '. Returning ', crayon::cyan('method = by.route.'))
+    warning(crayon::cyan('method '), 'should be one of ', crayon::cyan('by.route'), ', ', crayon::cyan('by.shape'), ', ', crayon::cyan('by.stop'), ' or ', crayon::cyan('detailed'), '. Returning ', crayon::cyan('method = by.route.'))
   }
 
   return(freq)
