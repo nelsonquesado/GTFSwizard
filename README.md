@@ -334,6 +334,12 @@ GTFSwizard::plot_headways(for_bus_gtfs)
 ```
 <img align="center" src="figs/plot_headway.png" width="600"/>
 
+- System Corridors: `plot_corridor()` visualizes high-density transit corridors on a map. It overlays the identified corridors on the route shapes from the GTFS data, providing a representation of the transit network and its key corridors.
+``` r
+GTFSwizard::plot_corridor(for_bus_gtfs) # (dev only)
+```
+<img align="center" src="figs/plot_corridor.png" width="400"/>
+
 ## Editing
 GTFSwizard provides functions to edit GTFS data directly - for delaying, splitting, and merging trips. The `delay_trip()` function allows users to apply a delay to specific trips. The `split_trip()` function equally divides a trip in `split` number of points, creating `split + 1` separate trips. This can be useful for analyzing partial routes or for simulating route adjustments. The `merge_gtfs()` function combines two GTFS files, allowing for the integration of distinct GTFS datasets into a single dataset.
 

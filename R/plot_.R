@@ -152,8 +152,8 @@ plot_headways <- function(gtfs){
 
   data <-
     GTFSwizard::get_headways(gtfs, method = 'by.hour') %>%
-    dplyr::mutate(average.headway = round(average.headway / 60, 0),
-                  weight = pattern_frequency * trips,
+    dplyr::mutate(average.headway = round(headway_minutes / 60, 0),
+                  weight = pattern_frequency * valid_trips,
                   hour = as.numeric(hour))
 
   overall.average <-
@@ -182,3 +182,59 @@ plot_headways <- function(gtfs){
 
   return(plotly)
 }
+
+#' Plot Transit Corridors
+#'
+#' @description
+#' The `plot_corridor` function visualizes high-density transit corridors on a map. It overlays the identified corridors
+#' on the route shapes from the GTFS data, providing a representation of the transit network and its key corridors.
+#'
+#' @param gtfs A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.
+#' @param i A numeric value representing the percentile threshold for selecting high-density segments. Defaults to `0.01` (top 1\% of segments by trip frequency).
+#' @param min.length A numeric value specifying the minimum corridor length (in meters) to retain. Defaults to `1500`.
+#'
+#' @return A `ggplot` object representing the transit network with corridors overlaid. The plot includes:
+#' \describe{
+#'   \item{Base map}{Route shapes from the GTFS data, displayed in gray.}
+#'   \item{Corridors}{High-density transit corridors, colored uniquely for each corridor.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \enumerate{
+#'   \item Extracts route shapes from the GTFS data using `get_shapes_sf`.
+#'   \item Identifies transit corridors using the `get_corridor` function with the specified `i` and `min.length` parameters.
+#'   \item Creates a map using `ggplot2` with:
+#'     \enumerate{
+#'       \item Route shapes as the base layer (gray lines).
+#'       \item High-density transit corridors as colored lines, with transparency for visualization.
+#'     }
+#' }
+#'
+#' @note
+#' Ensure the `gtfs` object includes valid `shapes` and `stop_times` tables for accurate visualization. The corridors are identified
+#' using the `get_corridor` function, which relies on stop and trip data.
+#'
+#' @examples
+#' plot_corridor(for_bus_gtfs, i = 0.02, min.length = 2000)
+#'
+#'
+#' @seealso
+#' [GTFSwizard::get_corridor()], [GTFSwizard::get_shapes_sf()]
+#'
+#' @importFrom ggplot2 ggplot geom_sf aes theme_minimal theme element_blank
+#' @export
+
+plot_corridor <- function(gtfs, i = 0.01, min.length = 1500) { # adicionar argumento 'base = TRUE' e 'corridors = "all"'
+
+  plot <-
+    ggplot() +
+    geom_sf(data = get_shapes_sf(gtfs)$shapes, size = .5, color = 'gray40') +
+    geom_sf(data = get_corridor(gtfs, i, min.length), aes(color = as.factor(corridor)), linewidth = 1.5, alpha = .75, fill = NA) +
+    theme_minimal() +
+    theme(legend.title = element_blank())
+
+  return(plot)
+
+  }
+
