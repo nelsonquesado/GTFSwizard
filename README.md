@@ -1,5 +1,5 @@
-# GTFSwizard <img align="right" src="figs/GTFSwizard_logo.png?raw=true" alt="logo" width="180">
-##### v1.0.0
+# GTFSwizard <img align="right" src="figs/GTFSwizard_logo.png?raw=true" alt="logo" height="180"> <img align="right" src="figs/logo_ufc.png?raw=true" alt="logo" height="140">
+##### v1.0.0 {CRAN}
 release 2024-11-11
 
 [![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
@@ -361,6 +361,30 @@ Feeds are, then, exported using the `write_gtfs()` function. It saves a standard
 GTFSwizard::write_gtfs(for_bus_gtfs, 'path-to-file.zip')
 ```
 
+## Travel Time Matrix (dev only)
+GTFSwizard implements the `tidytransit::raptor()` algorithm that estimates travel time matrices from a `wizardgtfs` object and a few other arguments.
+
+``` r
+tidy_raptor(for_rail_gtfs, min_departure = '06:20:00', max_arrival = '09:40:00',
+           dates = "2021-12-13", max_transfers = 2, keep = "all",
+           stop_ids = '66')
+#filter_time() removes invalid stop times.
+## A tibble: 85 × 6
+#   from_stop_id to_stop_id travel_time journey_departure_time journey_arrival_time transfers
+#   <chr>        <chr>            <dbl>                  <dbl>                <dbl>     <int>
+# 1 66           67                 240                  23640                23880         0
+# 2 66           68                 420                  23640                24060         0
+# 3 66           65                 240                  24660                24900         0
+# 4 66           65                1260                  23640                24900         1
+# 5 66           64                 420                  24660                25080         0
+# 6 66           64                1440                  23640                25080         1
+# 7 66           63                 660                  24660                25320         0
+# 8 66           63                1680                  23640                25320         1
+# 9 66           41                 960                  24660                25620         0
+#10 66           41                1980                  23640                25620         1
+## ℹ 75 more rows
+## ℹ Use `print(n = ...)` to see more rows
+```
 ## Handling Geographic Data
 GTFSwizard autodetects and reconstructs missing shape tables using the `get_shapes()` function. Variations of this function can create `simple feature` objects from `stops` or `shapes` tables, using `get_stops_sf()` or `get_shapes_sf()` functions, or even standard GTFS `shapes` data frame tables from `simple feature` shapes objects, using `get_shapes_df()` function. Please note that `get_shapes()` uses stop sequences to recreate the shapes table; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
 
@@ -452,7 +476,7 @@ _Under development..._
 Contributions are welcome! To report a bug, suggest a feature, or contribute code, please use the repository’s [Issues](https://github.com/OPATP/GTFSwizard/issues).
 
 ## Related Packages
-GTFSwizard mainly relies on [dplyr](https://dplyr.tidyverse.org/) and [sf](https://r-spatial.github.io/sf/) for data wrangling, [leaflet](https://leafletjs.com/) for map rendering, [ggplot2](https://ggplot2.tidyverse.org/) and [plotly](https://plotly.com/r/) for data visualization, and [shiny](https://shiny.posit.co/) for the `explore_gtfs()` application assembling.
+GTFSwizard mainly relies on [dplyr](https://dplyr.tidyverse.org/) and [sf](https://r-spatial.github.io/sf/) for data wrangling, [leaflet](https://leafletjs.com/) for map rendering, [ggplot2](https://ggplot2.tidyverse.org/) and [plotly](https://plotly.com/r/) for data visualization, [shiny](https://shiny.posit.co/) for the `explore_gtfs()` application assembling, and [tidytansit](https://github.com/r-transit/tidytransit) for the `raptor` implementation.
 
 ## Citation
 To cite package ‘GTFSwizard’ in publications use:

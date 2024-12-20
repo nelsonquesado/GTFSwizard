@@ -192,7 +192,7 @@ filter_date <- function(gtfs, dates = NULL){
     message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
-  if(is.null('dates')) {
+  if(is.null(dates)) {
     warning(crayon::red('No date(s) provided.'), ' Returning furtherst date.')
     date <- gtfs$dates_services$date[length(gtfs$dates_services$date)] %>% as.Date()
   } else {
