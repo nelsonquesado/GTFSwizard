@@ -17,6 +17,7 @@
 #'   - `"shortest"`: Only journeys with the shortest travel time.
 #'   - `"earliest"`: Journeys arriving at stops the earliest.
 #'   - `"latest"`: Journeys arriving at stops the latest.
+#' @param filter A logical to filter for min_departure, max_arrivel, and dates. Defaults to `TRUE`.
 #'
 #' @return A tibble containing the RAPTOR algorithm results, including:
 #' \describe{
@@ -58,21 +59,28 @@ tidy_raptor <- function(gtfs,
                         arrival = FALSE,
                         time_range = 3600,
                         max_transfers = NULL,
-                        keep = "all") {
+                        keep = "all",
+                        filter = TRUE) {
 
   if(!"wizardgtfs" %in% class(gtfs)){
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
     message('The gtfs object is not of the wizardgtfs class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
   }
 
+  checkmate::assert_logical(filter)
+
   if(stringr::str_split(max_arrival, ":") %>% lapply(FUN = as.numeric) %>% lapply(FUN = function(x){x[1]*60*60+x[2]*60+x[3]}) %>% unlist > 86399){
     stop(crayon::cyan('max.arrival'), ' must be', crayon::cyan(' 23:59:59'), ' or earlier')
   }
 
+  if(filter) {
   gtfs2 <-
     gtfs %>%
     filter_time(min_departure, max_arrival) %>%
     filter_date(dates)
+  } else {
+    gtfs2 <- gtfs
+  }
 
   stop_times <-
     gtfs2$stop_times %>%

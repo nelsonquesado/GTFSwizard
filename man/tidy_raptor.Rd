@@ -13,7 +13,8 @@ tidy_raptor(
   arrival = FALSE,
   time_range = 3600,
   max_transfers = NULL,
-  keep = "all"
+  keep = "all",
+  filter = TRUE
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ tidy_raptor(
 - `"shortest"`: Only journeys with the shortest travel time.
 - `"earliest"`: Journeys arriving at stops the earliest.
 - `"latest"`: Journeys arriving at stops the latest.}
+
+\item{filter}{A logical to filter for min_departure, max_arrivel, and dates. Defaults to `TRUE`.}
 }
 \value{
 A tibble containing the RAPTOR algorithm results, including:

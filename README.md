@@ -345,13 +345,13 @@ GTFSwizard provides functions to edit GTFS data directly - for delaying, splitti
 
 ```r
 # Delay trips by 5 minutes (300 seconds)
-delayed_gtfs <- delay_trip(for_bus_gtfs, trip_id = for_bus_gtfs$trips$trips_id[1:2], delay = 300)
+delayed_gtfs <- GTFSwizard::delay_trip(for_bus_gtfs, trip_id = for_bus_gtfs$trips$trips_id[1:2], delay = 300)
 
 # Split a trip in 3 sections (2 splits)
-split_gtfs <- split_trip(for_bus_gtfs, trip_id = for_bus_gtfs$trips$trip_id[1:2], split = 2)
+split_gtfs <- GTFSwizard::split_trip(for_bus_gtfs, trip_id = for_bus_gtfs$trips$trip_id[1:2], split = 2)
 
 # Merge two GTFS files into one
-merged_gtfs <- merge_gtfs(for_bus_gtfs, for_rail_gtfs)
+merged_gtfs <- GTFSwizard::merge_gtfs(for_bus_gtfs, for_rail_gtfs)
 ```
 
 Feeds are, then, exported using the `write_gtfs()` function. It saves a standard GTFS `.zip` file, located as declared.
@@ -363,7 +363,7 @@ GTFSwizard::write_gtfs(for_bus_gtfs, 'path-to-file.zip')
 GTFSwizard implements the `tidytransit::raptor()` algorithm that estimates travel time matrices from a `wizardgtfs` object and a few other arguments.
 
 ``` r
-tidy_raptor(for_rail_gtfs, min_departure = '06:20:00', max_arrival = '09:40:00',
+GTFSwizard::tidy_raptor(for_rail_gtfs, min_departure = '06:20:00', max_arrival = '09:40:00',
            dates = "2021-12-13", max_transfers = 2, keep = "all",
            stop_ids = '66')
 #filter_time() removes invalid stop times.
@@ -456,6 +456,31 @@ GTFSwizard::get_stops_sf(for_bus_gtfs$stops)
 #10 102     RUA BETA, 202                                   NA  (-38.60078 -3.71436)
 ## ℹ 4,783 more rows
 ## ℹ Use `print(n = ...)` to see more rows
+```
+The `latlon2epsg()` function (dev only) determines the appropriate UTM (Universal Transverse Mercator) EPSG code for a given `sf` object based on its centroid's latitude and longitude. This can be very useful for conveniently geoprocessing data in meters.
+
+``` r
+GTFSwizard::latlon2epsg(get_shapes_sf(for_bus_gtfs)$shapes) # (dev only)
+#Simple feature collection with 675 features and 2 fields
+#Geometry type: LINESTRING
+#Dimension:     XY
+#Bounding box:  xmin: 538169.4 ymin: 9569204 xmax: 565491.5 ymax: 9591645
+#Projected CRS: WGS 84 / UTM zone 24S
+## A tibble: 675 × 3
+#   shape_id   shape_dist_traveled                                          geometry
+# * <chr>                    <dbl>                                  <LINESTRING [m]>
+# 1 shape004-I                   0 (555313.8 9576517, 555309.4 9576519, 555246.3 95…
+# 2 shape004-V                   0 (557242.2 9586765, 557236.7 9586755, 557234 9586…
+# 3 shape011-I                   0 (552162 9588517, 552175.4 9588513, 552194.1 9588…
+# 4 shape012-V                   0 (552167.1 9588571, 552156.3 9588575, 552142.5 95…
+# 5 shape013-I                   0 (552040.5 9584684, 552048.6 9584693, 552064.4 95…
+# 6 shape014-V                   0 (552054.2 9584700, 552064.4 9584712, 552074.8 95…
+# 7 shape015-I                   0 (543576.7 9582956, 543579.4 9582966, 543591.4 95…
+# 8 shape015-V                   0 (546132.5 9586872, 546132.1 9586875, 546131.7 95…
+# 9 shape016-I                   0 (545525.2 9590007, 545524.6 9590009, 545518.8 95…
+#10 shape016-V                   0 (557221.8 9586750, 557212.8 9586753, 557203.5 95…
+# ℹ 665 more rows
+# ℹ Use `print(n = ...)` to see more rows
 ```
 
 ## Objects

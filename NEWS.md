@@ -6,7 +6,8 @@
   - tidy_raptor() estimates travel time matrices from gtfs feeds;
   - get_1stdeparture() retrieves the start timepoint of each trip;
   - get_corridor() suggests "right-of-way" transit corridors;
-  - plot_corridor() plots the suggested corridors from get_corridor() function.
+  - plot_corridor() plots the suggested corridors from get_corridor() function;
+  - latlon2epsg determines the appropriate EPSG code for a given sf object.
  
 * New methods
   - get_headways() now accepts 'method = "by.stop"' and 'method = "by.shape"';
