@@ -4,7 +4,7 @@
 \alias{get_distances}
 \title{Calculate Distances in GTFS Data}
 \usage{
-get_distances(gtfs, method = "by.route")
+get_distances(gtfs, method = "by.route", trips = "all")
 }
 \arguments{
 \item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If it is not of this class, it will be converted.}
@@ -15,6 +15,8 @@ get_distances(gtfs, method = "by.route")
   \item{"by.trip"}{Calculates distances for each trip, associating each trip ID with its total distance.}
   \item{"detailed"}{Calculates detailed distances between each consecutive stop for all trips. This is the most computationally intensive option and may take several minutes to complete.}
 }}
+
+\item{trips}{A character vector of trip IDs to consider. When set to `all`, includes all trips.}
 }
 \value{
 A data frame with calculated distances based on the specified method:
@@ -41,14 +43,14 @@ If an invalid `method` is provided, the function defaults to `"by.route"` and is
 }
 \examples{
 # Calculate average route distances
-distances_by_route <- get_distances(gtfs = for_rail_gtfs, method = "by.route")
+distances_by_route <- get_distances(gtfs = for_rail_gtfs, method = "by.route", trips = 'all')
 
 # Calculate distances by trip
-distances_by_trip <- get_distances(gtfs = for_rail_gtfs, method = "by.trip")
+distances_by_trip <- get_distances(gtfs = for_rail_gtfs, method = "by.trip", trips = 'all')
 
 \donttest{
 # Calculate detailed distances between stops
-detailed_distances <- get_distances(gtfs = for_rail_gtfs, method = "detailed")
+detailed_distances <- get_distances(gtfs = for_rail_gtfs, method = "detailed", trips = 'all')
 }
 
 }

@@ -10,6 +10,7 @@
 #'     \item{"by.trip"}{Calculates distances for each trip, associating each trip ID with its total distance.}
 #'     \item{"detailed"}{Calculates detailed distances between each consecutive stop for all trips. This is the most computationally intensive option and may take several minutes to complete.}
 #'   }
+#' @param trips A character vector of trip IDs to consider. When set to `all`, includes all trips.
 #'
 #' @return A data frame with calculated distances based on the specified method:
 #'   \describe{
@@ -31,14 +32,14 @@
 #'
 #' @examples
 #' # Calculate average route distances
-#' distances_by_route <- get_distances(gtfs = for_rail_gtfs, method = "by.route")
+#' distances_by_route <- get_distances(gtfs = for_rail_gtfs, method = "by.route", trips = 'all')
 #'
 #' # Calculate distances by trip
-#' distances_by_trip <- get_distances(gtfs = for_rail_gtfs, method = "by.trip")
+#' distances_by_trip <- get_distances(gtfs = for_rail_gtfs, method = "by.trip", trips = 'all')
 #'
 #' \donttest{
 #' # Calculate detailed distances between stops
-#' detailed_distances <- get_distances(gtfs = for_rail_gtfs, method = "detailed")
+#' detailed_distances <- get_distances(gtfs = for_rail_gtfs, method = "detailed", trips = 'all')
 #' }
 #'
 #' @seealso
@@ -47,9 +48,11 @@
 #' @importFrom dplyr mutate group_by reframe select left_join filter
 #' @importFrom sf st_length
 #' @export
-get_distances <- function(gtfs, method = 'by.route'){
+get_distances <- function(gtfs, method = 'by.route', trips = 'all'){
 
   sf::sf_use_s2(FALSE)
+
+  if(!any(trips == 'all')) {gtfs <- GTFSwizard::filter_trip(gtfs, trip = trips)}
 
   if (method == 'by.route') {
     distances <- get_distances_byroute(gtfs)

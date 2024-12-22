@@ -9,6 +9,7 @@
 #'     \item{"by.trip"}{Calculates the total duration for each trip.}
 #'     \item{"detailed"`}{Calculates detailed durations for each stop-to-stop segment within a trip.}
 #'   }
+#' @param trips A character vector of trip IDs to consider. When set to `all`, includes all trips.
 #'
 #' @return A data frame containing trip durations based on the specified method:
 #'   \describe{
@@ -30,13 +31,13 @@
 #'
 #' @examples
 #' # Calculate average route durations
-#' durations_by_route <- get_durations(gtfs = for_rail_gtfs, method = "by.route")
+#' durations_by_route <- get_durations(gtfs = for_rail_gtfs, method = "by.route", trips = 'all')
 #'
 #' # Calculate trip durations
-#' durations_by_trip <- get_durations(gtfs = for_rail_gtfs, method = "by.trip")
+#' durations_by_trip <- get_durations(gtfs = for_rail_gtfs, method = "by.trip", trips = 'all')
 #'
 #' # Calculate detailed durations between stops
-#' detailed_durations <- get_durations(gtfs = for_rail_gtfs, method = "detailed")
+#' detailed_durations <- get_durations(gtfs = for_rail_gtfs, method = "detailed", trips = 'all')
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
@@ -44,7 +45,9 @@
 #' @importFrom dplyr mutate group_by reframe select left_join filter ungroup
 #' @importFrom stringr str_split str_extract
 #' @export
-get_durations <- function(gtfs, method = 'by.route'){
+get_durations <- function(gtfs, method = 'by.route', trips = 'all'){
+
+  if(!any(trips == 'all')) {gtfs <- GTFSwizard::filter_trip(gtfs, trip = trips)}
 
   if (method == 'by.route') {
     durations <- get_durations_byroute(gtfs)
@@ -186,14 +189,16 @@ get_durations_detailed <- function(gtfs){
     dplyr::group_by(trip_id) %>%
     dplyr::mutate(from_stop_id = stop_id,
                   to_stop_id = lead(stop_id),
-                  duration = lead(arrival_time)  - departure_time) %>%
+                  lead_arrival_time = lead(arrival_time),
+                  duration =  lead_arrival_time - departure_time) %>%
     dplyr::ungroup() %>%
     dplyr::left_join(gtfs$trips,
                      by = 'trip_id') %>%
     dplyr::left_join(service_pattern,
                      by = 'service_id',
                      relationship = 'many-to-many') %>%
-    dplyr::select(route_id, trip_id, hour, from_stop_id, to_stop_id, duration, service_pattern, pattern_frequency) %>%
+    dplyr::mutate(arrival_time = as.character(hms::as_hms(lead_arrival_time))) %>%
+    dplyr::select(route_id, trip_id, arrival_time, hour, from_stop_id, to_stop_id, duration, service_pattern, pattern_frequency) %>%
     stats::na.omit()
 
   return(durations)

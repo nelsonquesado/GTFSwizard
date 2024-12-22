@@ -4,7 +4,7 @@
 \alias{get_speeds}
 \title{Calculate Speeds for GTFS Routes and Trips}
 \usage{
-get_speeds(gtfs, method = "by.route")
+get_speeds(gtfs, method = "by.route", trips = "all")
 }
 \arguments{
 \item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If the `shapes` table is missing, it will be created automatically using `get_shapes()`.}
@@ -15,6 +15,8 @@ get_speeds(gtfs, method = "by.route")
   \item{"by.trip"}{Calculates the average speed for each trip based on total distance and duration.}
   \item{"detailed"}{Calculates the speed for each segment between stops within a trip.}
 }}
+
+\item{trips}{A character vector of trip IDs to consider. When set to `all`, includes all trips.}
 }
 \value{
 A data frame containing speed calculations, depending on the specified method:
@@ -39,14 +41,14 @@ A data frame containing speed calculations, depending on the specified method:
 }
 \examples{
 # Calculate average route speeds
-speeds_by_route <- get_speeds(gtfs = for_rail_gtfs, method = "by.route")
+speeds_by_route <- get_speeds(gtfs = for_rail_gtfs, method = "by.route", trips = 'all')
 
 # Calculate trip speeds
-speeds_by_trip <- get_speeds(gtfs = for_rail_gtfs, method = "by.trip")
+speeds_by_trip <- get_speeds(gtfs = for_rail_gtfs, method = "by.trip", trips = 'all')
 
 \donttest{
 # Calculate detailed speeds between stops
-detailed_speeds <- get_speeds(gtfs = for_rail_gtfs, method = "detailed")
+detailed_speeds <- get_speeds(gtfs = for_rail_gtfs, method = "detailed", trips = 'all')
 }
 
 }

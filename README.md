@@ -157,7 +157,7 @@ GTFSwizard::get_dwelltimes(for_bus_gtfs, max.dwelltime = 60, method = 'by.trip')
 ## ℹ 52,294 more rows
 ## ℹ Use `print(n = ...)` to see more rows
 
-GTFSwizard::get_durations(for_bus_gtfs, method = 'detailed')
+GTFSwizard::get_durations(for_bus_gtfs, method = 'detailed', trips = 'all')
 ## A tibble: 1,398,251 × 8
 #   route_id trip_id          hour  from_stop_id to_stop_id duration service_pattern 
 #   <chr>    <chr>            <chr> <chr>        <chr>         <dbl> <fct>           
@@ -175,7 +175,7 @@ GTFSwizard::get_durations(for_bus_gtfs, method = 'detailed')
 ## ℹ 1 more variable: pattern_frequency <int>
 ## ℹ Use `print(n = ...)` to see more rows
 
-GTFSwizard::get_distances(for_bus_gtfs, method = 'by.trip')
+GTFSwizard::get_distances(for_bus_gtfs, method = 'by.trip', trips = 'all')
 ## A tibble: 52,304 × 5
 #   route_id trip_id          distance service_pattern  pattern_frequency
 #   <chr>    <chr>                 [m] <fct>                        <int>
@@ -192,7 +192,7 @@ GTFSwizard::get_distances(for_bus_gtfs, method = 'by.trip')
 ## ℹ 52,294 more rows
 ## ℹ Use `print(n = ...)` to see more rows
 
-GTFSwizard::get_distances(for_bus_gtfs, method = 'by.route')
+GTFSwizard::get_distances(for_bus_gtfs, method = 'by.route', trips = 'all')
 ## A tibble: 667 × 5
 #   route_id trips average.distance service_pattern  pattern_frequency
 #   <chr>    <int>              [m] <fct>                        <int>
@@ -209,7 +209,7 @@ GTFSwizard::get_distances(for_bus_gtfs, method = 'by.route')
 ## ℹ 657 more rows
 ## ℹ Use `print(n = ...)` to see more rows
 
-GTFSwizard::get_speeds(for_bus_gtfs, method = 'by.route')
+GTFSwizard::get_speeds(for_bus_gtfs, method = 'by.route', trips = 'all')
 ## A tibble: 667 × 5
 #   route_id trips average.speed service_pattern  pattern_frequency
 #   <chr>    <int>         <dbl> <fct>                        <int>

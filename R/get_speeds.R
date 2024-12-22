@@ -9,6 +9,7 @@
 #'     \item{"by.trip"}{Calculates the average speed for each trip based on total distance and duration.}
 #'     \item{"detailed"}{Calculates the speed for each segment between stops within a trip.}
 #'   }
+#' @param trips A character vector of trip IDs to consider. When set to `all`, includes all trips.
 #'
 #' @return A data frame containing speed calculations, depending on the specified method:
 #'   \describe{
@@ -29,14 +30,14 @@
 #'
 #' @examples
 #' # Calculate average route speeds
-#' speeds_by_route <- get_speeds(gtfs = for_rail_gtfs, method = "by.route")
+#' speeds_by_route <- get_speeds(gtfs = for_rail_gtfs, method = "by.route", trips = 'all')
 #'
 #' # Calculate trip speeds
-#' speeds_by_trip <- get_speeds(gtfs = for_rail_gtfs, method = "by.trip")
+#' speeds_by_trip <- get_speeds(gtfs = for_rail_gtfs, method = "by.trip", trips = 'all')
 #'
 #' \donttest{
 #' # Calculate detailed speeds between stops
-#' detailed_speeds <- get_speeds(gtfs = for_rail_gtfs, method = "detailed")
+#' detailed_speeds <- get_speeds(gtfs = for_rail_gtfs, method = "detailed", trips = 'all')
 #' }
 #'
 #' @seealso
@@ -45,13 +46,15 @@
 #' @importFrom dplyr select mutate group_by left_join reframe
 #' @importFrom GTFSwizard get_servicepattern get_distances get_durations
 #' @export
-get_speeds <- function(gtfs, method = 'by.route'){
+get_speeds <- function(gtfs, method = 'by.route', trips = 'all'){
+
+  if(!any(trips == 'all')) {gtfs <- GTFSwizard::filter_trip(gtfs, trip = trips)}
 
   if(purrr::is_null(gtfs$shapes)){
 
     gtfs <- GTFSwizard::get_shapes(gtfs)
 
-    warning("GTFS doesn't have a shapes table, using ", crayon::blue("get_shapes"), " to build it")
+    warning("GTFS does ", crayon::red("not"), " have a shapes table. Using ", crayon::blue("get_shapes"), " to build it.")
   }
 
   if (method == 'by.route') {

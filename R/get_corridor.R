@@ -98,7 +98,7 @@ get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
     dplyr::filter(as.numeric(length) >= min.lenght) %>%
     dplyr::arrange(-length) %>%
     dplyr::mutate(corridor = paste0('corridor-', 1:dplyr::n())) %>%
-    dplyr::select(corridor, stops, trip_id, length, geometry) %>%
+    dplyr::select(corridor, stop_id = stops, trip_id, length, geometry) %>%
     sf::st_as_sf()})
 
   return(transit_data)

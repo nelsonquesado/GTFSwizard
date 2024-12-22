@@ -4,7 +4,7 @@
 \alias{get_durations}
 \title{Calculate Trip Durations in GTFS Data}
 \usage{
-get_durations(gtfs, method = "by.route")
+get_durations(gtfs, method = "by.route", trips = "all")
 }
 \arguments{
 \item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.}
@@ -15,6 +15,8 @@ get_durations(gtfs, method = "by.route")
   \item{"by.trip"}{Calculates the total duration for each trip.}
   \item{"detailed"`}{Calculates detailed durations for each stop-to-stop segment within a trip.}
 }}
+
+\item{trips}{A character vector of trip IDs to consider. When set to `all`, includes all trips.}
 }
 \value{
 A data frame containing trip durations based on the specified method:
@@ -40,13 +42,13 @@ If an invalid `method` is specified, the function defaults to `"by.route"` and p
 }
 \examples{
 # Calculate average route durations
-durations_by_route <- get_durations(gtfs = for_rail_gtfs, method = "by.route")
+durations_by_route <- get_durations(gtfs = for_rail_gtfs, method = "by.route", trips = 'all')
 
 # Calculate trip durations
-durations_by_trip <- get_durations(gtfs = for_rail_gtfs, method = "by.trip")
+durations_by_trip <- get_durations(gtfs = for_rail_gtfs, method = "by.trip", trips = 'all')
 
 # Calculate detailed durations between stops
-detailed_durations <- get_durations(gtfs = for_rail_gtfs, method = "detailed")
+detailed_durations <- get_durations(gtfs = for_rail_gtfs, method = "detailed", trips = 'all')
 
 }
 \seealso{
