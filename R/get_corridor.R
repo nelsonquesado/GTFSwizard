@@ -10,6 +10,7 @@
 #' \describe{
 #'   \item{corridor}{A unique identifier for each corridor, prefixed with "corridor-".}
 #'   \item{stops}{A list of stop IDs included in each corridor.}
+#'   \item{trip_id}{A list of trip IDs included in each corridor.}
 #'   \item{length}{The total length of the corridor, in meters.}
 #'   \item{geometry}{The spatial representation of the corridor as an `sf` linestring object.}
 #' }
@@ -61,7 +62,8 @@ get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
     dplyr::mutate(stop_to = dplyr::lead(stop_from)) %>%
     stats::na.omit() %>%
     dplyr::group_by(stop_from, stop_to) %>%
-    dplyr::reframe(trips = n()) %>%
+    dplyr::reframe(trips = n(),
+                   trip_id = list(trip_id)) %>%
     dplyr::filter(dplyr::percent_rank(trips) >= (1 - i)) %>%
     dplyr::rowwise() %>%
     dplyr::mutate(origin = stops_sf$geometry[stops_sf$stop_id == stop_from],
@@ -85,13 +87,14 @@ get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
     transit_data %>%
     dplyr::group_by(group_id) %>%
     dplyr::reframe(geometry = sf::st_union(geometry),
-                   stops = list(c(unique(stop_from), unique(stop_to)))
+                   stops = list(c(unique(stop_from), unique(stop_to))),
+                   trip_id = list(unique(unlist(trip_id)))
     ) %>%
     dplyr::mutate(length = sf::st_length(geometry)) %>%
     dplyr::filter(as.numeric(length) >= min.lenght) %>%
     dplyr::arrange(-length) %>%
     dplyr::mutate(corridor = paste0('corridor-', 1:n())) %>%
-    dplyr::select(corridor, stops, length, geometry) %>%
+    dplyr::select(corridor, stops, trip_id, length, geometry) %>%
     sf::st_as_sf()
 
   return(transit_data)

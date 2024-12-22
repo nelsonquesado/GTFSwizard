@@ -18,6 +18,7 @@ An `sf` object containing the following columns:
 \describe{
   \item{corridor}{A unique identifier for each corridor, prefixed with "corridor-".}
   \item{stops}{A list of stop IDs included in each corridor.}
+  \item{trip_id}{A list of trip IDs included in each corridor.}
   \item{length}{The total length of the corridor, in meters.}
   \item{geometry}{The spatial representation of the corridor as an `sf` linestring object.}
 }
