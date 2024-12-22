@@ -49,6 +49,8 @@
 #' @export
 get_distances <- function(gtfs, method = 'by.route'){
 
+  sf::sf_use_s2(FALSE)
+
   if (method == 'by.route') {
     distances <- get_distances_byroute(gtfs)
   }
@@ -101,7 +103,7 @@ get_distances_byroute <- function(gtfs){
     dplyr::group_by(route_id, service_pattern, pattern_frequency) %>%
     dplyr::reframe(average.distance = mean(distance, na.rm = TRUE),
                    trips = n()) %>%
-    select(route_id, trips, average.distance, service_pattern, pattern_frequency)
+    dplyr::select(route_id, trips, average.distance, service_pattern, pattern_frequency)
 
   return(distances)
 
@@ -132,7 +134,7 @@ get_distances_bytrip <- function(gtfs){
     gtfs$trips %>%
     dplyr::left_join(distances, by = 'shape_id') %>%
     dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
-    select(route_id, trip_id, distance, service_pattern, pattern_frequency)
+    dplyr::select(route_id, trip_id, distance, service_pattern, pattern_frequency)
 
   return(distances)
 
@@ -149,7 +151,7 @@ get_distances_detailed <- function(gtfs){
 
     gtfs <- GTFSwizard::get_shapes(gtfs)
 
-    message('This gtfs object does not contain a shapes table. Using get_shapes().')
+    message('This gtfs object', crayon::red(' does not'), ' contain a shapes table. Using', crayon::cyan(' get_shapes()'), '.')
   }
 
   service_pattern <-
@@ -161,9 +163,9 @@ get_distances_detailed <- function(gtfs){
     dplyr::arrange(trip_id, stop_sequence) %>%
     dplyr::group_by(trip_id) %>%
     dplyr::reframe(from_stop_id = stop_id,
-                   to_stop_id = lead(stop_id)) %>%
+                   to_stop_id = dplyr::lead(stop_id)) %>%
     na.omit%>%
-    dplyr::left_join(gtfs$trips %>% select(trip_id, shape_id), by = 'trip_id') %>%
+    dplyr::left_join(gtfs$trips %>% dplyr::select(trip_id, shape_id), by = 'trip_id') %>%
     dplyr::group_by(from_stop_id, to_stop_id, shape_id) %>%
     dplyr::reframe(trips = list(trip_id))
 
@@ -198,8 +200,8 @@ get_distances_detailed <- function(gtfs){
       tidyr::unnest(cols = 'geometry')
     })
 
-    network <-
-      sfnetworks::as_sfnetwork(shapes.sf, directed = FALSE)
+    suppressWarnings({network <-
+      sfnetworks::as_sfnetwork(shapes.sf, directed = FALSE)})
 
     origins <-
       shapes_stops %>%
@@ -213,7 +215,7 @@ get_distances_detailed <- function(gtfs){
       origin <-
         gtfs$stops %>%
         dplyr::filter(stop_id == origins$from_stop_id[j]) %>%
-        tidytransit::stops_as_sf() %>%
+        GTFSwizard::get_stops_sf() %>%
         dplyr::select(stop_id)
 
       destinations_ids <-
@@ -227,27 +229,27 @@ get_distances_detailed <- function(gtfs){
         tidytransit::stops_as_sf() %>%
         dplyr::select(stop_id)
 
-      shortest_edges <-
+      suppressMessages({shortest_edges <-
         destinations %>%
         dplyr::bind_cols(
           sfnetworks::st_network_paths(network, origin, destinations) %>%
             dplyr::select(edge_paths)
-        )
+        )})
 
       distances <- NULL
 
       for (k in 1:nrow(shortest_edges)) {
 
-        distance <-
+        suppressMessages({distance <-
           network %>%
           sfnetworks::activate(edges) %>%
           dplyr::slice(shortest_edges %>%
-                         tibble() %>%
+                         tibble::tibble() %>%
                          .[k, 3] %>%
                          unlist) %>%
           sf::st_as_sf() %>%
           sf::st_union() %>%
-          sf::st_length()
+          sf::st_length()})
 
         distances <-
           distances %>%
@@ -258,15 +260,14 @@ get_distances_detailed <- function(gtfs){
       routes <-
         routes %>%
         dplyr::bind_rows(
-          tibble(
+          tibble::tibble(
             shape = shapes_stops$shape_id[i],
-            origins = origin %>% tibble %>% .[1,1],
+            origins = origin %>% tibble::tibble() %>% .[1,1],
             destinations = destinations_ids,
             distance = distances
 
           )
         )
-
 
     }
 

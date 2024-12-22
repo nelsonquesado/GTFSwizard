@@ -54,7 +54,7 @@ get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
 
   stops_sf <- get_stops_sf(gtfs$stops)
 
-  transit_data <-
+  suppressMessages({transit_data <-
     gtfs$stop_times %>%
     dplyr::filter(arrival_time != '') %>%
     dplyr::arrange(trip_id, arrival_time) %>%
@@ -62,7 +62,7 @@ get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
     dplyr::mutate(stop_to = dplyr::lead(stop_from)) %>%
     stats::na.omit() %>%
     dplyr::group_by(stop_from, stop_to) %>%
-    dplyr::reframe(trips = n(),
+    dplyr::reframe(trips = dplyr::n(),
                    trip_id = list(trip_id)) %>%
     dplyr::filter(dplyr::percent_rank(trips) >= (1 - i)) %>%
     dplyr::rowwise() %>%
@@ -73,13 +73,13 @@ get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
     dplyr::mutate(geometry = purrr::map2(origin, destination, ~sf::st_sfc(sf::st_linestring(rbind(sf::st_coordinates(.x), sf::st_coordinates(.y))), crs = 4326))) %>%
     dplyr::select(-origin, -destination) %>%
     tidyr::unnest(cols = 'geometry') %>%
-    sf::st_as_sf()
+    sf::st_as_sf()})
 
   if(nrow(transit_data) == 0) {
     stop(crayon::red('No'), ' corridors found for current ', crayon::cyan('i'), ' and ',  crayon::cyan('min.length'), ' values.')
   }
 
-  adjacency_matrix <- sf::st_touches(transit_data$geometry) # Step 1: Create a spatial adjacency matrix using 'st_touches'
+  suppressMessages({adjacency_matrix <- sf::st_touches(transit_data$geometry)}) # Step 1: Create a spatial adjacency matrix using 'st_touches'
 
   graph <- igraph::graph_from_adj_list(adjacency_matrix, mode = "all") # Step2: Build an undirected graph from the adjacency matrix
 
@@ -87,7 +87,7 @@ get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
 
   transit_data$group_id <- components$membership # Step 4: Add the component ID as a new column to your data
 
-  transit_data <-
+  suppressMessages({transit_data <-
     transit_data %>%
     dplyr::group_by(group_id) %>%
     dplyr::reframe(geometry = sf::st_union(geometry),
@@ -97,9 +97,9 @@ get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
     dplyr::mutate(length = sf::st_length(geometry)) %>%
     dplyr::filter(as.numeric(length) >= min.lenght) %>%
     dplyr::arrange(-length) %>%
-    dplyr::mutate(corridor = paste0('corridor-', 1:n())) %>%
+    dplyr::mutate(corridor = paste0('corridor-', 1:dplyr::n())) %>%
     dplyr::select(corridor, stops, trip_id, length, geometry) %>%
-    sf::st_as_sf()
+    sf::st_as_sf()})
 
   return(transit_data)
 
