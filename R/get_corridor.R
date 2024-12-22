@@ -75,6 +75,10 @@ get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
     tidyr::unnest(cols = 'geometry') %>%
     sf::st_as_sf()
 
+  if(nrow(transit_data) == 0) {
+    stop(crayon::red('No'), ' corridors found for current ', crayon::cyan('i'), ' and ',  crayon::cyan('min.length'), ' values.')
+  }
+
   adjacency_matrix <- sf::st_touches(transit_data$geometry) # Step 1: Create a spatial adjacency matrix using 'st_touches'
 
   graph <- igraph::graph_from_adj_list(adjacency_matrix, mode = "all") # Step2: Build an undirected graph from the adjacency matrix
@@ -100,3 +104,4 @@ get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
   return(transit_data)
 
 }
+
