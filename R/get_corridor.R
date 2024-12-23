@@ -4,7 +4,7 @@
 #'
 #' @param gtfs A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.
 #' @param i A numeric value representing the percentile threshold for selecting high-density segments. Defaults to `0.01` (top 1\% of segments by trip frequency).
-#' @param min.lenght A numeric value specifying the minimum corridor length (in meters) to retain. Defaults to `1500`.
+#' @param min.length A numeric value specifying the minimum corridor length (in meters) to retain. Defaults to `1500`.
 #'
 #' @return An `sf` object containing the following columns:
 #' \describe{
@@ -20,14 +20,14 @@
 #'   \item Filters and orders `stop_times` data to identify consecutive stops (`stop_from` and `stop_to`) for each trip.
 #'   \item Counts the number of trips between each stop pair and selects the top `i` percentile of segments by trip frequency.
 #'   \item Groups spatially connected segments into corridors using graph theory and adjacency matrices.
-#'   \item Filters corridors by the minimum length (`min.lenght`).
+#'   \item Filters corridors by the minimum length (`min.length`).
 #'   \item Returns the resulting corridors with their metadata and geometry.
 #'   }
 #'
 #' @note The function uses `sf` and `igraph` for spatial and graph-based computations. Ensure the `gtfs` object includes `stop_times` table.
 #'
 #' @examples
-#' corridors <- get_corridor(for_bus_gtfs, i = 0.02, min.lenght = 2000)
+#' corridors <- get_corridor(for_bus_gtfs, i = 0.02, min.length = 2000)
 #'
 #' @seealso
 #' [GTFSwizard::as_wizardgtfs()]
@@ -37,14 +37,14 @@
 #' @importFrom igraph graph_from_adj_list components
 #' @importFrom stats na.omit
 #' @export
-get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
+get_corridor <- function(gtfs, i = .01, min.length = 1500) {
 
   # Validate input parameters
   if (!is.numeric(i) || i <= 0 || i >= 1) {
     stop('Parameter ', crayon::cyan('i'), ' must be a numeric value between 0 and 1 (', crayon::red('exclusive'), ').')
   }
-  if (!is.numeric(min.lenght) || min.lenght <= 0) {
-    stop('Parameter ', crayon::cyan('min.lenght'), ' must be a ', crayon::green('positive'), ' numeric value (in meters).')
+  if (!is.numeric(min.length) || min.length <= 0) {
+    stop('Parameter ', crayon::cyan('min.length'), ' must be a ', crayon::green('positive'), ' numeric value (in meters).')
   }
 
   if(!"wizardgtfs" %in% class(gtfs)){
@@ -95,7 +95,7 @@ get_corridor <- function(gtfs, i = .01, min.lenght = 1500) {
                    trip_id = list(unique(unlist(trip_id)))
     ) %>%
     dplyr::mutate(length = sf::st_length(geometry)) %>%
-    dplyr::filter(as.numeric(length) >= min.lenght) %>%
+    dplyr::filter(as.numeric(length) >= min.length) %>%
     dplyr::arrange(-length) %>%
     dplyr::mutate(corridor = paste0('corridor-', 1:dplyr::n())) %>%
     dplyr::select(corridor, stop_id = stops, trip_id, length, geometry) %>%

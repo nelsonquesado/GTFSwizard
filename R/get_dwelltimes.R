@@ -72,7 +72,7 @@ get_dwelltimes <- function(gtfs, max.dwelltime = 90, method = 'by.route'){
 
   if (!method %in% c('by.hour', 'by.route', 'detailed', 'by.trip')) {
     dwell_time <- get_dwelltime_byroute(gtfs)
-    warning('"method" should be one of "by.hour", "by.route", "by.trip" or "detailed". Returning "method = "by.route"".')
+    warning(crayon::cyan('method'), ' should be one of ', crayon::cyan('by.hour'), ',', crayon::cyan(' by.route'), ',', crayon::cyan(' by.trip'), ', or ', crayon::cyan('detailed'), '. Returning ', crayon::cyan('method = "by.route"'),'.')
   }
 
   return(dwell_time)
