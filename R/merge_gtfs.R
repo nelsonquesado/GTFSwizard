@@ -71,11 +71,11 @@ merge_gtfs <- function(gtfs.x, gtfs.y, suffix = TRUE){
     gtfs.x$stop_times$trip_id <- paste0(gtfs.x$stop_times$trip_id, '.x')
     gtfs.y$stop_times$trip_id <- paste0(gtfs.y$stop_times$trip_id, '.y')
 
-    gtfs.x$stop_times$stop_id <- paste0(gtfs.x$stop_times$stop_id, '.x')
-    gtfs.y$stop_times$stop_id <- paste0(gtfs.y$stop_times$stop_id, '.y')
+    # gtfs.x$stop_times$stop_id <- paste0(gtfs.x$stop_times$stop_id, '.x')
+    # gtfs.y$stop_times$stop_id <- paste0(gtfs.y$stop_times$stop_id, '.y')
 
-    gtfs.x$stops$stop_id <- paste0(gtfs.x$stops$stop_id, '.x')
-    gtfs.y$stops$stop_id <- paste0(gtfs.y$stops$stop_id, '.y')
+    # gtfs.x$stops$stop_id <- paste0(gtfs.x$stops$stop_id, '.x')
+    # gtfs.y$stops$stop_id <- paste0(gtfs.y$stops$stop_id, '.y')
 
     if(!purrr::is_null(gtfs.x$fare_rules$route_id)){
       gtfs.x$fare_rules$route_id <- paste0(gtfs.x$fare_rules$route_id, '.x')
@@ -137,17 +137,17 @@ merge_gtfs <- function(gtfs.x, gtfs.y, suffix = TRUE){
       gtfs.x$transfers$trip_id <- paste0(gtfs.x$transfers$trip_id, '.x')
     }
 
-    if(!purrr::is_null(gtfs.x$transfers$stop_id)){
-      gtfs.x$transfers$stop_id <- paste0(gtfs.x$transfers$stop_id, '.x')
-    }
+    # if(!purrr::is_null(gtfs.x$transfers$stop_id)){
+    #   gtfs.x$transfers$stop_id <- paste0(gtfs.x$transfers$stop_id, '.x')
+    # }
 
     if(!purrr::is_null(gtfs.y$transfers$trip_id)){
       gtfs.y$transfers$trip_id <- paste0(gtfs.y$transfers$trip_id, '.y')
     }
 
-    if(!purrr::is_null(gtfs.y$transfers$stop_id)){
-      gtfs.y$transfers$stop_id <- paste0(gtfs.y$transfers$stop_id, '.y')
-    }
+    # if(!purrr::is_null(gtfs.y$transfers$stop_id)){
+    #   gtfs.y$transfers$stop_id <- paste0(gtfs.y$transfers$stop_id, '.y')
+    # }
 
   }
 
