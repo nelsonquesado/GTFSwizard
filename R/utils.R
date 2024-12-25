@@ -199,10 +199,10 @@ check_pkg_all <- function() {
 }
 
 utils::globalVariables(c(
-  "agency_id", "agency_name", "arrival_filter", "arrival_time",
-  "average.distance", "average.duration", "average.dwelltime",
+  "agency_id", "agency_name", "arrival_filter", "arrival_time", 'edit', 'arrival_time_sec',
+  "average.distance", "average.duration", "average.dwelltime", 'departure_time_sec',
   "average.headway", "average.speed", "daily.frequency", 'get_hubs_clusters.wzd_transfers',
-  "day_of_month", "departure", "departure_filter", "departure_time",
+  "day_of_month", "departure", "departure_filter", "departure_time", 'mid_dwelltime',
   "distance", "dupe", "edge_paths", "edges", "end_date", "ends",
   "exception_type", "first_day_of_month", "frequency", "from_stop_id",
   "geometry", "headway", "headway.minutes", "median", "na.omit",
