@@ -1,6 +1,6 @@
 # GTFSwizard 1.0.1 (dev)
 
-* Now featuring trip speed edition, travel time matrices, corridors, hubs, and more!
+* Now featuring travel time matrices, trip speed and dweel time edition, corridors, hubs, and more!
 
 * New functions
   - tidy_raptor() estimates travel time matrices from gtfs feeds;
@@ -8,6 +8,10 @@
   - get_1stdeparture() retrieves the start timepoint of each trip;
   - get_corridor() suggests "right-of-way" transit corridors;
   - plot_corridor() plots the suggested corridors from get_corridor() function;
+  - edit_dweeltime() modifies the dwell time of trips;
+  - get_hubs_cluster() Identifies and Cluster High-Transfer Stops ;
+  - get_stops_hubs() Identify and Extract Stop Hubs Based on Transfers and Routes;
+  - plot_hubs_cluster() Visualize Clusters of Transit Hubs;
   - latlon2epsg() determines the appropriate EPSG code for a given sf object.
  
 * New methods
