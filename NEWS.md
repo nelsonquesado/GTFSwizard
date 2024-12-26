@@ -5,13 +5,12 @@
 * New functions
   - tidy_raptor() estimates travel time matrices from gtfs feeds;
   - edit_speeds() Adjust Travel Speed in a GTFS Dataset
-  - get_1stdeparture() retrieves the start timepoint of each trip;
+  - edit_dwelltime() modifies the dwell time of trips;
+  - set_dwelltime() overwrites the dwell time of trips;
+  - get_hubs() estimates high integration potential stops;
   - get_corridor() suggests "right-of-way" transit corridors;
   - plot_corridor() plots the suggested corridors from get_corridor() function;
-  - edit_dweeltime() modifies the dwell time of trips;
-  - get_hubs_cluster() Identifies and Cluster High-Transfer Stops ;
-  - get_stops_hubs() Identify and Extract Stop Hubs Based on Transfers and Routes;
-  - plot_hubs_cluster() Visualize Clusters of Transit Hubs;
+  - get_1stdeparture() retrieves the start timepoint of each trip;
   - latlon2epsg() determines the appropriate EPSG code for a given sf object.
  
 * New methods

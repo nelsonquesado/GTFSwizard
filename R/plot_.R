@@ -224,13 +224,12 @@ plot_headways <- function(gtfs){
 #'
 #' @importFrom ggplot2 ggplot geom_sf aes theme_minimal theme element_blank
 #' @export
-
 plot_corridor <- function(gtfs, i = 0.01, min.length = 1500) { # adicionar argumento 'base = TRUE' e 'corridors = "all"'
 
   plot <-
     ggplot() +
-    geom_sf(data = get_shapes_sf(gtfs)$shapes, size = .5, color = 'gray40') +
-    geom_sf(data = get_corridor(gtfs, i, min.length), aes(color = as.factor(corridor)), linewidth = 1.5, alpha = .75, fill = NA) +
+    geom_sf(data = GTFSwizard::get_shapes_sf(gtfs)$shapes, size = .5, color = 'gray40') +
+    geom_sf(data = GTFSwizard::get_corridor(gtfs, i, min.length), aes(color = as.factor(corridor)), linewidth = 1.5, alpha = .75, fill = NA) +
     theme_minimal() +
     theme(legend.title = element_blank())
 
@@ -238,3 +237,48 @@ plot_corridor <- function(gtfs, i = 0.01, min.length = 1500) { # adicionar argum
 
   }
 
+#' Plot Transit Hubs
+#'
+#' @description
+#' The `plot_hubs` function visualizes high-density potential integration transit stops (hubs) on a map. It overlays the identified stops
+#' on the route shapes from the GTFS data, providing a representation of the transit network and its key integration hubs.
+#'
+#' @param gtfs A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.
+#' @param i A numeric value representing the percentile threshold for selecting high-density stops. Defaults to `0.05` (top 5\% of stops by number of routes).
+#'
+#' @return A `ggplot` object representing the transit network with hubs overlaid. The plot includes:
+#' \describe{
+#'   \item{Base map}{Route shapes from the GTFS data, displayed in gray.}
+#'   \item{Hubs}{High-density transit stops.}
+#' }
+#'
+#' @note
+#' Ensure the `gtfs` object includes valid `shapes` and `stop_times` tables for accurate visualization. The hubs are identified
+#' using the `get_hubs` function, which relies on stop and trip data.
+#'
+#' @examples
+#' plot_hubs(for_bus_gtfs, i = 0.02)
+#'
+#'
+#' @seealso
+#' [GTFSwizard::get_hubs()], [GTFSwizard::get_shapes_sf()]
+#'
+#' @importFrom ggplot2 ggplot geom_sf aes theme_minimal theme element_blank labs scale_size scale_color_gradient
+#' @importFrom dplyr filter percent_rank
+#' @export
+plot_hubs <- function(gtfs, i = .05) { # adicionar argumento 'base = TRUE' e 'corridors = "all"'
+
+  plot <-
+    GTFSwizard::get_hubs(gtfs) %>%
+    dplyr::filter(dplyr::percent_rank(n_routes) >= (1 - i)) %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(data = GTFSwizard::get_shapes_sf(gtfs)$shapes, size = .5, color = 'gray90') +
+    ggplot2::geom_sf(aes(color = n_routes, size = n_routes), linewidth = 1.5, alpha = .75, fill = NA) +
+    ggplot2::theme_minimal() +
+    ggplot2::scale_color_gradient(low = 'gray', high = 'red') +
+    ggplot2::scale_size(guide = 'none') +
+    ggplot2::labs(color  = '# Routes')
+
+  return(plot)
+
+}

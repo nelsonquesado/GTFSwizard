@@ -119,7 +119,7 @@ GTFSwizard::plot_calendar(for_bus_gtfs)
 
 ## Exploring
 
-Routes, frequency, headways, dell times, speeds, shapes, stops, durations, distances, fleet, first departures, and corridors are retrieved using the `get_frequency()`, the `get_headways()`, the `get_dwelltimes()`, the `get_duration()`, the `get_distances()`, the `get_speed()`, the `get_fleet()`, the `get_1stdeparture()`, and the `get_corridor()` functions. Some of these functions support several `methods`, such as `by.trip` or `detailed`. Refer to documentation `?` for more information.
+Routes, frequency, headways, dell times, speeds, shapes, stops, durations, distances, fleet, first departures, and corridors are retrieved using the `get_frequency()`, the `get_headways()`, the `get_dwelltimes()`, the `get_duration()`, the `get_distances()`, the `get_speed()`, the `get_fleet()`, and the `get_1stdeparture()` functions. Some of these functions support several `methods`, such as `by.trip` or `detailed`. Refer to documentation `?` for more information.
 
 ``` r
 GTFSwizard::get_headways(for_bus_gtfs, method = 'by.hour')
@@ -138,23 +138,6 @@ GTFSwizard::get_headways(for_bus_gtfs, method = 'by.hour')
 # 9 02                       60.9          34 servicepattern-3               116
 #10 03                       52.8          26 servicepattern-1               586
 ## ℹ 63 more rows
-## ℹ Use `print(n = ...)` to see more rows
-
-GTFSwizard::get_dwelltimes(for_bus_gtfs, max.dwelltime = 60, method = 'by.trip')
-## A tibble: 52,304 × 5
-#   route_id trip_id          average.dwelltime service_pattern  pattern_frequency
-#   <chr>    <chr>                        <dbl> <fct>                        <int>
-# 1 004      U004-T01V01B01-I                 0 servicepattern-1                65
-# 2 004      U004-T01V01B01-V                 0 servicepattern-1                65
-# 3 004      U004-T01V02B01-I                 0 servicepattern-1                65
-# 4 004      U004-T01V02B01-V                 0 servicepattern-1                65
-# 5 004      U004-T01V03B01-I                 0 servicepattern-1                65
-# 6 004      U004-T01V03B01-V                 0 servicepattern-1                65
-# 7 004      U004-T01V04B01-I                 0 servicepattern-1                65
-# 8 004      U004-T01V04B01-V                 0 servicepattern-1                65
-# 9 004      U004-T02V01B01-I                 0 servicepattern-1                65
-#10 004      U004-T02V01B01-V                 0 servicepattern-1                65
-## ℹ 52,294 more rows
 ## ℹ Use `print(n = ...)` to see more rows
 
 GTFSwizard::get_durations(for_bus_gtfs, method = 'detailed', trips = 'all')
@@ -258,7 +241,12 @@ GTFSwizard::get_1stdeparture(for_bus_gtfs) # (dev only)
 #10 004      U004-T02V02B02-I 12:09:00       5810   
 # ℹ 35,446 more rows
 # ℹ Use `print(n = ...)` to see more rows
+```
+Corridors and hubs are simplified representations of critical links and nodes on transit networks.
 
+- Corridors: the `get_corridor()` and `plot_corridor()` functions retrieves and visualizes high-density transit sections.
+
+``` r
 GTFSwizard::get_corridor(for_bus_gtfs, i = .01, min.length = 1500) # (dev only)
 #Simple feature collection with 7 features and 3 fields
 #Geometry type: GEOMETRY
@@ -276,7 +264,40 @@ GTFSwizard::get_corridor(for_bus_gtfs, i = .01, min.length = 1500) # (dev only)
 #6 corridor-6 <chr [11]> <chr [11,465]>  2352. MULTILINESTRING ((-38.5936 -…
 #7 corridor-7 <chr [6]>  <chr [3,417]>   1635. LINESTRING (-38.4845 -3.7587…
 #8 corridor-8 <chr [8]>  <chr [9,086]>   1625. MULTILINESTRING ((-38.50203 …
+
+GTFSwizard::plot_corridor(for_bus_gtfs) # (dev only)
 ```
+<img align="center" src="figs/plot_corridor.png" width="400"/>
+
+- Hubs: the `get_hubs()` and `plot_hubs` functions retrieves and visualizes high-density transit stops.
+
+``` r
+GTFSwizard::get_hubs(for_bus_gtfs) # (dev only)
+#Simple feature collection with 4676 features and 5 fields
+#Geometry type: POINT
+#Dimension:     XY
+#Bounding box:  xmin: -38.64515 ymin: -3.894503 xmax: -38.4108 ymax: -3.694365
+#Geodetic CRS:  WGS 84
+## A tibble: 4,676 × 6
+#   stop_id trip_id        route_id   n_trip n_routes              geometry
+#   <chr>   <list>         <list>      <int>    <int>           <POINT [°]>
+# 1 6079    <chr [14,745]> <chr [65]>  14745       65 (-38.48476 -3.738568)
+# 2 4030    <chr [6,405]>  <chr [62]>   6405       62 (-38.50203 -3.830385)
+# 3 6083    <chr [15,578]> <chr [56]>  15578       56 (-38.56358 -3.775878)
+# 4 5822    <chr [14,364]> <chr [52]>  14364       52 (-38.58683 -3.789329)
+# 5 1717    <chr [4,252]>  <chr [43]>   4252       43  (-38.5345 -3.735906)
+# 6 6449    <chr [4,252]>  <chr [43]>   4252       43 (-38.53651 -3.738107)
+# 7 1599    <chr [4,065]>  <chr [41]>   4065       41  (-38.5357 -3.731303)
+# 8 1013    <chr [4,322]>  <chr [40]>   4322       40  (-38.53348 -3.72369)
+# 9 2053    <chr [4,199]>  <chr [40]>   4199       40 (-38.54209 -3.741748)
+#10 1610    <chr [3,648]>  <chr [38]>   3648       38 (-38.53712 -3.736164)
+## ℹ 4,666 more rows
+## ℹ Use `print(n = ...)` to see more rows
+
+GTFSwizard::plot_hubs(for_bus_gtfs) # (dev only)
+```
+<img align="center" src="figs/plot_hubs.png" width="400"/>
+
 ## Filtering
 Filtering tools allows customized GTFS data by service patterns, specific dates, service IDs, route IDs, trip IDs, stop IDs, and time ranges. These `filter_` functions help retain only the relevant data, making analysis easier and more focused.
 
@@ -335,14 +356,13 @@ GTFSwizard::plot_headways(for_bus_gtfs)
 ```
 <img align="center" src="figs/plot_headway.png" width="600"/>
 
-- System Corridors: `plot_corridor()` visualizes high-density transit corridors on a map. It overlays the identified corridors on the route shapes from the GTFS data, providing a representation of the transit network and its key corridors.
-``` r
-GTFSwizard::plot_corridor(for_bus_gtfs) # (dev only)
-```
-<img align="center" src="figs/plot_corridor.png" width="400"/>
-
 ## Editing
-GTFSwizard provides functions to edit GTFS data directly. The `delay_trip()` function allows users to apply a delay to specific trips. The `split_trip()` function equally divides a trip in `split` number of points, creating `split + 1` separate trips. This can be useful for analyzing partial routes or for simulating route adjustments. The `edit_speed` (dev only) function adjusts the travel speeds between stops in a GTFS dataset by modifying trip durations based on a specified speed multiplier. It allows selective adjustments for specific trips and stops or applies changes globally. The `merge_gtfs()` function combines two GTFS files, allowing for the integration of distinct GTFS datasets into a single dataset.
+GTFSwizard provides functions to edit GTFS data directly.
+The `delay_trip()` function allows users to apply a delay to specific trips.
+The `split_trip()` function equally divides a trip in `split` number of points, creating `split + 1` separate trips. This can be useful for analyzing partial routes or for simulating route adjustments.
+The `edit_speed()` (dev only) function adjusts the travel speeds between stops in a GTFS dataset by modifying trip durations based on a specified speed multiplier. It allows selective adjustments for specific trips and stops or applies changes globally.
+The `set_dwelltime()` (dev only) function overwrites dwell times preserving start time and end time of trips. The `edit_dwelltime()` function edit dwell times adjusting the total duration of trips.
+The `merge_gtfs()` function combines two GTFS files, allowing for the integration of distinct GTFS datasets into a single dataset.
 
 ```r
 # Delay trips by 5 minutes (300 seconds)
@@ -356,6 +376,35 @@ merged_gtfs <- GTFSwizard::merge_gtfs(for_bus_gtfs, for_rail_gtfs)
 
 # Double the speed of all trips
 faster_gtfs <- GTFSwizard::edit_speed(for_rail_gtfs, factor = 2) # (dev only)
+
+# Set and edit dwell times for specific trips
+gtfs <- set_dwelltime(for_rail_gtfs,                             # (dev only)
+                   trips = for_rail_gtfs$trips$trip_id[1:100],
+                   stops = for_rail_gtfs$stops$stop_id[1:20],
+                   duration = 10)
+
+gtfs <- edit_dwelltime(gtfs,                                     # (dev only)
+                   trips = for_rail_gtfs$trips$trip_id[1:100],
+                   stops = for_rail_gtfs$stops$stop_id[1:20],
+                   factor = 1.5)
+
+get_dwelltimes(gtfs, method = 'detailed')
+## A tibble: 3,420 × 7
+## Groups:   trip_id [215]
+#   route_id trip_id stop_id  hour dwell_time service_pattern  pattern_frequency
+#   <chr>    <chr>   <chr>   <dbl>      <dbl> <fct>                        <int>
+# 1 7        10      29         11         15 servicepattern-1               614
+# 2 7        10      30         11         15 servicepattern-1               614
+# 3 7        10      31         11         15 servicepattern-1               614
+# 4 7        10      32         11         15 servicepattern-1               614
+# 5 7        10      33         12         15 servicepattern-1               614
+# 6 7        10      34         12         15 servicepattern-1               614
+# 7 7        10      35         12         15 servicepattern-1               614
+# 8 7        10      36         12         15 servicepattern-1               614
+# 9 7        10      37         12         15 servicepattern-1               614
+#10 7        10      38         12         15 servicepattern-1               614
+## ℹ 3,410 more rows
+## ℹ Use `print(n = ...)` to see more rows
 ```
 
 Feeds are, then, exported using the `write_gtfs()` function. It saves a standard GTFS `.zip` file, located as declared.
