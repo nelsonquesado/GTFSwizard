@@ -39,6 +39,8 @@
 #' @export
 get_hubs <- function(gtfs) {
 
+  # INCLUIR A DIVISAO POR SERVICE PATTERN
+
   if(!"wizardgtfs" %in% class(gtfs)){
     message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
     gtfs <- GTFSwizard::as_wizardgtfs(gtfs)

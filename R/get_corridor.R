@@ -39,6 +39,8 @@
 #' @export
 get_corridor <- function(gtfs, i = .01, min.length = 1500) {
 
+  # INCLUIR A DIVISAO POR SERVICE PATTERN
+
   # Validate input parameters
   if (!is.numeric(i) || i <= 0 || i >= 1) {
     stop('Parameter ', crayon::cyan('i'), ' must be a numeric value between 0 and 1 (', crayon::red('exclusive'), ').')
