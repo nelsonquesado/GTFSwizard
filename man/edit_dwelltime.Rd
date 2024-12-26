@@ -2,49 +2,47 @@
 % Please edit documentation in R/edit_dwelltime.R
 \name{edit_dwelltime}
 \alias{edit_dwelltime}
-\title{Edit Dwell Time in GTFS Data}
+\title{Modify Dwell Times in GTFS Data}
 \usage{
-edit_dwelltime(gtfs, value)
+edit_dwelltime(gtfs, trips = "all", stops = "all", factor)
 }
 \arguments{
-\item{gtfs}{A GTFS object, either as a list, a `wizardgtfs` object or a `wizardgtfs_selected` object, containing GTFS data.}
+\item{gtfs}{A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.}
 
-\item{value}{A named numeric vector of length 1 specifying how the dwell time should be modified.
- The values must be objects of the `lubridate::duration()` class or they will not be interpreted as seconds.
- The valid names are "set", "to", "add", and "mult". If `value` is not named, it defaults to "set".
-\describe{
-  \item{\code{`set`}}{Overwrites dwell time for all or selected trips. This method is suitable for adding a dwelltime to a trip where this parameter is zero, it maintains the total duration of the trip.}
-  \item{\code{`to`}}{Sets dwell time to the specified value for selected trips.}
-  \item{\code{`add`}}{Increases current dwell time by the specified amount at selected stops.}
-  \item{\code{`mult`}}{Multiplies current dwell time by the specified factor at selected stops.}
-}}
+\item{trips}{A character vector of trip IDs for which dwell times should be modified. Use `'all'` to include all trips (default).}
+
+\item{stops}{A character vector of stop IDs for which dwell times should be modified. Use `'all'` to include all stops (default).}
+
+\item{factor}{A numeric value representing the scaling factor for dwell times. For example, a factor of 1.5 increases dwell times by 50\%, while a factor of 0.5 reduces them by 50\%.}
 }
 \value{
-A modified wizardgtfs object with updated dwell times.
+A modified GTFS object with updated arrival and departure times in the `stop_times` table.
 }
 \description{
-Modifies the dwell time of trips in a `wizardgtfs` object based on the specified value parameter.
+The `edit_dwelltime` function adjusts dwell times for specified trips and stops in a GTFS dataset. The dwell times are scaled by a given factor, and arrival and departure times are updated accordingly in the `stop_times` table.
 }
 \details{
-The function modifies the `stop_times` table in the GTFS object by updating dwell times according to the provided `value` parameter.
-If gtfs is a wizardgtfs_selected object the operation is only performed on the selection.
-If `value` is specified as `"set"`, the dwell time is updated for the entire trip unless specific stops are selected.
+The function calculates the original dwell time (the difference between `departure_time` and `arrival_time`) for the specified trips and stops. The dwell time is then scaled by the `factor`, and the arrival and departure times are updated accordingly.
 
-A warning is displayed if `"set"` is used without proper selection to inform users that it affects entire trips.
-Use a selection to modify dwell time only at specific stops or trips.
-
-This method modifies the duration of trips, except when the value parameter is set to 'set'.
+If `trips` or `stops` is set to `'all'`, all trips or stops, respectively, will be considered. Input validation ensures that provided `trips` and `stops` exist in the GTFS dataset.
+}
+\note{
+Ensure the `stop_times` table contains valid `arrival_time` and `departure_time` values. Empty or missing times may cause computation issues.
 }
 \examples{
-gtfs <- for_bus_gtfs
+gtfs <- set_dwelltime(for_rail_gtfs,
+                    trips = for_rail_gtfs$trips$trip_id[1:100],
+                    stops = for_rail_gtfs$stops$stop_id[1:20],
+                    duration = 10)
 
-modified_gtfs <- edit_dwelltime(gtfs, value = c(set = 10))
+gtfs <- edit_dwelltime(gtfs,
+                    trips = for_rail_gtfs$trips$trip_id[1:100],
+                    stops = for_rail_gtfs$stops$stop_id[1:20],
+                    factor = 1.5)
 
-modified_gtfs <- gtfs \%>\%
-  selection(route_id \%in\% gtfs$routes$route_id[1:2]) \%>\%
-  edit_dwelltime(value = c(add = duration(15)))
+get_dwelltimes(gtfs, method = 'detailed')
 
 }
 \seealso{
-[GTFSwizard::selection()], [GTFSwizard::unselection()],
+[GTFSwizard::set_dwelltime()], [GTFSwizard::as_wizardgtfs()]
 }

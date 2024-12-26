@@ -199,10 +199,10 @@ check_pkg_all <- function() {
 }
 
 utils::globalVariables(c(
-  "agency_id", "agency_name", "arrival_filter", "arrival_time", 'edit', 'arrival_time_sec',
-  "average.distance", "average.duration", "average.dwelltime", 'departure_time_sec',
-  "average.headway", "average.speed", "daily.frequency", 'get_hubs_clusters.wzd_transfers',
-  "day_of_month", "departure", "departure_filter", "departure_time", 'mid_dwelltime',
+  "agency_id", "agency_name", "arrival_filter", "arrival_time", "edit", "arrival_time_sec",
+  "average.distance", "average.duration", "average.dwelltime", "departure_time_sec",
+  "average.headway", "average.speed", "daily.frequency", "get_hubs_clusters.wzd_transfers",
+  "day_of_month", "departure", "departure_filter", "departure_time", "mid_dwelltime",
   "distance", "dupe", "edge_paths", "edges", "end_date", "ends",
   "exception_type", "first_day_of_month", "frequency", "from_stop_id",
   "geometry", "headway", "headway.minutes", "median", "na.omit",
@@ -210,14 +210,15 @@ utils::globalVariables(c(
   "pattern_frequency", "route_id", "service_id", "service_pattern",
   "setNames", "setTxtProgressBar", "shape_dist_traveled", "shape_id",
   "shape_pt_lat", "shape_pt_lon", "shape_pt_sequence", "start_date",
-  "starts", "stop_id", "stop_lat", "stop_lon", "stop_sequence", 'get_transfer_clusters.wzd_transfers',
-  "subtrip", "time", "to_stop_id", "trip_id", "trips", 'get_high_transfer_stops',
+  "starts", "stop_id", "stop_lat", "stop_lon", "stop_sequence", "get_transfer_clusters.wzd_transfers",
+  "subtrip", "time", "to_stop_id", "trip_id", "trips", "get_high_transfer_stops",
   "txtProgressBar", "type", "value", "week_of_month", "weekday",
-  "weighted.mean", ".", 'lead_arrival_time', 'cum.diff.time', 'diff.time', 'new.duration',
-  "average_headway_minutes", "headway_minutes", "valid_trips", 'get_transfer_clusters.wzd_transfers',
-  'corridor', 'destination', 'group_id', 'origin', 'percent_rank', 'stop_from',
-  'stop_to', 'stops', 'stops_sf', "actual_dweeltime", "actual_dwelltime", "change_dweeltime",
-  "change_value", "cluster", "groups", "index", 'get_hubs_clusters.wzd_transfers',
-  "max_dweeltime", "max_dweeltime_ant", "max_dweeltime_post", 'get_high_transfer_stops',
-  "mean_n_routes", "n_routes", "next_stop", "non_negative", "routes_similary", "selection_stops"
+  "weighted.mean", ".", "lead_arrival_time", "cum.diff.time", "diff.time", "new.duration",
+  "average_headway_minutes", "headway_minutes", "valid_trips", "corridor", "destination",
+  "group_id", "origin", "percent_rank", "stop_from", "stop_to", "stops", "stops_sf",
+  "actual_dweeltime", "actual_dwelltime", "change_dweeltime", "change_value", "cluster",
+  "groups", "index", "max_dweeltime", "max_dweeltime_ant", "max_dweeltime_post",
+  "mean_n_routes", "n_routes", "next_stop", "non_negative", "routes_similary", "selection_stops",
+  "arrival_time_diff", "departure_time_diff", "diff_dwell_time", "dwell_time", "new_dwell_time"
 ))
+
