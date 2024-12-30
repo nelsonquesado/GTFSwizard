@@ -86,7 +86,7 @@ GTFSwizard::get_servicepattern(for_bus_gtfs)
 #3 D          servicepattern-3                13
 ```
 
-Most of the functions will account for service_patterns, _e.g._ `get_frequency()` and `plot_routefrequency()`. The former arrange service_pattern from most frequent (typical day) to less frequent (rarer day), while the latter highligths the most frequent service pattern.
+Most of the functions will account for service_patterns, _e.g._ `get_frequency()` and `plot_routefrequency()`. The former arrange service_pattern from most frequent (typical day) to less frequent (rarer day), while the latter highlights the most frequent service pattern.
 ```r
 GTFSwizard::get_frequency(for_bus_gtfs)
 ## A tibble: 667 × 4
@@ -269,7 +269,7 @@ GTFSwizard::plot_corridor(for_bus_gtfs) # (dev only)
 ```
 <img align="center" src="figs/plot_corridor.png" width="400"/>
 
-- Hubs: the `get_hubs()` and `plot_hubs` functions retrieves and visualizes high-density transit stops.
+- Hubs: the `get_hubs()` and `plot_hubs()` functions retrieves and visualizes high-density transit stops.
 
 ``` r
 GTFSwizard::get_hubs(for_bus_gtfs) # (dev only)

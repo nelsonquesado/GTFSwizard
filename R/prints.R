@@ -34,7 +34,7 @@ print.summary.wizardgtfs <- function(x, ...){
   cat(crayon::cyan(crayon::bold(x$total_days)),
       crayon::silver(' valid days of service'),'\n')
   cat(crayon::cyan(crayon::bold(x$stops_dist)),
-      crayon::silver(' meters is the average distance between sequencial stops in a given route'),'\n')
+      crayon::silver(' meters is the average distance between consecutive stops in a given route'),'\n')
 }
 
 #' @exportS3Method base::summary wizardgtfs
