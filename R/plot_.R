@@ -228,7 +228,7 @@ plot_corridor <- function(gtfs, i = 0.01, min.length = 1500) { # adicionar argum
 
   plot <-
     ggplot() +
-    geom_sf(data = GTFSwizard::get_shapes_sf(gtfs)$shapes, size = .5, color = 'gray40') +
+    geom_sf(data = GTFSwizard::get_shapes_sf(gtfs)$shapes, size = .5, color = 'gray90') +
     geom_sf(data = GTFSwizard::get_corridor(gtfs, i, min.length), aes(color = as.factor(corridor)), linewidth = 1.5, alpha = .75, fill = NA) +
     theme_minimal() +
     theme(legend.title = element_blank())
