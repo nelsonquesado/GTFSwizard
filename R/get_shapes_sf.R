@@ -94,9 +94,9 @@ get_shapes_sf.data.frame <- function(gtfs){
       gtfs <- gtfs %>%
         dplyr::group_by(shape_id) %>%
         dplyr::mutate(geometry = paste0(shape_pt_lon,' ',shape_pt_lat)) %>%
-        dplyr::group_by(shape_id)
+        dplyr::group_by(shape_id) %>%
         dplyr::reframe(
-          geometry = paste0('LINESTRING(',paste0(geometry,collapse = ', '), ')')
+          geometry = paste0('LINESTRING(', paste0(geometry, collapse = ', '), ')')
         ) %>%
         sf::st_as_sf(wkt = 'geometry',crs=4326) %>%
           tibble::as_tibble() %>%

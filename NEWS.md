@@ -19,10 +19,10 @@
   
 * Bug fix & improvements
   - Better column naming;
-  - Minor bug fixed on filter_date();
+  - Minor bug fixed on filter_date() and get_shapes_sf();
   - get_headways() output fixed;
   - split_trip() can now be used after filter_time();
-  - Now one can choose the trips to perform get_speed(), get_durations() and get_distances().
+  - get_speed(), get_durations() and get_distances() now accepts 'trips = ' argument.
 
 # GTFSwizard 1.0.0
 

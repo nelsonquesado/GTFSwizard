@@ -21,9 +21,9 @@ get_durations(gtfs, method = "by.route", trips = "all")
 \value{
 A data frame containing trip durations based on the specified method:
   \describe{
-    \item{If `method = "by.route"`}{Returns a summary data frame with columns: `route_id`, `trips`, `average.duration`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "by.trip"`}{Returns a data frame with columns: `route_id`, `trip_id`, `duration`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "detailed"`}{Returns a data frame with columns: `route_id`, `trip_id`, `hour`, `from_stop_id`, `to_stop_id`, `duration`, `service_pattern`, and `pattern_frequency`.}
+    \item{If `method = "by.route"`}{It includes dwell times. Returns a summary data frame with columns: `route_id`, `trips`, `average.duration`, `service_pattern`, and `pattern_frequency`.}
+    \item{If `method = "by.trip"`}{It includes dwell times. Returns a data frame with columns: `route_id`, `trip_id`, `duration`, `service_pattern`, and `pattern_frequency`.}
+    \item{If `method = "detailed"`}{It does not include dwell times. Returns a data frame with columns: `route_id`, `trip_id`, `hour`, `from_stop_id`, `to_stop_id`, `duration`, `service_pattern`, and `pattern_frequency`.}
   }
 }
 \description{
@@ -36,7 +36,7 @@ This function calls specific sub-functions based on the selected method:
 
 - "by.trip": Calculates the total duration of each trip.
 
-- "detailed": Calculates detailed durations between consecutive stops within each trip.
+- "detailed": Calculates detailed durations between consecutive stops within each trip, excluding dwell times.
 
 If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
 }
