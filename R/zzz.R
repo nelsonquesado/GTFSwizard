@@ -10,7 +10,7 @@ check_pkg_all <- function() {
                          "crayon", "geosphere", "stplanr", "hrbrthemes",
                          "checkmate", "dplyr", "ggplot2", "glue",
                          "gtfsio", "hms", "purrr", "rlang",
-                         "sfnetworks", "stringr")
+                         "sfnetworks", "stringr", 'magrittr')
 
   # Apply check to each package
   lapply(required_packages, function(pkg) {

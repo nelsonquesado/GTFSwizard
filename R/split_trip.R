@@ -54,7 +54,7 @@ split_trip <- function(gtfs, trip, split = 1){
     gtfs$stop_times %>%
     dplyr::mutate(split = trip_id %in% trip) %>%
     dplyr::group_by(trip_id) %>%
-    dplyr::mutate(subtrip = if_else(split == TRUE, ceiling(1:n()/n() * groups), NA) |> forcats::as_factor() |> as.numeric(),
+    dplyr::mutate(subtrip = if_else(split == TRUE, ceiling(1:n()/n() * groups), NA) %>% forcats::as_factor() %>% as.numeric(),
            dupe = split == TRUE & !subtrip == lead(subtrip)) %>%
     dplyr::ungroup() %>%
     dplyr::bind_rows(dplyr::slice(., .$dupe %>% which()) %>% mutate(subtrip = subtrip + 1)) %>%

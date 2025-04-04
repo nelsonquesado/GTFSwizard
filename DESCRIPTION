@@ -1,7 +1,7 @@
 Package: GTFSwizard
 Type: Package
 Title: Exploring and Manipulating 'GTFS' Files
-Version: 1.0.1
+Version: 1.1.0
 Authors@R: c(
     person(given="Nelson de O.",family="Quesado Filho",email="nquesado@gmail.com",role=c("aut","cre")),
     person(given="Caio G. C.", family="Guimarães", email="caiogcg.mobilidade@gmail.com",role=c("aut")))

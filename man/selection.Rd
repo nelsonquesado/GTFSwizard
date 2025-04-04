@@ -64,6 +64,6 @@ crs = sf::st_crs(4326))  # Set CRS to WGS 84
 # Convert the bounding box to a polygon
 polygon <- sf::st_as_sfc(bbox)
 
-result <- for_rail_gtfs |> selection(geometry \%intersects\% polygon)
+result <- selection(for_rail_gtfs, geometry \%intersects\% polygon)
 
 }

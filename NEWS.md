@@ -1,4 +1,4 @@
-# GTFSwizard 1.0.1 (dev)
+# GTFSwizard 1.1.0
 
 * Now featuring travel time matrices, trip speed and dweel time edition, corridors, hubs, and more!
 
