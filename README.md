@@ -594,7 +594,7 @@ A BibTeX entry for LaTeX users is
 ``` tex
   @Manual{quesado.guimaraes.2024,
     title = {GTFSwizard: Exploring and Manipulating GTFS Files},
-    author = {Nelson de O. {Quesado Filho} and Caio G. C. Guimarães} and Francisco Moraes de {Oliveira Neto},
+    author = {Nelson de O. {Quesado Filho} and Caio G. C. {Guimarães} and Francisco Moraes de {Oliveira Neto},
     year = {2025},
     note = {R package version 1.1.0},
     url = {https://cran.r-project.org/package=GTFSwizard},
