@@ -2,37 +2,32 @@
 % Please edit documentation in R/read_gtfs.R
 \name{read_gtfs}
 \alias{read_gtfs}
-\title{Read GTFS file}
+\title{Read a GTFS Feed}
 \usage{
-read_gtfs(file.path, files = NULL, quiet = TRUE, ...)
+read_gtfs(file_path = NULL, files = NULL, quiet = TRUE, ...)
 }
 \arguments{
-\item{file.path}{A path to a .zip GTFS file.}
+\item{file_path}{Path to a GTFS `.zip` archive.}
 
-\item{files}{A character vector containing the text files to be read from the GTFS zip (without the .txt extension). Defaults to NULL, which reads all files.}
+\item{files}{Optional character vector of table names without `.txt`.}
 
-\item{quiet}{Logical. If TRUE, suppresses messages from gtfsio::import_gtfs(). Defaults to TRUE.}
+\item{quiet}{Logical. Suppress importer messages.}
 
-\item{...}{Additional arguments to pass to gtfsio::import_gtfs().}
+\item{...}{Additional arguments passed to [gtfsio::import_gtfs()], including
+the legacy argument `file.path`.}
 }
 \value{
-A `wizardgtfs` object: a list of tibbles representing each text file in the .zip and a tibble for services by date.
+A validated `wizardgtfs` object.
 }
 \description{
-Reads GTFS files from a .zip file.
-}
-\details{
-If no specific files are indicated, all GTFS files within the zip archive are read. After importing, the function converts the GTFS data into a `wizardgtfs` object, which is tailored for efficient handling and analysis of transit data.
-}
-\note{
-Additional notes can be added here if needed.
+Imports a GTFS zip archive and converts it to `wizardgtfs`.
 }
 \examples{
-\dontrun{
-gtfs_data <- read_gtfs("path/to/gtfs.zip")
-}
+path <- tempfile(fileext = ".zip")
+write_gtfs(for_rail_gtfs, path)
+gtfs <- read_gtfs(path)
 
 }
 \seealso{
-[GTFSwizard::as_wizardgtfs()]
+[GTFSwizard::write_gtfs()], [GTFSwizard::as_wizardgtfs()]
 }

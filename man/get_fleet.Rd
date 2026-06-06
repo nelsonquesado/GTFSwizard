@@ -2,60 +2,28 @@
 % Please edit documentation in R/get_fleet.R
 \name{get_fleet}
 \alias{get_fleet}
-\title{Estimates Fleet from GTFS Data}
+\title{Estimate Simultaneous Vehicles}
 \usage{
-get_fleet(gtfs, method = "by.route")
+get_fleet(gtfs, method = "by_route")
 }
 \arguments{
-\item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.}
+\item{gtfs}{A GTFS object.}
 
-\item{method}{A character string specifying the calculation method. Options include:
-\describe{
-  \item{"by.route"}{Calculates the maximum number of simultaneous trips for each route.}
-  \item{"by.hour"}{Calculates the maximum number of simultaneous trips by hour of the day across all routes.}
-  \item{"peak"}{Calculates the maximum number of simultaneous trips for the three busiest hours.}
-  \item{"detailed"}{Calculates the maximum number of simultaneous trips across each timepoint within a trip.}
-}}
+\item{method}{One of `"by_route"`, `"by_hour"`, `"peak"`, or `"detailed"`.
+Legacy dotted values remain accepted.}
 }
 \value{
-A data frame containing the fleet based on the specified method:
-  \describe{
-    \item{If `method = "by.route"`}{Returns a data frame with columns: `route_id`, `fleet`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "by.hour"`}{Returns a data frame with columns: `hour`, `fleet`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "peak"`}{Returns a data frame with columns: `hour`, `fleet`, `service_pattern`, and `pattern_frequency` for the busiest three hours.}
-    \item{If `method = "detailed"`}{Returns a data frame with columns: `route_id`, `net.fleet`, `fleet`, `time`, `service_pattern`, and `pattern_frequency` for each timepoint.}
-  }
+A tibble containing fleet estimates by the selected grouping and
+service pattern. GTFS times beyond 24 hours remain in the following service
+day rather than being wrapped. Route outputs include `direction_id` when
+available.
 }
 \description{
-The `get_fleet` function estimates the fleet from a `wizardgtfs` object using different methods. Depending on the selected `method`, it can estimates fleet by route, by hour, peak times, or detailed timepoints.
-}
-\details{
-This function calls specific sub-functions based on the selected method:
-
-- "by.route": Calculates the maximum simultaneous trips per route.
-
-- "by.hour": Calculates the maximum simultaneous trips for each hour of the day.
-
-- "peak": Calculates the maximum simultaneous trips for the three busiest hours.
-
-- "detailed": Provides a timepoint-based fleet calculation, showing detailed fleet fluctutations over the course of the trip.
-
-If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
+Estimates the number of active trip instances from their first departure to
+final arrival. Frequency-based services are expanded from `frequencies.txt`.
 }
 \examples{
-# Calculate fleet requirements by route
-fleet_by_route <- get_fleet(gtfs = for_rail_gtfs, method = "by.route")
+get_fleet(for_rail_gtfs, "by_route")
+get_fleet(for_rail_gtfs, "by_hour")
 
-# Calculate fleet requirements by hour
-fleet_by_hour <- get_fleet(gtfs = for_rail_gtfs, method = "by.hour")
-
-# Calculate fleet requirements for peak hours
-fleet_peak <- get_fleet(gtfs = for_rail_gtfs, method = "peak")
-
-# Calculate detailed fleet requirements over timepoints
-fleet_detailed <- get_fleet(gtfs = for_rail_gtfs, method = "detailed")
-
-}
-\seealso{
-[GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
 }

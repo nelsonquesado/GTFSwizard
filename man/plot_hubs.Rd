@@ -7,30 +7,20 @@
 plot_hubs(gtfs, i = 0.05)
 }
 \arguments{
-\item{gtfs}{A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.}
+\item{gtfs}{A GTFS object.}
 
-\item{i}{A numeric value representing the percentile threshold for selecting high-density stops. Defaults to `0.05` (top 5\% of stops by number of routes).}
+\item{i}{Proportion of stops with the most routes to retain.}
 }
 \value{
-A `ggplot` object representing the transit network with hubs overlaid. The plot includes:
-\describe{
-  \item{Base map}{Route shapes from the GTFS data, displayed in gray.}
-  \item{Hubs}{High-density transit stops.}
-}
+A `ggplot` map.
 }
 \description{
-The `plot_hubs` function visualizes high-density potential integration transit stops (hubs) on a map. It overlays the identified stops
-on the route shapes from the GTFS data, providing a representation of the transit network and its key integration hubs.
+Plot Transit Hubs
 }
-\note{
-Ensure the `gtfs` object includes valid `shapes` and `stop_times` tables for accurate visualization. The hubs are identified
-using the `get_hubs` function, which relies on stop and trip data.
-}
-\examples{
-plot_hubs(for_bus_gtfs, i = 0.02)
-
-
+\details{
+To keep dense networks readable, at most 40 of the highest-ranked
+  stops are drawn. Ranking uses distinct route count and then trip count.
 }
 \seealso{
-[GTFSwizard::get_hubs()], [GTFSwizard::get_shapes_sf()]
+[GTFSwizard::get_hubs()]
 }

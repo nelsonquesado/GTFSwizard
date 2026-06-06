@@ -1,59 +1,37 @@
-#' Transform Spatial Data to a Local UTM Coordinate System
+#' Transform Spatial Data to a Local Metric CRS
 #'
-#' @description
-#' The `latlon2epsg` function determines the appropriate UTM (Universal Transverse Mercator) EPSG code for a given `sf` object
-#' based on its centroid's latitude and longitude. It then transforms the object to the identified coordinate reference system (CRS).
+#' Selects a UTM zone from the geographic centroid, or a polar stereographic
+#' CRS outside UTM's latitude range.
 #'
-#' @param sf_obj An `sf` object representing spatial features. This object must have a valid CRS with latitude and longitude coordinates.
+#' @param sf_obj An `sf` or `sfc` object with a defined CRS.
 #'
-#' @return An `sf` object transformed to the appropriate UTM coordinate reference system.
-#'
-#' @details
-#' The function calculates the geographic centroid of the input spatial object and determines its latitude and longitude.
-#' Based on the latitude:
-#' \describe{
-#'   \item{Latitudes above 84°}{The object is transformed to EPSG:3413 (North Pole).}
-#'   \item{Latitudes below -80°}{The object is transformed to EPSG:3031 (South Pole).}
-#'   \item{Latitudes between -80° and 84°}{The function calculates the UTM zone based on longitude and transforms the object
-#'   to the appropriate UTM EPSG code (EPSG:326XX for the Northern Hemisphere, EPSG:327XX for the Southern Hemisphere).}
-#' }
-#'
-#' @note The function requires that the input `sf` object already has a valid CRS defined (e.g., WGS84).
+#' @return The input transformed to EPSG 326xx/327xx, EPSG 3413, or EPSG 3031.
 #'
 #' @examples
-#' latlon2epsg(get_shapes_sf(for_bus_gtfs)$shapes)
+#' shapes <- get_shapes_sf(for_rail_gtfs)$shapes
+#' metric_shapes <- latlon2epsg(shapes)
 #'
-#' @seealso [sf::st_transform()], [sf::st_centroid()], [sf::st_union()]
-#'
-#' @importFrom sf st_centroid st_union st_transform
-#' @importFrom magrittr %>%
+#' @seealso [sf::st_transform()]
 #' @export
-
-
-latlon2epsg <- function(sf_obj) {
-
-  centroid <- sf::st_centroid(sf::st_union(sf_obj))
-
-  lat <- centroid[[1]] %>% as.numeric() %>% .[2]
-
-  if (lat > 84) {
-
-    crs_code <- "EPSG:3413"  # North Pole
-
-  } else if (lat < -80) {
-
-    crs_code <- "EPSG:3031"  # South Pole
-
-  } else {
-
-    lon <- centroid[[1]] %>% as.numeric() %>% .[1]
-    zone <- floor((lon + 180) / 6) + 1
-    crs_code <- ifelse(lat >= 0, paste0("EPSG:326", zone), paste0("EPSG:327", zone))
-
+latlon2epsg <- function(sf_obj){
+  if(!inherits(sf_obj, c("sf", "sfc"))){
+    gw_stop("`sf_obj` must be an `sf` or `sfc` object.")
   }
-
-  obj.transformed <- sf::st_transform(sf_obj, crs = crs_code)
-
-  return(obj.transformed)
-
+  if(is.na(sf::st_crs(sf_obj))){
+    gw_stop("`sf_obj` must have a defined coordinate reference system.")
+  }
+  geographic <- sf::st_transform(sf_obj, 4326)
+  centroid <- suppressWarnings(sf::st_centroid(sf::st_union(geographic)))
+  coordinates <- sf::st_coordinates(centroid)[1L, ]
+  lon <- coordinates[1L]
+  lat <- coordinates[2L]
+  if(lat > 84){
+    epsg <- 3413L
+  } else if(lat < -80){
+    epsg <- 3031L
+  } else {
+    zone <- min(60L, max(1L, floor((lon + 180) / 6) + 1L))
+    epsg <- if(lat >= 0) 32600L + zone else 32700L + zone
+  }
+  sf::st_transform(sf_obj, epsg)
 }

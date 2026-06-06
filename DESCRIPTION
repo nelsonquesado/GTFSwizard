@@ -1,19 +1,36 @@
 Package: GTFSwizard
 Type: Package
-Title: Exploring and Manipulating 'GTFS' Files
-Version: 1.1.0
+Title: Creating, Exploring and Manipulating 'GTFS' Files
+Version: 1.2.1
 Authors@R: c(
-    person(given="Nelson de O.",family="Quesado Filho",email="nquesado@gmail.com",role=c("aut","cre")),
-    person(given="Caio G. C.", family="Guimarães", email="caiogcg.mobilidade@gmail.com",role=c("aut")))
-Date/Publication: 2024
+    person(given="Nelson de Oliveira",family="Quesado Filho",email="nquesado@gmail.com",role=c("aut","cre")),
+    person(given="Caio Gustavo Coelho", family="Guimarães", email="caiogcg.mobilidade@gmail.com",role=c("aut")),
+    person(given="Francisco Moraes", family="de Oliveira Neto", email="moraes@det.ufc.br", role="aut"))
+Author: Nelson de Oliveira Quesado Filho [aut, cre],
+  Caio Gustavo Coelho Guimarães [aut],
+  Francisco Moraes de Oliveira Neto [aut]
+Maintainer: Nelson de Oliveira Quesado Filho <nquesado@gmail.com>
+Date: 2026-06-21
 URL: https://github.com/OPATP/GTFSwizard
 BugReports: https://github.com/OPATP/GTFSwizard/issues
-Description: Exploring, analyzing, and manipulating General Transit Feed Specification (GTFS) files, which represent public transportation schedules and geographic data. The package allows users to filter data by routes, trips, stops, and time, generate spatial visualizations, and perform detailed analyses of transit networks, including headway, dwell times, and route frequencies. Designed for transit planners, researchers, and data analysts, 'GTFSwizard' integrates functionalities from popular packages to enable efficient GTFS data manipulation and visualization.
-Imports: lubridate, sf, tidyr, data.table, shiny, leaflet, checkmate, dplyr, ggplot2, gtfsio, purrr, rlang, crayon, forcats, hrbrthemes, stringr, tibble, plotly, leaflet.extras, geosphere, stplanr, glue, hms, sfnetworks, gtfstools, tidytransit, igraph, magrittr
-Depends: R (>= 3.5.0)
+Description: Creating, exploring, analyzing, and manipulating General Transit
+    Feed Specification (GTFS) files, which represent public transportation
+    schedules and geographic data. The package allows users to filter data by
+    routes, trips, stops, service dates, and time, generate spatial
+    visualizations, and perform detailed analyses of transit networks,
+    including headway, dwell times, route frequencies, service span, scheduled
+    vehicle-hours, and trip duration. Methods follow common public transport
+    planning and operation concepts described in Ceder (2007,
+    ISBN:978-0-7506-6166-6), Vuchic (2005, ISBN:978-0-471-63265-8), Vuchic
+    (2007, ISBN:978-0-471-75823-5), Cascetta (2009)
+    <doi:10.1007/978-0-387-75857-2>, and Gentile and Noekel (2016)
+    <doi:10.1007/978-3-319-25082-3>.
+Imports: sf, tidyr, dplyr, ggplot2, gtfsio, rlang, tibble
+Suggests: data.table, gtfstools, hms, leaflet, shiny, testthat, tidytransit
+Depends: R (>= 4.1.0)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.2
 LazyDataCompression: xz
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0

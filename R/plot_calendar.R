@@ -1,104 +1,134 @@
-#' Plot Trip Frequency Calendar for GTFS Data
+#' Plot the GTFS Service Calendar
 #'
-#' `plot_calendar` creates a calendar heatmap visualization of the number of trips in a GTFS dataset for each day, with options for monthly and yearly faceting.
+#' Creates a calendar heatmap of scheduled trips by service date.
 #'
-#' @param gtfs A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.
-#' @param ncol Number of columns for monthly faceting. Ignored if `facet_by_year = TRUE`.
-#' @param facet_by_year Logical value. If `TRUE`, plots data by year with each month in a separate column.
+#' @param gtfs A GTFS object.
+#' @param ncol Number of facet columns when `facet_by_year = FALSE`.
+#' @param facet_by_year Logical. Arrange years in rows and months in columns.
+#' @param fill Calendar fill. `"trips"` shows trip counts; `"service_pattern"`
+#'   uses a discrete color for each service pattern.
 #'
-#' @return A `ggplot2` object showing a calendar heatmap of the daily trip counts across the specified GTFS date range.
-#'
-#' @details
-#' - The function calculates daily trip frequencies from the `service_id` and `dates_services` tables in the GTFS object.
-#'
-#' - Days with no trips are marked in black, while other days are shaded on a gradient from pink (low trip count) to red (high trip count).
-#'
-#' - If `facet_by_year = TRUE`, the plot will display each year in separate rows, and `ncol` is ignored.
+#' @return A `ggplot` object.
 #'
 #' @examples
-#' \donttest{
-#' # Plot a GTFS trip calendar with 4 columns
 #' plot_calendar(for_rail_gtfs, ncol = 4)
+#' plot_calendar(
+#'   for_rail_gtfs,
+#'   facet_by_year = TRUE,
+#'   fill = "service_pattern"
+#' )
 #'
-#' # Plot a GTFS trip calendar, faceting by year
-#' plot_calendar(for_rail_gtfs, facet_by_year = TRUE)
-#' }
-#'
-#' @seealso
-#' [GTFSwizard::as_wizardgtfs()]
-#'
-#' @importFrom ggplot2 ggplot aes geom_tile geom_text scale_fill_gradient theme labs facet_wrap facet_grid coord_fixed
-#' @importFrom dplyr left_join group_by reframe mutate
-#' @importFrom lubridate ymd day month year wday
-#' @importFrom tibble tibble
-#' @importFrom crayon blue
+#' @seealso [GTFSwizard::get_servicepattern()]
 #' @export
+plot_calendar <- function(gtfs, ncol = 4, facet_by_year = FALSE,
+                          fill = c("trips", "service_pattern")){
+  gtfs <- ensure_wizardgtfs(gtfs)
+  gw_assert_int(ncol, "ncol", lower = 1L)
+  gw_assert_flag(facet_by_year, "facet_by_year")
+  fill <- match.arg(fill)
+  colors <- gtfswizard_colors()
 
-plot_calendar <- function(gtfs, ncol = 6, facet_by_year = FALSE){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  services <-
-    gtfs$trips$service_id %>%
-    table %>%
-    data.frame %>%
-    tibble %>%
-    stats::setNames(c('service_id', 'trips'))
-
-  while(rlang::is_list(gtfs$dates_services$service_id)) {
-    gtfs$dates_services <- gtfs$dates_services %>% unnest(., cols = c(service_id))
-  }
-
-  trip_dates_count <-
-    gtfs$dates_services %>%
-    tidyr::unnest(cols = service_id) %>%
-    dplyr::left_join(services,
-                     by = 'service_id') %>%
-    dplyr::group_by(date) %>%
-    dplyr::reframe(count = sum(trips, na.rm = TRUE)) %>%
-    dplyr::right_join(
-      tibble(date = seq(min(gtfs$dates_services$date), max(gtfs$dates_services$date), 86400)),
-      by = 'date'
-    ) %>%
-    dplyr::mutate(
-      date = lubridate::ymd(date),
-      day_of_month = lubridate::day(date),
-      month = lubridate::month(date, label = TRUE, abbr = FALSE),
-      year = lubridate::year(date),
-      weekday = lubridate::wday(date, label = TRUE, abbr = TRUE, week_start = 7),
-      first_day_of_month = lubridate::wday(date - day_of_month,  week_start = 7),
-      week_of_month = ceiling((day_of_month - as.numeric(weekday) - first_day_of_month) / 7)
+  trips_per_service <- gtfs$trips |>
+    dplyr::count(service_id, name = "trips")
+  counts <- tidyr::unnest(gtfs$dates_services, cols = "service_id") |>
+    dplyr::left_join(trips_per_service, by = "service_id") |>
+    dplyr::group_by(date) |>
+    dplyr::summarise(
+      count = sum(trips, na.rm = TRUE),
+      service_ids = list(sort(unique(service_id))),
+      .groups = "drop"
     )
+  signatures <- counts |>
+    dplyr::mutate(.signature = vapply(
+      .data$service_ids, paste, collapse = "|", FUN.VALUE = character(1)
+    )) |>
+    dplyr::count(.signature, sort = TRUE, name = "pattern_frequency") |>
+    dplyr::mutate(
+      service_pattern = paste0("servicepattern-", dplyr::row_number())
+    )
+  counts <- counts |>
+    dplyr::mutate(.signature = vapply(
+      .data$service_ids, paste, collapse = "|", FUN.VALUE = character(1)
+    )) |>
+    dplyr::left_join(signatures, by = ".signature")
+  all_dates <- tibble::tibble(
+    date = seq(min(gtfs$dates_services$date), max(gtfs$dates_services$date), by = "day")
+  )
+  data <- dplyr::left_join(all_dates, counts, by = "date")
+  weekday_number <- as.integer(format(data$date, "%w"))
+  first <- as.Date(format(data$date, "%Y-%m-01"))
+  data$weekday <- factor(
+    weekday_number,
+    levels = 0:6,
+    labels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+  )
+  data$day_of_month <- as.integer(format(data$date, "%d"))
+  data$month <- factor(
+    format(data$date, "%B"), levels = month.name
+  )
+  data$year <- format(data$date, "%Y")
+  data$week_of_month <- (
+    data$day_of_month - 1L + as.integer(format(first, "%w"))
+  ) %/% 7L + 1L
 
-  plot <-
-    ggplot2::ggplot(trip_dates_count, aes(x = weekday, y = -week_of_month)) +
-    ggplot2::theme_bw() +
-    ggplot2::geom_tile(aes(fill = count), color = 'gray50') +
-    ggplot2::geom_text(aes(label = day_of_month), size = 3, colour = "grey20") +
-    ggplot2::scale_fill_gradient(low = "pink", high = "red", na.value = "black")+
-    ggplot2::theme(axis.text.y = element_blank(),
-                   axis.ticks.y = element_blank(),
-                   panel.grid = element_blank(),
-                   axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)) +
-    ggplot2::labs(x = NULL, y = NULL, fill = "# trips") +
-    ggplot2::coord_fixed()
-
-  if(facet_by_year == FALSE){
-    plot <-
-      plot +
-      ggplot2::facet_wrap(year ~ month, ncol = ncol)
+  plot <- ggplot2::ggplot(data, ggplot2::aes(weekday, -week_of_month))
+  if(fill == "service_pattern"){
+    pattern_values <- stats::setNames(
+      gtfswizard_palette(length(unique(stats::na.omit(data$service_pattern)))),
+      unique(stats::na.omit(data$service_pattern))
+    )
+    plot <- plot +
+      ggplot2::geom_tile(
+        ggplot2::aes(fill = service_pattern),
+        color = "white", linewidth = 0.4
+      ) +
+      ggplot2::scale_fill_manual(
+        values = pattern_values, na.value = "#F0F2F3", drop = FALSE
+      )
+  } else {
+    plot <- plot +
+      ggplot2::geom_tile(
+        ggplot2::aes(fill = count),
+        color = "white", linewidth = 0.4
+      ) +
+      ggplot2::scale_fill_gradient(
+        low = "#DCEBE8", high = colors[["teal"]], na.value = "#F0F2F3",
+        labels = function(x) format(round(x), big.mark = ",", trim = TRUE),
+        guide = ggplot2::guide_colorbar(
+          title.position = "top",
+          barwidth = grid::unit(12, "lines")
+        )
+      )
   }
-
-  if(facet_by_year == TRUE){
-    message(crayon::cyan("face_by_year = TRUE "), "ignores",  crayon::cyan(" ncol"))
-    plot <-
-      plot +
-      ggplot2::facet_grid(year ~ month)
+  plot <- plot +
+    ggplot2::geom_text(
+      ggplot2::aes(label = day_of_month),
+      size = 3.1, color = colors[["ink"]]
+    ) +
+    ggplot2::labs(
+      title = "Scheduled Service Calendar",
+      subtitle = if(fill == "trips"){
+        "Trip count by service date"
+      } else {
+        "Service pattern by date"
+      },
+      x = NULL, y = NULL,
+      fill = if(fill == "trips") "Trips" else "Service pattern"
+    ) +
+    theme_gtfswizard() +
+    ggplot2::theme(
+      axis.text.y = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_text(size = 9),
+      axis.ticks = ggplot2::element_blank(),
+      panel.grid = ggplot2::element_blank(),
+      panel.spacing = grid::unit(10, "pt"),
+      strip.text = ggplot2::element_text(size = 9, face = "bold")
+    )
+  if(facet_by_year){
+    plot + ggplot2::facet_grid(year ~ month)
+  } else {
+    plot + ggplot2::facet_wrap(
+      ggplot2::vars(year, month), ncol = ncol
+    )
   }
-
-  return(plot)
-
 }

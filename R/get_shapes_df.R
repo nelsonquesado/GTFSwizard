@@ -1,81 +1,55 @@
-#' Convert Shape Geometries to GTFS Shape Points Data Frame
+#' Convert Shape Geometries to a GTFS Shapes Table
 #'
-#' The `get_shapes_df` function converts a spatial object of shapes (with geometry) into a GTFS-compliant `shapes` data frame format, detailing latitude, longitude, point sequence, and cumulative distance traveled along each shape.
+#' @param shape An `sf` object with a `shape_id` field and line geometries.
 #'
-#' @param shape A spatial (`sf`) object containing shapes, with `shape_id` and geometry information.
-#'
-#' @return A data frame with columns:
-#'   \describe{
-#'     \item{`shape_id`}{Unique identifier for each shape.}
-#'     \item{`shape_pt_lon`}{Longitude coordinates of each shape point.}
-#'     \item{`shape_pt_lat`}{Latitude coordinates of each shape point.}
-#'     \item{`shape_pt_sequence`}{Sequence of points along each shape.}
-#'     \item{`shape_dist_traveled`}{Cumulative distance traveled along the shape in meters.}
-#'   }
+#' @return A tibble containing `shape_id`, WGS84 point coordinates,
+#'   `shape_pt_sequence`, and cumulative `shape_dist_traveled` in meters.
 #'
 #' @details
-#' The function performs the following steps:
-#'
-#' - Validates that the `shape` object is of class `sf` and contains a `shape_id` column.
-#'
-#' - Extracts point coordinates from each shape’s geometry, creating a sequence of latitude and longitude points.
-#'
-#' - Computes cumulative distances along the shape, using Euclidean distance between consecutive points.
-#'
-#' The resulting data frame conforms to the GTFS `shapes.txt` format. Distances are expressed in meters.
+#' Distances are geodesic approximations between consecutive coordinates.
+#' GTFS permits any consistent distance unit; this function uses meters.
 #'
 #' @examples
-#' # Convert a shape geometry to a GTFS-compliant shapes data frame
-#' shape <- get_shapes_sf(for_rail_gtfs$shapes)
-#' shapes_df <- get_shapes_df(shape = shape)
+#' shapes_sf <- get_shapes_sf(for_rail_gtfs)$shapes
+#' shapes_df <- get_shapes_df(shapes_sf)
 #'
-#' @seealso
-#' [GTFSwizard::get_shapes()], [GTFSwizard::get_shapes_sf()]
-#'
-#' @importFrom dplyr select mutate group_by ungroup
-#' @importFrom tidyr unnest tibble
-#' @importFrom sf st_as_sf st_coordinates st_distance
-#' @importFrom data.table data.table
+#' @references
+#' [GTFS Schedule Reference](https://gtfs.org/documentation/schedule/reference/#shapestxt)
+#' @seealso [GTFSwizard::get_shapes_sf()], [GTFSwizard::get_shapes()]
 #' @export
-
-
 get_shapes_df <- function(shape){
-
-  if(!'sf' %in% class(shape)){
-    stop(crayon::cyan('shape'), ' is not a ', crayon::cyan('simple feature'), ' object.')
+  if(!inherits(shape, "sf")){
+    gw_stop("`shape` must be an `sf` object.")
   }
-
-  if(purrr::is_null(shape$shape_id)){
-    stop(crayon::cyan('shape'), ' does not contains the ', crayon::cyan('shape_id'), ' column.')
+  if(!"shape_id" %in% names(shape)){
+    gw_stop("`shape` must contain `shape_id`.")
   }
+  if(is.na(sf::st_crs(shape))){
+    gw_stop("`shape` must have a defined coordinate reference system.")
+  }
+  shape <- sf::st_transform(shape, 4326)
 
-  x <- 0
-  units(x) <- 'm'
-
-  shapes_df <-
-    shape %>%
-    dplyr::select(shape_id) %>%
-    dplyr::as_tibble() %>%
-    stats::setNames(c('shape_id', 'geometry')) %>%
-    dplyr::group_by(shape_id) %>%
-    dplyr::mutate(geometry = list(sf::st_coordinates(geometry))) %>%
-    dplyr::ungroup() %>%
-    tidyr::unnest_longer(geometry) %>%
-    data.table::data.table() %>%
-    .[, -4] %>%
-    stats::setNames(c('shape_id', 'shape_pt_lon', 'shape_pt_lat')) %>%
-    dplyr::group_by(shape_id) %>%
-    sf::st_as_sf(coords = c('shape_pt_lon', 'shape_pt_lat'), remove = FALSE, crs = 4326) %>%
-    dplyr::mutate(shape_pt_sequence = 1:n(),
-                  shape_dist_traveled = abs(sf::st_distance(geometry, lag(geometry), by_element = TRUE)) %>%
-                    tidyr::replace_na(x) %>%
-                    cumsum %>%
-                    as.numeric()) %>%
-    tidyr::tibble() %>%
-    dplyr::select(-geometry)
-
-  return(shapes_df)
-
-  message(crayon::cyan('shape_dist_traveled'), ' unit is meters [m].')
-
+  rows <- vector("list", nrow(shape))
+  for(i in seq_len(nrow(shape))){
+    coordinates <- sf::st_coordinates(sf::st_geometry(shape)[[i]])[, 1:2, drop = FALSE]
+    rows[[i]] <- tibble::tibble(
+      shape_id = as.character(shape$shape_id[i]),
+      shape_pt_lon = coordinates[, 1],
+      shape_pt_lat = coordinates[, 2]
+    )
+  }
+  points <- dplyr::bind_rows(rows)
+  points |>
+    dplyr::group_by(shape_id) |>
+    dplyr::mutate(
+      shape_pt_sequence = dplyr::row_number(),
+      shape_dist_traveled = c(
+        0,
+        cumsum(haversine_m(
+          shape_pt_lon[-dplyr::n()], shape_pt_lat[-dplyr::n()],
+          shape_pt_lon[-1L], shape_pt_lat[-1L]
+        ))
+      )
+    ) |>
+    dplyr::ungroup()
 }

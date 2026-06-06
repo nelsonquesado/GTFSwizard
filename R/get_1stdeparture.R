@@ -1,53 +1,28 @@
-#' Get First Departure Times for GTFS Trips
+#' Get the First Departure of Each Trip
 #'
-#' Extracts the first departure time for each trip in a `wizardgtfs` object, along with the associated `route_id`, and `stop_id` where the first departure occurs.
+#' Returns the departure at the lowest `stop_sequence` for every trip.
 #'
-#' @param gtfs A GTFS object. If not of class `wizardgtfs`, it will be converted internally using `as_wizardgtfs()`. This may increase computation time.
+#' @param gtfs A GTFS object.
 #'
-#' @return A tibble with the following columns:
-#' \describe{
-#'   \item{route_id}{ID of the route associated with the trip.}
-#'   \item{trip_id}{ID of the trip.}
-#'   \item{departure_time}{Time of the first departure for the trip, as a character string in "HH:MM:SS" format.}
-#'   \item{stop_id}{ID of the stop where the first departure occurs.}
-#' }
-#'
-#' @details
-#' This function identifies the first departure time for each trip in the GTFS dataset. It uses the `stop_times` table to find the earliest `departure_time` for each `trip_id` and joins this information with the `trips` table to include the corresponding `route_id`. The result is a tidy tibble suitable for further analysis or visualization.
-#'
-#' If the input GTFS object is not of the `wizardgtfs` class, the function converts it using `as_wizardgtfs()`. A message is displayed to inform the user about the conversion.
+#' @return A tibble with `route_id`, `trip_id`, `departure_time`, and
+#'   `stop_id`.
 #'
 #' @examples
-#' # Load GTFS data
-#' gtfs <- for_rail_gtfs
+#' head(get_1stdeparture(for_rail_gtfs))
 #'
-#' # Get the first departures
-#' first_departures <- get_1stdeparture(gtfs)
-#' head(first_departures)
-#'
-#' @seealso
-#' [GTFSwizard::as_wizardgtfs()]
-#'
-#' @importFrom dplyr select left_join group_by reframe
+#' @references
+#' [GTFS Schedule Reference](https://gtfs.org/documentation/schedule/reference/#stop_timestxt)
 #' @export
-
-get_1stdeparture <- function(gtfs) {
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  departures <-
-    gtfs$trips %>%
-    dplyr::select(trip_id, route_id) %>%
-    dplyr::left_join(gtfs$stop_times %>%
-                       dplyr::group_by(trip_id) %>%
-                dplyr::reframe(departure_time = departure_time[1],
-                        stop_id = stop_id[1]),
-              by = 'trip_id') %>%
+get_1stdeparture <- function(gtfs){
+  gtfs <- ensure_wizardgtfs(gtfs)
+  first_calls <- gtfs$stop_times |>
+    dplyr::arrange(trip_id, stop_sequence) |>
+    dplyr::group_by(trip_id) |>
+    dplyr::slice_head(n = 1L) |>
+    dplyr::ungroup() |>
+    dplyr::select(trip_id, departure_time, stop_id)
+  gtfs$trips |>
+    dplyr::select(route_id, trip_id) |>
+    dplyr::left_join(first_calls, by = "trip_id") |>
     dplyr::select(route_id, trip_id, departure_time, stop_id)
-
-  return(departures)
-
 }

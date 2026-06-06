@@ -2,43 +2,32 @@
 % Please edit documentation in R/get_shapes_df.R
 \name{get_shapes_df}
 \alias{get_shapes_df}
-\title{Convert Shape Geometries to GTFS Shape Points Data Frame}
+\title{Convert Shape Geometries to a GTFS Shapes Table}
 \usage{
 get_shapes_df(shape)
 }
 \arguments{
-\item{shape}{A spatial (`sf`) object containing shapes, with `shape_id` and geometry information.}
+\item{shape}{An `sf` object with a `shape_id` field and line geometries.}
 }
 \value{
-A data frame with columns:
-  \describe{
-    \item{`shape_id`}{Unique identifier for each shape.}
-    \item{`shape_pt_lon`}{Longitude coordinates of each shape point.}
-    \item{`shape_pt_lat`}{Latitude coordinates of each shape point.}
-    \item{`shape_pt_sequence`}{Sequence of points along each shape.}
-    \item{`shape_dist_traveled`}{Cumulative distance traveled along the shape in meters.}
-  }
+A tibble containing `shape_id`, WGS84 point coordinates,
+  `shape_pt_sequence`, and cumulative `shape_dist_traveled` in meters.
 }
 \description{
-The `get_shapes_df` function converts a spatial object of shapes (with geometry) into a GTFS-compliant `shapes` data frame format, detailing latitude, longitude, point sequence, and cumulative distance traveled along each shape.
+Convert Shape Geometries to a GTFS Shapes Table
 }
 \details{
-The function performs the following steps:
-
-- Validates that the `shape` object is of class `sf` and contains a `shape_id` column.
-
-- Extracts point coordinates from each shape’s geometry, creating a sequence of latitude and longitude points.
-
-- Computes cumulative distances along the shape, using Euclidean distance between consecutive points.
-
-The resulting data frame conforms to the GTFS `shapes.txt` format. Distances are expressed in meters.
+Distances are geodesic approximations between consecutive coordinates.
+GTFS permits any consistent distance unit; this function uses meters.
 }
 \examples{
-# Convert a shape geometry to a GTFS-compliant shapes data frame
-shape <- get_shapes_sf(for_rail_gtfs$shapes)
-shapes_df <- get_shapes_df(shape = shape)
+shapes_sf <- get_shapes_sf(for_rail_gtfs)$shapes
+shapes_df <- get_shapes_df(shapes_sf)
 
 }
+\references{
+[GTFS Schedule Reference](https://gtfs.org/documentation/schedule/reference/#shapestxt)
+}
 \seealso{
-[GTFSwizard::get_shapes()], [GTFSwizard::get_shapes_sf()]
+[GTFSwizard::get_shapes_sf()], [GTFSwizard::get_shapes()]
 }

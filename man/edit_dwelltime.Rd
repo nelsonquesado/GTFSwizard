@@ -2,47 +2,34 @@
 % Please edit documentation in R/edit_dwelltime.R
 \name{edit_dwelltime}
 \alias{edit_dwelltime}
-\title{Modify Dwell Times in GTFS Data}
+\title{Scale Dwell Times}
 \usage{
 edit_dwelltime(gtfs, trips = "all", stops = "all", factor)
 }
 \arguments{
-\item{gtfs}{A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.}
+\item{gtfs}{A GTFS object.}
 
-\item{trips}{A character vector of trip IDs for which dwell times should be modified. Use `'all'` to include all trips (default).}
+\item{trips, stops}{Character ID vectors or `"all"`.}
 
-\item{stops}{A character vector of stop IDs for which dwell times should be modified. Use `'all'` to include all stops (default).}
-
-\item{factor}{A numeric value representing the scaling factor for dwell times. For example, a factor of 1.5 increases dwell times by 50\%, while a factor of 0.5 reduces them by 50\%.}
+\item{factor}{One non-negative numeric multiplier.}
 }
 \value{
-A modified GTFS object with updated arrival and departure times in the `stop_times` table.
+A modified `wizardgtfs` object.
 }
 \description{
-The `edit_dwelltime` function adjusts dwell times for specified trips and stops in a GTFS dataset. The dwell times are scaled by a given factor, and arrival and departure times are updated accordingly in the `stop_times` table.
-}
-\details{
-The function calculates the original dwell time (the difference between `departure_time` and `arrival_time`) for the specified trips and stops. The dwell time is then scaled by the `factor`, and the arrival and departure times are updated accordingly.
-
-If `trips` or `stops` is set to `'all'`, all trips or stops, respectively, will be considered. Input validation ensures that provided `trips` and `stops` exist in the GTFS dataset.
-}
-\note{
-Ensure the `stop_times` table contains valid `arrival_time` and `departure_time` values. Empty or missing times may cause computation issues.
+Multiplies dwell time at selected trip-stop calls and propagates each change
+to all later times in the same trip. Arrival at the edited stop is retained;
+departure and subsequent calls move by the dwell-time difference.
 }
 \examples{
-gtfs <- set_dwelltime(for_rail_gtfs,
-                    trips = for_rail_gtfs$trips$trip_id[1:100],
-                    stops = for_rail_gtfs$stops$stop_id[1:20],
-                    duration = 10)
-
-gtfs <- edit_dwelltime(gtfs,
-                    trips = for_rail_gtfs$trips$trip_id[1:100],
-                    stops = for_rail_gtfs$stops$stop_id[1:20],
-                    factor = 1.5)
-
-get_dwelltimes(gtfs, method = 'detailed')
+edited <- edit_dwelltime(
+  for_rail_gtfs,
+  trips = for_rail_gtfs$trips$trip_id[1:2],
+  stops = for_rail_gtfs$stops$stop_id[1:2],
+  factor = 1.5
+)
 
 }
 \seealso{
-[GTFSwizard::set_dwelltime()], [GTFSwizard::as_wizardgtfs()]
+[GTFSwizard::set_dwelltime()], [GTFSwizard::get_dwelltimes()]
 }

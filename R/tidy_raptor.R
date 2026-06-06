@@ -7,7 +7,8 @@
 #' @param gtfs A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.
 #' @param min_departure A string representing the earliest departure time, in "HH:MM:SS" format. Defaults to `"0:0:0"`.
 #' @param max_arrival A string representing the latest arrival time, in "HH:MM:SS" format. Defaults to `"23:59:59"`.
-#' @param dates A date (in `"YYYY-MM-DD"` format) to filter the GTFS dataset to specific calendar days. Defaults to `NULL`, meaning the furthest date.
+#' @param dates One service date. When `NULL`, the latest active service date
+#'   is used.
 #' @param stop_ids A character vector of stop IDs from where journeys should start (or end, if `arrival = TRUE`).
 #' @param arrival Logical. If `FALSE` (default), journeys start from `stop_ids`. If `TRUE`, journeys end at `stop_ids`.
 #' @param time_range Either a range in seconds (numeric) or a vector with the minimal and maximal departure time (e.g., `c(0, 3600)` or `"HH:MM:SS"`) describing the journey window.
@@ -17,7 +18,10 @@
 #'   - `"shortest"`: Only journeys with the shortest travel time.
 #'   - `"earliest"`: Journeys arriving at stops the earliest.
 #'   - `"latest"`: Journeys arriving at stops the latest.
-#' @param filter A logical to filter for min_departure, max_arrivel, and dates. Defaults to `TRUE`.
+#' @param filter Logical. Apply `min_departure`, `max_arrival`, and `dates`
+#'   before routing.
+#' @param separate_starts Logical. Keep results for each origin start time
+#'   separately; passed to [tidytransit::raptor()].
 #'
 #' @return A tibble containing the RAPTOR algorithm results, including:
 #' \describe{
@@ -26,12 +30,13 @@
 #'   \item{departure_time}{Departure time from the origin stop.}
 #'   \item{arrival_time}{Arrival time at the destination stop.}
 #'   \item{travel_time}{Total travel time in seconds.}
+#'   \item{transfers}{Number of transfers in the journey.}
 #' }
 #'
 #' @note
 #' Ensure that the `stop_times` is present and correctly structured in the GTFS dataset.
 #' Time values in `min_departure`, `max_arrival`, and `time_range` should be correctly formatted to avoid errors.
-#' `max_arrival` must be 23:59:59 or earlier.
+#' GTFS times beyond 24:00:00 are supported.
 #'
 #' @examples
 #' tidy_raptor(for_rail_gtfs,
@@ -44,11 +49,6 @@
 #'
 #' @seealso [tidytransit::raptor()], [GTFSwizard::as_wizardgtfs()], [GTFSwizard::filter_time()]
 #'
-#' @importFrom dplyr mutate
-#' @importFrom stringr str_split
-#' @importFrom data.table data.table
-#' @importFrom tidytransit raptor
-#' @importFrom hms as_hms
 #' @export
 
 tidy_raptor <- function(gtfs,
@@ -60,65 +60,113 @@ tidy_raptor <- function(gtfs,
                         time_range = 3600,
                         max_transfers = NULL,
                         keep = "all",
-                        filter = TRUE) {
+                        filter = TRUE,
+                        separate_starts = FALSE) {
 
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the wizardgtfs class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+  require_pkg("tidytransit", "`tidy_raptor()`")
+  require_pkg("data.table", "`tidy_raptor()`")
+  require_pkg("hms", "`tidy_raptor()`")
+  gtfs <- ensure_wizardgtfs(gtfs)
+
+  gw_assert_flag(filter, "filter")
+  gw_assert_flag(arrival, "arrival")
+  gw_assert_flag(separate_starts, "separate_starts")
+  assert_known_ids(stop_ids, gtfs$stops$stop_id, "stop", "`gtfs$stops`")
+
+  limits <- gtfs_time_to_seconds(c(min_departure, max_arrival))
+  if(anyNA(limits)){
+    gw_stop("`min_departure` and `max_arrival` must be valid GTFS times.")
   }
-
-  checkmate::assert_logical(filter)
-
-  if(stringr::str_split(max_arrival, ":") %>% lapply(FUN = as.numeric) %>% lapply(FUN = function(x){x[1]*60*60+x[2]*60+x[3]}) %>% unlist > 86399){
-    stop(crayon::cyan('max.arrival'), ' must be', crayon::cyan(' 23:59:59'), ' or earlier')
+  if(limits[1] > limits[2]){
+    gw_stop("`min_departure` must not be later than `max_arrival`.")
+  }
+  keep_choices <- c("all", "shortest", "earliest", "latest")
+  if(!is.character(keep) || length(keep) != 1L ||
+     is.na(keep) || !keep %in% keep_choices){
+    gw_stop(
+      "`keep` must be one of ",
+      paste(sprintf("`%s`", keep_choices), collapse = ", "), "."
+    )
+  }
+  if(!is.null(max_transfers)){
+    gw_assert_int(max_transfers, "max_transfers", lower = 0L)
+  }
+  if(!length(time_range) %in% c(1L, 2L)){
+    gw_stop("`time_range` must contain one duration or two time bounds.")
+  }
+  if(length(time_range) == 1L &&
+     (!is.numeric(time_range) || is.na(time_range) || time_range < 1)){
+    gw_stop("a single `time_range` value must be a positive number of seconds.")
+  }
+  if(length(time_range) == 2L){
+    parsed_range <- if(is.character(time_range)){
+      gtfs_time_to_seconds(time_range)
+    } else {
+      suppressWarnings(as.numeric(time_range))
+    }
+    if(anyNA(parsed_range) || any(!is.finite(parsed_range))){
+      gw_stop("two-value `time_range` bounds must be valid times or seconds.")
+    }
+    time_range <- parsed_range
   }
 
   if(filter) {
-  gtfs2 <-
-    gtfs %>%
-    filter_time(min_departure, max_arrival) %>%
-    filter_date(dates)
+    if(is.null(dates)){
+      dates <- max(as.Date(gtfs$dates_services$date))
+    }
+    dates <- parse_gtfs_date(dates)
+    if(length(dates) != 1L || is.na(dates)){
+      gw_stop("`dates` must contain exactly one valid service date.")
+    }
+    gtfs2 <- gtfs %>%
+      filter_time(min_departure, max_arrival) %>%
+      filter_date(dates)
   } else {
     gtfs2 <- gtfs
   }
 
-  stop_times <-
-    gtfs2$stop_times %>%
-    dplyr::mutate(arrival_time_num = arrival_time %>%
-                    stringr::str_split(":") %>%
-                    lapply(FUN = as.numeric) %>%
-                    lapply(FUN = function(x){
-                      x[1]*60*60+x[2]*60+x[3]
-                    }) %>%
-                    unlist() %>%
-                    na.omit(),
-                  departure_time_num = departure_time %>%
-                    stringr::str_split(":") %>%
-                    lapply(FUN = as.numeric) %>%
-                    lapply(FUN = function(x){
-                      x[1]*60*60+x[2]*60+x[3]
-                    }) %>%
-                    unlist() %>%
-                    na.omit()) %>%
-    dplyr::mutate(arrival_time = hms::as_hms(arrival_time),
-                  departure_time = hms::as_hms(departure_time)) %>%
+  stop_times <- gtfs2$stop_times |>
+    dplyr::mutate(
+      arrival_time_num = gtfs_time_to_seconds(arrival_time),
+      departure_time_num = gtfs_time_to_seconds(departure_time),
+      arrival_time = hms::as_hms(arrival_time_num),
+      departure_time = hms::as_hms(departure_time_num)
+    ) |>
     data.table::data.table()
 
-  raptor_results <-
-    tidytransit::raptor(
+  transfers <- gtfs2$transfers
+  if(is.null(transfers)){
+    transfers <- data.frame(
+      from_stop_id = character(),
+      to_stop_id = character(),
+      transfer_type = integer(),
+      min_transfer_time = integer()
+    )
+  }
+
+  raptor_results <- tidytransit::raptor(
       stop_times = stop_times,
-      transfers = NULL,
-      stop_ids,
-      arrival,
-      time_range,
-      max_transfers,
-      keep
+      transfers = transfers,
+      stop_ids = stop_ids,
+      arrival = arrival,
+      time_range = time_range,
+      max_transfers = max_transfers,
+      keep = keep,
+      separate_starts = separate_starts
     )
 
-  raptor_results <-
-    raptor_results %>%
-    tibble::tibble()
-
-  return(raptor_results)
+  raptor_results <- tibble::as_tibble(raptor_results)
+  names(raptor_results)[
+    match(
+      c("journey_departure_time", "journey_arrival_time"),
+      names(raptor_results)
+    )
+  ] <- c("departure_time", "arrival_time")
+  raptor_results <- raptor_results |>
+    dplyr::mutate(
+      departure_time = seconds_to_gtfs_time(.data$departure_time),
+      arrival_time = seconds_to_gtfs_time(.data$arrival_time)
+    )
+  raptor_results
 
 }

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTFSwizard Cheat Sheet</title>
+<style>body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.45;color:#1f2d3a;max-width:1040px;margin:32px auto;padding:0 24px;background:#f6f8fb}h1,h2{color:#17456b}h1{border-bottom:3px solid #20a39e;padding-bottom:8px}h2{margin-top:28px;border-bottom:1px solid #d9e1ea;padding-bottom:4px}pre{background:#ffffff;border:1px solid #d9e1ea;border-radius:6px;padding:12px;overflow-x:auto}code{font-family:SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;font-size:0.92em}p,li{font-size:16px}a{color:#17456b}.note{color:#5f6f7d}</style>
+</head>
+<body>
+<h1>GTFSwizard Cheat Sheet</h1>
+<p>Compact workflow reference for GTFSwizard 1.2.1.</p>
+<h2>1. Load Or Create A Feed</h2>
+<pre><code class="language-r">library(GTFSwizard)
+
+gtfs &lt;- GTFSwizard::for_rail_gtfs
+bus_gtfs &lt;- GTFSwizard::for_bus_gtfs
+
+# gtfs &lt;- read_gtfs(&quot;path/to/feed.zip&quot;)
+# gtfs &lt;- as_wizardgtfs(gtfs_list)
+
+created_gtfs &lt;- create_gtfs(
+  agency = gtfs$agency,
+  routes = gtfs$routes,
+  trips = gtfs$trips,
+  stop_times = gtfs$stop_times,
+  stops = gtfs$stops,
+  calendar = gtfs$calendar,
+  calendar_dates = gtfs$calendar_dates,
+  shapes = gtfs$shapes
+)
+</code></pre>
+<p>The examples below use the embedded <code>for_rail_gtfs</code> and <code>for_bus_gtfs</code>
+objects, so they can be run without downloading an external feed. <code>read_gtfs()</code>,
+<code>as_wizardgtfs()</code>, and <code>create_gtfs()</code> return a <code>wizardgtfs</code> object.</p>
+<h2>2. Inspect The Feed</h2>
+<pre><code class="language-r">summary(gtfs)
+plot(gtfs)
+
+get_servicepattern(gtfs)
+get_shapes_sf(gtfs)
+get_stops_sf(gtfs)
+</code></pre>
+<p>Use <code>summary()</code> for table counts, service range, and spacing diagnostics. Use
+<code>plot()</code> for a quick network map.</p>
+<h2>3. Select Parts Of The Feed</h2>
+<pre><code class="language-r">route_choice &lt;- gtfs$routes$route_id[1]
+trip_choice &lt;- gtfs$trips$trip_id[1]
+service_choice &lt;- gtfs$trips$service_id[1]
+stop_choice &lt;- gtfs$stops$stop_id[1]
+pattern_choice &lt;- get_servicepattern(gtfs)$service_pattern[1]
+
+gtfs |&gt; selection(route_id)
+gtfs |&gt; selection(route_id %in% route_choice)
+gtfs |&gt; selection(stop_id %in% stop_choice)
+
+filter_route(gtfs, route_choice)
+filter_service(gtfs, service_choice)
+filter_servicepattern(gtfs, pattern_choice)
+filter_trip(gtfs, trip_choice)
+filter_stop(gtfs, stop_choice)
+filter_date(gtfs, as.Date(&quot;2021-12-31&quot;))
+filter_time(gtfs, from = &quot;06:00:00&quot;, to = &quot;09:00:00&quot;)
+</code></pre>
+<p><code>selection()</code> is useful when combining filters. The <code>filter_*()</code> functions are
+explicit one-step tools.</p>
+<h2>4. Analyze Operations</h2>
+<pre><code class="language-r">get_frequency(gtfs)
+get_headways(gtfs, method = &quot;by_hour&quot;)
+get_dwelltimes(gtfs, max_dwelltime = 90, method = &quot;by_route&quot;)
+get_speeds(gtfs, method = &quot;by_route&quot;)
+get_durations(gtfs, method = &quot;by_route&quot;)
+get_distances(gtfs)
+get_fleet(gtfs)
+get_1stdeparture(gtfs)
+</code></pre>
+<p>Check each help page for its observational unit. Common methods include
+<code>by_trip</code>, <code>by_route</code>, <code>by_hour</code>, and <code>detailed</code>.</p>
+<h2>5. Plot Planning Indicators</h2>
+<pre><code class="language-r">plot_frequency(gtfs)
+plot_routefrequency(gtfs)
+plot_headways(gtfs)
+plot_servicespan(gtfs, top_n = 20)
+plot_serviceheatmap(gtfs)
+plot_servicesupply(gtfs, top_n = 20)
+plot_routeduration(gtfs, top_n = 20)
+plot_calendar(gtfs, facet_by_year = TRUE)
+</code></pre>
+<p>These functions return <code>ggplot2</code> objects and can be customized with regular
+<code>ggplot2</code> layers.</p>
+<h2>6. Find Corridors And Hubs</h2>
+<pre><code class="language-r">get_corridor(gtfs, i = 0.01, min_length = 1500)
+plot_corridor(gtfs, i = 0.01, min_length = 1500)
+
+get_hubs(gtfs)
+plot_hubs(gtfs, i = 0.05)
+</code></pre>
+<p>Increase <code>i</code> to show fewer, stronger corridors or hubs. Decrease it to show
+more candidates.</p>
+<h2>7. Edit A Feed</h2>
+<pre><code class="language-r">edit_speed(
+  gtfs,
+  trips = gtfs$trips$trip_id[1:2],
+  stops = &quot;all&quot;,
+  factor = 1.25
+)
+
+edit_dwelltime(
+  gtfs,
+  trips = gtfs$trips$trip_id[1:2],
+  stops = gtfs$stops$stop_id[1:2],
+  factor = 1.5
+)
+
+set_dwelltime(
+  gtfs,
+  duration = 30,
+  trips = gtfs$trips$trip_id[1:2],
+  stops = gtfs$stops$stop_id[1:2]
+)
+
+delay_trip(gtfs, trip = gtfs$trips$trip_id[1], duration = 300)
+split_trip(gtfs, trip = gtfs$trips$trip_id[1], split = 1)
+merge_gtfs(gtfs, gtfs, suffix = TRUE)
+</code></pre>
+<p>Editing functions keep the GTFS structure consistent while preserving partial
+trips when they are useful for experimentation.</p>
+<h2>8. Explore Interactively</h2>
+<pre><code class="language-r">if (interactive()) {
+  explore_gtfs(gtfs)
+  explore_gtfs()
+}
+</code></pre>
+<p>Call <code>explore_gtfs()</code> without an argument to choose a GTFS <code>.zip</code> file from a
+browse window.</p>
+<h2>9. Save Results</h2>
+<pre><code class="language-r">zipfile &lt;- tempfile(fileext = &quot;.zip&quot;)
+write_gtfs(gtfs, zipfile)
+</code></pre>
+<p>Use <code>write_gtfs()</code> after validating edits and plots.</p>
+
+</body>
+</html>

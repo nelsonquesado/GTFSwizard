@@ -1,68 +1,69 @@
-#' Adjust Travel Speed in a GTFS Dataset
+#' Scale In-Vehicle Travel Speed
 #'
-#' @description
-#' The `edit_speed` function adjusts the travel speeds between stops in a GTFS dataset by modifying trip durations based on a specified speed multiplier. It allows selective adjustments for specific trips and stops or applies changes globally across the dataset.
+#' Changes travel time between consecutive stops by dividing it by a speed
+#' multiplier. Dwell times are preserved and all downstream times are shifted.
 #'
-#' @param gtfs A GTFS object, preferably of class `wizardgtfs`. If not, the function attempts to convert it using `GTFSwizard::as_wizardgtfs()`.
-#' @param trips A character vector specifying the `trip_id`s to modify. Defaults to `"all"` to include all trips.
-#' @param stops A character vector specifying the `stop_id`s to include in the adjustment. Defaults to `"all"` to include all stops.
-#' @param factor A numeric value representing the multiplier for the speed. For example, a value of `2` doubles the speed, halving the travel time.
+#' @param gtfs A GTFS object.
+#' @param trips Character trip IDs or `"all"`.
+#' @param stops Character stop IDs or `"all"`. A segment is edited when either
+#'   endpoint is selected.
+#' @param factor One positive speed multiplier. For example, `2` halves segment
+#'   travel times.
 #'
-#' @return A GTFS object with updated `stop_times` reflecting the adjusted travel durations.
-#'
-#' @details
-#' The function performs the following steps:
-#' \describe{
-#'   \item{1. Retrieve Durations}{The `get_durations()` function calculates trip durations, filtered by the specified trips and stops.}
-#'   \item{2. Adjust Durations}{Durations are divided by the speed factor to compute new durations. Time differences are calculated.}
-#'   \item{3. Update Stop Times}{Cumulative time differences are added to the `arrival_time` and `departure_time` columns in the `stop_times` table.}
-#' }
-#' If no specific trips or stops are provided, the function adjusts all trips and stops in the GTFS object.
-#'
-#' @note Ensure that the `factor` is greater than 0. Using a value less than or equal to 0 will result in invalid or nonsensical time adjustments.
+#' @return A modified `wizardgtfs` object.
 #'
 #' @examples
-#' edit_speed(for_rail_gtfs,
-#'           trips = for_rail_gtfs$trips$trip_id[1:2],
-#'           stops = for_rail_gtfs$stops$stop_id[1:2],
-#'           factor = 1.5)
+#' edited <- edit_speed(
+#'   for_rail_gtfs,
+#'   trips = for_rail_gtfs$trips$trip_id[1:2],
+#'   stops = "all",
+#'   factor = 1.25
+#' )
 #'
-#' @seealso [GTFSwizard::get_speeds()]
-#'
-#' @importFrom dplyr mutate select arrange filter group_by ungroup right_join
-#' @importFrom hms as_hms
-#' @importFrom lubridate seconds hms
+#' @seealso [GTFSwizard::get_speeds()], [GTFSwizard::get_durations()]
 #' @export
-edit_speed <- function(gtfs, trips = 'all', stops = 'all', factor) {
+edit_speed <- function(gtfs, trips = "all", stops = "all", factor){
+  if(!is.numeric(factor) || length(factor) != 1L || is.na(factor) || factor <= 0){
+    gw_stop("`factor` must be one positive numeric value.")
+  }
+  gtfs <- ensure_wizardgtfs(gtfs)
+  trips <- resolve_selection_ids(trips, gtfs$trips$trip_id, "trip")
+  stops <- resolve_selection_ids(stops, gtfs$stops$stop_id, "stop")
 
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+  stop_times <- gtfs$stop_times
+  stop_times$.row <- seq_len(nrow(stop_times))
+  stop_times <- stop_times[order(stop_times$trip_id, stop_times$stop_sequence), ]
+  arrival <- gtfs_time_to_seconds(stop_times$arrival_time)
+  departure <- gtfs_time_to_seconds(stop_times$departure_time)
+
+  groups <- split(seq_len(nrow(stop_times)), stop_times$trip_id)
+  for(index in groups){
+    if(!stop_times$trip_id[index[1L]] %in% trips || length(index) < 2L){
+      next
+    }
+    segment <- index[-1L]
+    previous <- index[-length(index)]
+    travel <- arrival[segment] - departure[previous]
+    edit <- (stop_times$stop_id[segment] %in% stops |
+      stop_times$stop_id[previous] %in% stops) &
+      !is.na(travel)
+    if(any(edit & travel < 0)){
+      gw_stop("selected segments contain arrival before the previous departure.")
+    }
+    delta <- rep(0, length(index))
+    segment_position <- seq_along(index)[-1L]
+    delta[segment_position[edit]] <- round(travel[edit] / factor) - travel[edit]
+    cumulative <- cumsum(delta)
+    arrival[index] <- arrival[index] + cumulative
+    departure[index] <- departure[index] + cumulative
   }
 
-  if(any(stops == 'all')) {
-    durations <- get_durations(gtfs, 'detailed', trips = trips)
-  } else {
-    durations <- get_durations(gtfs, 'detailed', trips = trips) %>%
-      dplyr::filter(from_stop_id %in% stops | to_stop_id %in% stops)
-  }
-
-  gtfs$stop_times <-
-    durations %>%
-    dplyr::mutate(new.duration = duration / factor,
-                  diff.time = new.duration - duration) %>%
-    dplyr::select(trip_id, arrival_time, stop_id = to_stop_id, diff.time) %>%
-    dplyr::right_join(.,
-                      gtfs$stop_times,
-                      by = c('trip_id', 'stop_id', 'arrival_time')) %>%
-    dplyr::arrange(trip_id, stop_sequence) %>%
-    dplyr::mutate(diff.time = if_else(is.na(diff.time), 0, diff.time)) %>%
-    dplyr::group_by(trip_id) %>%
-    dplyr::mutate(cum.diff.time = cumsum(diff.time)) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate_at(c('arrival_time', 'departure_time'), .funs = function(x){as.character(hms::as_hms(round(as.numeric(lubridate::seconds(lubridate::hms(x)) + .$cum.diff.time))))}) %>%
-    select(-diff.time, -cum.diff.time)
-
-  return(gtfs)
-
+  valid <- !is.na(arrival)
+  stop_times$arrival_time[valid] <- seconds_to_gtfs_time(arrival[valid])
+  valid <- !is.na(departure)
+  stop_times$departure_time[valid] <- seconds_to_gtfs_time(departure[valid])
+  stop_times <- stop_times[order(stop_times$.row), ]
+  stop_times$.row <- NULL
+  gtfs$stop_times <- tibble::as_tibble(stop_times)
+  gtfs
 }

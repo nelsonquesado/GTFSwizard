@@ -1,447 +1,105 @@
-#' Estimates Fleet from GTFS Data
+#' Estimate Simultaneous Vehicles
 #'
-#' The `get_fleet` function estimates the fleet from a `wizardgtfs` object using different methods. Depending on the selected `method`, it can estimates fleet by route, by hour, peak times, or detailed timepoints.
+#' Estimates the number of active trip instances from their first departure to
+#' final arrival. Frequency-based services are expanded from `frequencies.txt`.
 #'
-#' @param gtfs A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.
-#' @param method A character string specifying the calculation method. Options include:
-#'   \describe{
-#'     \item{"by.route"}{Calculates the maximum number of simultaneous trips for each route.}
-#'     \item{"by.hour"}{Calculates the maximum number of simultaneous trips by hour of the day across all routes.}
-#'     \item{"peak"}{Calculates the maximum number of simultaneous trips for the three busiest hours.}
-#'     \item{"detailed"}{Calculates the maximum number of simultaneous trips across each timepoint within a trip.}
-#'   }
+#' @param gtfs A GTFS object.
+#' @param method One of `"by_route"`, `"by_hour"`, `"peak"`, or `"detailed"`.
+#'   Legacy dotted values remain accepted.
 #'
-#' @return A data frame containing the fleet based on the specified method:
-#'   \describe{
-#'     \item{If `method = "by.route"`}{Returns a data frame with columns: `route_id`, `fleet`, `service_pattern`, and `pattern_frequency`.}
-#'     \item{If `method = "by.hour"`}{Returns a data frame with columns: `hour`, `fleet`, `service_pattern`, and `pattern_frequency`.}
-#'     \item{If `method = "peak"`}{Returns a data frame with columns: `hour`, `fleet`, `service_pattern`, and `pattern_frequency` for the busiest three hours.}
-#'     \item{If `method = "detailed"`}{Returns a data frame with columns: `route_id`, `net.fleet`, `fleet`, `time`, `service_pattern`, and `pattern_frequency` for each timepoint.}
-#'   }
-#'
-#' @details
-#' This function calls specific sub-functions based on the selected method:
-#'
-#' - "by.route": Calculates the maximum simultaneous trips per route.
-#'
-#' - "by.hour": Calculates the maximum simultaneous trips for each hour of the day.
-#'
-#' - "peak": Calculates the maximum simultaneous trips for the three busiest hours.
-#'
-#' - "detailed": Provides a timepoint-based fleet calculation, showing detailed fleet fluctutations over the course of the trip.
-#'
-#' If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
+#' @return A tibble containing fleet estimates by the selected grouping and
+#' service pattern. GTFS times beyond 24 hours remain in the following service
+#' day rather than being wrapped. Route outputs include `direction_id` when
+#' available.
 #'
 #' @examples
-#' # Calculate fleet requirements by route
-#' fleet_by_route <- get_fleet(gtfs = for_rail_gtfs, method = "by.route")
+#' get_fleet(for_rail_gtfs, "by_route")
+#' get_fleet(for_rail_gtfs, "by_hour")
 #'
-#' # Calculate fleet requirements by hour
-#' fleet_by_hour <- get_fleet(gtfs = for_rail_gtfs, method = "by.hour")
-#'
-#' # Calculate fleet requirements for peak hours
-#' fleet_peak <- get_fleet(gtfs = for_rail_gtfs, method = "peak")
-#'
-#' # Calculate detailed fleet requirements over timepoints
-#' fleet_detailed <- get_fleet(gtfs = for_rail_gtfs, method = "detailed")
-#'
-#' @seealso
-#' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
-#'
-#' @importFrom dplyr mutate group_by reframe select left_join filter
-#' @importFrom stringr str_split
 #' @export
-
-get_fleet <- function(gtfs, method = 'by.route'){
-
-  if (method == 'by.route') {
-    durations <- get_fleet_byroute(gtfs)
-  }
-
-  if (method == 'by.hour') {
-    durations <- get_fleet_byhour(gtfs)
-  }
-
-  if (method == 'peak') {
-    durations <- get_fleet_peak(gtfs)
-  }
-
-  if (method == 'detailed') {
-    durations <- get_fleet_detailed(gtfs)
-  }
-
-  if (!method %in% c('by.route', 'detailed', 'peak', 'by.hour')) {
-    durations <- get_durations_byroute(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  return(durations)
-
+get_fleet <- function(gtfs, method = "by_route"){
+  choices <- c("by_route", "by_hour", "peak", "detailed")
+  method <- normalize_method(method, choices, "by_route")
+  switch(
+    method,
+    by_route = get_fleet_byroute(gtfs),
+    by_hour = get_fleet_byhour(gtfs),
+    peak = get_fleet_peak(gtfs),
+    detailed = get_fleet_detailed(gtfs)
+  )
 }
 
 get_fleet_byroute <- function(gtfs){
-
-  message('\nThis method returns the maximum number of simultaneous trips for a given route.')
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  service_pattern <-
-    GTFSwizard::get_servicepattern(gtfs)
-
-  time_points <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '') %>%
-    dplyr::group_by(trip_id) %>%
-    dplyr::reframe(starts = arrival_time[1] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit(),
-                   ends = arrival_time[n()] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit()) %>%
-    dplyr::mutate(starts = if_else(starts <= 86400, starts, starts - 86400),
-                  ends = if_else(ends <= 86400, ends, ends - 86400)) %>%
-    dplyr::select(-trip_id) %>%
-    tidyr::pivot_longer(cols = 1:2) %>%
-    dplyr::select(-name) %>%
-    dplyr::arrange(value) %>%
-    unique() %>%
-    dplyr::mutate(name = paste0('timepoint-', 1:nrow(.)) %>% as_factor())
-
-  fleet <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '') %>%
-    dplyr::group_by(trip_id) %>%
-    dplyr::reframe(starts = arrival_time[1] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit(),
-                   ends = arrival_time[n()] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit()) %>%
-    dplyr::mutate(starts = if_else(starts <= 86400, starts, starts - 86400),
-                  ends = if_else(ends <= 86400, ends, ends - 86400)) %>%
-    dplyr::left_join(time_points %>% dplyr::rename(starts = value, name.starts = name),
-                     by = 'starts') %>%
-    dplyr::left_join(time_points %>% dplyr::rename(ends = value, name.ends = name),
-                     by = 'ends') %>%
-    dplyr::left_join(gtfs$trips,
-                     by = 'trip_id') %>%
-    dplyr::left_join(service_pattern,
-                     by = 'service_id',
-                     relationship = 'many-to-many') %>%
-    tidyr::pivot_longer(cols = c('name.starts', 'name.ends')) %>%
-    dplyr::group_by(route_id, name, value, service_pattern, pattern_frequency) %>%
-    dplyr::reframe(n = n()) %>%
-    tidyr::pivot_wider(names_from = name, values_from = n, values_fill = 0) %>%
-    dplyr::group_by(service_pattern) %>%
-    dplyr::mutate(net.fleet = name.starts - name.ends) %>%
-    dplyr::filter(!net.fleet == 0) %>%
-    dplyr::arrange(service_pattern, value) %>%
-    dplyr::group_by(service_pattern, route_id) %>%
-    dplyr::mutate(fleet = cumsum(net.fleet)) %>%
-    dplyr::left_join(time_points %>% setNames(c('time', 'value')), by = 'value') %>%
-    dplyr::mutate(fleet = fleet - min(fleet)) %>%
-    dplyr::group_by(service_pattern, pattern_frequency, route_id) %>%
-    dplyr::reframe(fleet = max(fleet)) %>%
-    dplyr::select(route_id, fleet, service_pattern, pattern_frequency)
-
-  return(fleet)
-
+  data <- fleet_event_table(gtfs, by_route = TRUE)
+  data |>
+    dplyr::group_by(
+      dplyr::across(dplyr::all_of(c(
+        "route_id", direction_field(data),
+        "service_pattern", "pattern_frequency"
+      )))
+    ) |>
+    dplyr::summarise(fleet = max(fleet), .groups = "drop")
 }
 
 get_fleet_byhour <- function(gtfs){
-
-  message('This method returns the maximum number of simultaneous trips for a given hour.')
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  service_pattern <-
-    GTFSwizard::get_servicepattern(gtfs)
-
-  time_points <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '') %>%
-    dplyr::group_by(trip_id) %>%
-    dplyr::reframe(starts = arrival_time[1] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit(),
-                   ends = arrival_time[n()] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit()) %>%
-    dplyr::mutate(starts = if_else(starts <= 86400, starts, starts - 86400),
-                  ends = if_else(ends <= 86400, ends, ends - 86400)) %>%
-    dplyr::select(-trip_id) %>%
-    tidyr::pivot_longer(cols = 1:2) %>%
-    dplyr::select(-name) %>%
-    dplyr::arrange(value) %>%
-    unique() %>%
-    dplyr::mutate(name = paste0('timepoint-', 1:nrow(.)) %>% as_factor())
-
-  fleet <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '') %>%
-    dplyr::group_by(trip_id) %>%
-    dplyr::reframe(starts = arrival_time[1] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit(),
-                   ends = arrival_time[n()] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit()) %>%
-    dplyr::mutate(starts = if_else(starts <= 86400, starts, starts - 86400),
-                  ends = if_else(ends <= 86400, ends, ends - 86400)) %>%
-    dplyr::left_join(time_points %>% dplyr::rename(starts = value, name.starts = name),
-                     by = 'starts') %>%
-    dplyr::left_join(time_points %>% dplyr::rename(ends = value, name.ends = name),
-                     by = 'ends') %>%
-    dplyr::left_join(gtfs$trips,
-                     by = 'trip_id') %>%
-    dplyr::left_join(service_pattern,
-                     by = 'service_id',
-                     relationship = 'many-to-many') %>%
-    tidyr::pivot_longer(cols = c('name.starts', 'name.ends')) %>%
-    dplyr::group_by(route_id, name, value, service_pattern, pattern_frequency, starts) %>%
-    dplyr::reframe(n = n()) %>%
-    tidyr::pivot_wider(names_from = name, values_from = n, values_fill = 0) %>%
-    dplyr::group_by(service_pattern) %>%
-    dplyr::mutate(net.fleet = name.starts - name.ends) %>%
-    dplyr::filter(!net.fleet == 0) %>%
-    dplyr::arrange(service_pattern, value) %>%
-    dplyr::mutate(fleet = cumsum(net.fleet)) %>%
-    dplyr::left_join(time_points %>% setNames(c('time', 'value')), by = 'value') %>%
-    dplyr::mutate(fleet = fleet - min(fleet),
-                  hour = floor(starts/3600)) %>%
-    dplyr::group_by(service_pattern, pattern_frequency, hour) %>%
-    dplyr::reframe(fleet = max(fleet)) %>%
-    dplyr::select(hour, fleet, service_pattern, pattern_frequency)
-
-  return(fleet)
-
+  fleet_event_table(gtfs, by_route = FALSE) |>
+    dplyr::mutate(hour = floor(time / 3600)) |>
+    dplyr::group_by(service_pattern, pattern_frequency, hour) |>
+    dplyr::summarise(fleet = max(fleet), .groups = "drop")
 }
 
 get_fleet_peak <- function(gtfs){
-
-  message('This method returns the number of simultaneous trips for the three busiest hours.')
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  service_pattern <-
-    GTFSwizard::get_servicepattern(gtfs)
-
-  time_points <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '') %>%
-    dplyr::group_by(trip_id) %>%
-    dplyr::reframe(starts = arrival_time[1] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit(),
-                   ends = arrival_time[n()] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit()) %>%
-    dplyr::mutate(starts = if_else(starts <= 86400, starts, starts - 86400),
-                  ends = if_else(ends <= 86400, ends, ends - 86400)) %>%
-    dplyr::select(-trip_id) %>%
-    tidyr::pivot_longer(cols = 1:2) %>%
-    dplyr::select(-name) %>%
-    dplyr::arrange(value) %>%
-    unique() %>%
-    dplyr::mutate(name = paste0('timepoint-', 1:nrow(.)) %>% as_factor())
-
-  fleet <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '') %>%
-    dplyr::group_by(trip_id) %>%
-    dplyr::reframe(starts = arrival_time[1] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit(),
-                   ends = arrival_time[n()] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit()) %>%
-    dplyr::mutate(starts = if_else(starts <= 86400, starts, starts - 86400),
-                  ends = if_else(ends <= 86400, ends, ends - 86400)) %>%
-    dplyr::left_join(time_points %>% dplyr::rename(starts = value, name.starts = name),
-                     by = 'starts') %>%
-    dplyr::left_join(time_points %>% dplyr::rename(ends = value, name.ends = name),
-                     by = 'ends') %>%
-    dplyr::left_join(gtfs$trips,
-                     by = 'trip_id') %>%
-    dplyr::left_join(service_pattern,
-                     by = 'service_id',
-                     relationship = 'many-to-many') %>%
-    tidyr::pivot_longer(cols = c('name.starts', 'name.ends')) %>%
-    dplyr::group_by(route_id, name, value, service_pattern, pattern_frequency, starts) %>%
-    dplyr::reframe(n = n()) %>%
-    tidyr::pivot_wider(names_from = name, values_from = n, values_fill = 0) %>%
-    dplyr::group_by(service_pattern) %>%
-    dplyr::mutate(net.fleet = name.starts - name.ends) %>%
-    dplyr::filter(!net.fleet == 0) %>%
-    dplyr::arrange(service_pattern, value) %>%
-    dplyr::mutate(fleet = cumsum(net.fleet)) %>%
-    dplyr::left_join(time_points %>% setNames(c('time', 'value')), by = 'value') %>%
-    dplyr::mutate(fleet = fleet - min(fleet),
-                  hour = floor(starts/3600)) %>%
-    dplyr::group_by(service_pattern, pattern_frequency, hour) %>%
-    dplyr::reframe(fleet = max(fleet)) %>%
-    dplyr::select(hour, fleet, service_pattern, pattern_frequency) %>%
-    dplyr::group_by(service_pattern) %>%
-    dplyr::arrange(., service_pattern, dplyr::desc(fleet)) %>%
-    dplyr::slice(1:3)
-
-  return(fleet)
-
+  get_fleet_byhour(gtfs) |>
+    dplyr::group_by(service_pattern) |>
+    dplyr::slice_max(fleet, n = 3L, with_ties = FALSE) |>
+    dplyr::ungroup()
 }
 
 get_fleet_detailed <- function(gtfs){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  service_pattern <-
-    GTFSwizard::get_servicepattern(gtfs)
-
-  time_points <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '') %>%
-    dplyr::group_by(trip_id) %>%
-    dplyr::reframe(starts = arrival_time[1] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit(),
-                   ends = arrival_time[n()] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit()) %>%
-    dplyr::mutate(starts = if_else(starts <= 86400, starts, starts - 86400),
-                  ends = if_else(ends <= 86400, ends, ends - 86400)) %>%
-    dplyr::select(-trip_id) %>%
-    tidyr::pivot_longer(cols = 1:2) %>%
-    dplyr::select(-name) %>%
-    dplyr::arrange(value) %>%
-    unique() %>%
-    dplyr::mutate(name = paste0('timepoint-', 1:nrow(.)) %>% as_factor())
-
-  fleet <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '') %>%
-    dplyr::group_by(trip_id) %>%
-    dplyr::reframe(starts = arrival_time[1] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit(),
-                   ends = arrival_time[n()] %>%
-                     stringr::str_split(":") %>%
-                     lapply(FUN = as.numeric) %>%
-                     lapply(FUN = function(x){
-                       x[1]*60*60+x[2]*60+x[3]
-                     }) %>%
-                     unlist() %>%
-                     na.omit()) %>%
-    dplyr::mutate(starts = if_else(starts <= 86400, starts, starts - 86400),
-                  ends = if_else(ends <= 86400, ends, ends - 86400)) %>%
-    dplyr::left_join(time_points %>% dplyr::rename(starts = value, name.starts = name),
-                     by = 'starts') %>%
-    dplyr::left_join(time_points %>% dplyr::rename(ends = value, name.ends = name),
-                     by = 'ends') %>%
-    dplyr::left_join(gtfs$trips,
-                     by = 'trip_id') %>%
-    dplyr::left_join(service_pattern,
-                     by = 'service_id',
-                     relationship = 'many-to-many') %>%
-    tidyr::pivot_longer(cols = c('name.starts', 'name.ends')) %>%
-    dplyr::group_by(route_id, name, value, service_pattern, pattern_frequency) %>%
-    dplyr::reframe(n = n()) %>%
-    tidyr::pivot_wider(names_from = name, values_from = n, values_fill = 0) %>%
-    dplyr::group_by(service_pattern) %>%
-    dplyr::mutate(net.fleet = name.starts - name.ends) %>%
-    dplyr::filter(!net.fleet == 0) %>%
-    dplyr::arrange(service_pattern, value) %>%
-    dplyr::mutate(fleet = cumsum(net.fleet)) %>%
-    dplyr::left_join(time_points %>% setNames(c('time', 'value')), by = 'value') %>%
-    dplyr::select(route_id, net.fleet, fleet, time, service_pattern, pattern_frequency) %>%
-    dplyr::mutate(fleet = fleet - min(fleet))
-
-  return(fleet)
-
+  fleet_event_table(gtfs, by_route = TRUE) |>
+    dplyr::select(
+      route_id, dplyr::any_of("direction_id"), net.fleet, fleet, time,
+      service_pattern, pattern_frequency
+    )
 }
 
+fleet_event_table <- function(gtfs, by_route = FALSE){
+  gtfs <- ensure_wizardgtfs(gtfs)
+  ordered <- gtfs$stop_times |>
+    dplyr::arrange(trip_id, stop_sequence) |>
+    dplyr::mutate(
+      .arrival = gtfs_time_to_seconds(arrival_time),
+      .departure = gtfs_time_to_seconds(departure_time)
+    ) |>
+    dplyr::group_by(trip_id) |>
+    dplyr::summarise(
+      .base_start = dplyr::first(.departure),
+      .duration = dplyr::last(.arrival) - dplyr::first(.departure),
+      .groups = "drop"
+    )
+  intervals <- trip_instance_starts(gtfs) |>
+    dplyr::left_join(
+      ordered[, c("trip_id", ".duration")], by = "trip_id"
+    ) |>
+    dplyr::mutate(starts = start_seconds, ends = start_seconds + .duration) |>
+    dplyr::left_join(gtfs$trips, by = "trip_id") |>
+    dplyr::left_join(get_servicepattern(gtfs), by = "service_id")
+  group_cols <- c(
+    if(by_route) "route_id",
+    if(by_route) direction_field(intervals),
+    "service_pattern", "pattern_frequency"
+  )
+  starts <- intervals[group_cols]
+  starts$time <- intervals$starts
+  starts$net.fleet <- 1L
+  ends <- intervals[group_cols]
+  ends$time <- intervals$ends
+  ends$net.fleet <- -1L
+  dplyr::bind_rows(starts, ends) |>
+    dplyr::group_by(dplyr::across(dplyr::all_of(c(group_cols, "time")))) |>
+    dplyr::summarise(net.fleet = sum(net.fleet), .groups = "drop") |>
+    dplyr::arrange(dplyr::across(dplyr::all_of(c(group_cols, "time")))) |>
+    dplyr::group_by(dplyr::across(dplyr::all_of(group_cols))) |>
+    dplyr::mutate(fleet = cumsum(net.fleet)) |>
+    dplyr::ungroup()
+}

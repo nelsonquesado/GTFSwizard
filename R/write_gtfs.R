@@ -1,131 +1,87 @@
-#' Write GTFS Data to Zip File
+#' Write a GTFS Feed
 #'
-#' `write_gtfs` exports a GTFS object to a zip file format, suitable for use in various GTFS-compatible software. This function supports multiple GTFS object formats and ensures compatibility by converting data frames and spatial objects as needed.
+#' Exports a GTFS object to a zip archive. Internal `dates_services` data are
+#' omitted, GTFS dates use `YYYYMMDD`, and spatial stops/shapes are converted
+#' back to standard text-table columns.
 #'
-#' @param gtfs A GTFS object. This can be in `wizardgtfs` or list format.
-#' @param zipfile A character string specifying the path to the output zip file.
-#' @param ... Additional arguments to pass to `gtfsio::export_gtfs()`.
+#' @param gtfs A GTFS object.
+#' @param zipfile Output `.zip` path.
+#' @param ... Additional arguments passed to the format-specific writer.
 #'
-#' @return None. This function writes the GTFS data directly to the specified `zipfile`.
-#'
-#' @details
-#' The function converts spatial data frames (e.g., shapes and stops) to standard data frames, removes additional service pattern tables, and exports.
+#' @return The normalized output path, invisibly.
 #'
 #' @examples
-#' \dontrun{
-#' # Export a wizardgtfs object to a zip file
-#' write_gtfs(for_rail_gtfs, "gtfs_export.zip")
-#' }
+#' path <- tempfile(fileext = ".zip")
+#' write_gtfs(for_rail_gtfs, path)
 #'
-#' @seealso
-#' [GTFSwizard::read_gtfs()], [GTFSwizard::as_wizardgtfs()],
-#'
+#' @seealso [GTFSwizard::read_gtfs()]
 #' @export
 write_gtfs <- function(gtfs, zipfile, ...){
-  UseMethod('write_gtfs')
+  UseMethod("write_gtfs")
 }
 
 #' @exportS3Method GTFSwizard::write_gtfs wizardgtfs
 write_gtfs.wizardgtfs <- function(gtfs, zipfile, ...){
-
-  gtfs <- sf_to_df(gtfs)
-  gtfs <- lapply(gtfs, as_df_ordinary)
-  class(gtfs) <- c('gtfs','list')
-  gtfs <- rm_servicepattern(gtfs)
-  gtfsio::export_gtfs(gtfs = gtfs, path = zipfile, ...)
-
+  write_gtfs.list(gtfs, zipfile, ...)
 }
 
 #' @exportS3Method GTFSwizard::write_gtfs list
 write_gtfs.list <- function(gtfs, zipfile, ...){
+  if(!is.character(zipfile) || length(zipfile) != 1L || !nzchar(zipfile)){
+    gw_stop("`zipfile` must be one non-empty path.")
+  }
+  gtfs <- sf_to_gtfs_tables(gtfs)
+  gtfs$dates_services <- NULL
+  gtfs <- lapply(gtfs, normalize_gtfs_table)
+  class(gtfs) <- c("gtfs", "list")
   gtfsio::export_gtfs(gtfs = gtfs, path = zipfile, ...)
+  invisible(normalizePath(zipfile, mustWork = FALSE))
 }
 
 #' @exportS3Method GTFSwizard::write_gtfs tidygtfs
 write_gtfs.tidygtfs <- function(gtfs, zipfile, ...){
+  require_pkg("tidytransit", "writing `tidygtfs` objects")
   tidytransit::write_gtfs(gtfs, zipfile, ...)
+  invisible(normalizePath(zipfile, mustWork = FALSE))
 }
 
 #' @exportS3Method GTFSwizard::write_gtfs dt_gtfs
 write_gtfs.dt_gtfs <- function(gtfs, zipfile, ...){
+  require_pkg("gtfstools", "writing `dt_gtfs` objects")
   gtfstools::write_gtfs(gtfs, path = zipfile, ...)
+  invisible(normalizePath(zipfile, mustWork = FALSE))
 }
 
-sf_to_df <- function(gtfs){
-  if('shapes' %in% names(gtfs)){
-    try({gtfs$shapes <- st_as_sf(gtfs$shapes)},silent = TRUE)
-    if('sf'%in%class(gtfs$shapes)){
-      new_shapes <- gtfs$shapes %>%
-        group_by(shape_id) %>%
-        mutate(coords = coords_shapes(geometry)) %>%
-        st_drop_geometry() %>%
-        unnest('coords') %>%
-        ungroup()
-
-      if('shape_dist_traveled' %in% names(new_shapes)){
-        new_shapes <- new_shapes %>%
-          group_by('shape_id') %>%
-          mutate(shape_dist_traveled = shape_dist_traveled/n()) %>%
-          ungroup()
-      }
-
-      gtfs$shapes <- new_shapes
-
-    }
+sf_to_gtfs_tables <- function(gtfs){
+  if(inherits(gtfs$shapes, "sf")){
+    gtfs$shapes <- get_shapes_df(gtfs$shapes)
   }
-
-  if('stops' %in% names(gtfs)){
-    try({gtfs$stops <- st_as_sf(gtfs$stops)},silent = TRUE)
-    if('sf' %in% class('stops')){
-      gtfs$stops <- gtfs$stops %>%
-        mutate(coords_stops(geometry)) %>%
-        st_drop_geometry() %>%
-        as.data.frame()
-    }
+  if(inherits(gtfs$stops, "sf")){
+    stops <- sf::st_transform(gtfs$stops, 4326)
+    coordinates <- sf::st_coordinates(stops)
+    stops$stop_lon <- coordinates[, 1]
+    stops$stop_lat <- coordinates[, 2]
+    gtfs$stops <- sf::st_drop_geometry(stops)
   }
-
-  return(gtfs)
+  gtfs
 }
 
-coords_shapes <- function(geom){
-  st_coordinates(geom)[,1:2] %>%
-    as.data.frame() %>%
-    setnames(new  = c('shape_pt_lon','shape_pt_lat')) %>%
-    mutate(shape_pt_sequence = 1:n()) %>%
-    list()
-}
-
-coords_stops <- function(geom){
-  st_coordinates(geom)[,1:2] %>%
-    as.data.frame() %>%
-    setnames(new  = c('stop_lon','stop_lat'))
-}
-
-as_df_ordinary <- function(df){
-
-  df <- as.data.frame(df)
-
-  df2 <- lapply(df, function(col){
-    if(hms::is_hms(col)){
-      col = as.character(col) %>% gsub('-','',x = .)
+normalize_gtfs_table <- function(table){
+  table <- as.data.frame(table)
+  table[] <- lapply(table, function(column){
+    if(inherits(column, "Date")){
+      return(format(column, "%Y%m%d"))
     }
-    if(lubridate::is.POSIXct(col)|lubridate::is.POSIXlt(col)|lubridate::is.Date(col)){
-      col = as.character(col) %>% gsub('-','',x = .)
+    if(inherits(column, c("POSIXct", "POSIXlt"))){
+      return(format(as.Date(column), "%Y%m%d"))
     }
-    if(is.character(.col)){
-      col[is.na(col)] <- ""
+    if(inherits(column, "hms")){
+      return(as.character(column))
     }
-    return(col)
+    if(is.character(column)){
+      column[is.na(column)] <- ""
+    }
+    column
   })
-
-  attributes(df2) <- attributes(df)
-
-  return(df2)
-
+  table
 }
-
-rm_servicepattern <- function(gtfs){
-  gtfs[names(gtfs) != "dates_services"]
-}
-
-

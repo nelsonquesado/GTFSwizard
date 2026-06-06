@@ -1,108 +1,83 @@
-#' Convert GTFS Shapes Table to Simple Features (sf) Format
+#' Convert GTFS Shapes to Simple Features
 #'
-#' `get_shapes_sf` converts the shapes table in a `wizardgtfs` object into a simple features (`sf`) object, making it suitable for spatial analysis. This function checks and processes the `shapes` data in the provided GTFS object and structures it as `LINESTRING` features.
+#' @param gtfs A GTFS object or a `shapes` data frame.
 #'
-#' @param gtfs A GTFS object containing the `shapes` table or the shape table itself. If the `shapes` table is missing, it will be created using `get_shapes()`.
-#'
-#' @return An `sf` object with shapes as `LINESTRING` geometries:
-#'
-#' @details
-#' - When the input `wizardgtfs` object lacks a `shapes` table, the function automatically generates one using `get_shapes()`.
-#'
-#' - The `shapes` table in the GTFS object are transformed into `LINESTRING` geometries. If `shape_pt_sequence` is absent, the points are treated as ordered by their position in the data.
-#'
-#' - If `shape_dist_traveled` is available, cumulative distance calculations are included for each shape point.
-#'
-#' @note
-#' If `shape_pt_sequence` is missing, the function will assume that points are ordered, constructing the shape accordingly.
+#' @return For a data frame, one WGS84 `LINESTRING` feature per `shape_id`.
+#'   For a GTFS object, the same object with its `shapes` table replaced by that
+#'   `sf` object. If present, `shape_dist_traveled` is summarized as its maximum
+#'   value for each shape.
 #'
 #' @examples
-#' # Convert shapes data in a GTFS object to sf format
 #' gtfs_sf <- get_shapes_sf(for_rail_gtfs)
+#' shapes_sf <- get_shapes_sf(for_rail_gtfs$shapes)
 #'
-#' @seealso
-#' [GTFSwizard::get_shapes()], [GTFSwizard::get_shapes_df()]
-#'
-#' @importFrom dplyr select mutate group_by ungroup arrange reframe
-#' @importFrom sf st_as_sf st_crs
-#' @importFrom tibble as_tibble
-#' @importFrom crayon blue red
+#' @seealso [GTFSwizard::get_shapes_df()], [GTFSwizard::get_shapes()]
 #' @export
 get_shapes_sf <- function(gtfs){
-  UseMethod('get_shapes_sf')
+  UseMethod("get_shapes_sf")
 }
 
-#' @exportS3Method GTFSwizard::get_shapes_sf
+#' @exportS3Method GTFSwizard::get_shapes_sf wizardgtfs
 get_shapes_sf.wizardgtfs <- function(gtfs){
-  if('shapes' %in% names(gtfs) == FALSE){
-    warning("GTFS doesn't have a shapes table. Using ", crayon::blue("get_shapes"), " to build it")
+  if(is.null(gtfs$shapes)){
+    gw_warn("input has no `shapes` table; building straight-line shapes.")
     gtfs <- get_shapes(gtfs)
   }
   gtfs$shapes <- get_shapes_sf.data.frame(gtfs$shapes)
-  return(gtfs)
+  gtfs
 }
 
-#' @exportS3Method GTFSwizard::get_shapes_sf
+#' @exportS3Method GTFSwizard::get_shapes_sf list
 get_shapes_sf.list <- function(gtfs){
-  if('shapes' %in% names(gtfs) == FALSE){
-    warning("GTFS doesn't have a shapes table, using ", crayon::blue("get_shapes"), " to build it")
-    gtfs <- get_shapes(gtfs)
+  if(is.null(gtfs$shapes)){
+    gtfs <- get_shapes(ensure_wizardgtfs(gtfs))
   }
   gtfs$shapes <- get_shapes_sf.data.frame(gtfs$shapes)
-  return(gtfs)
+  gtfs
 }
 
-#' @exportS3Method GTFSwizard::get_shapes_sf
-get_shapes_sf.gtfs <- function(gtfs){
-  if('shapes' %in% names(gtfs) == FALSE){
-    warning("GTFS doesn't have a shapes table, using ", crayon::blue("get_shapes"), " to build it")
-    gtfs <- get_shapes(gtfs)
-  }
-  gtfs$shapes <- get_shapes_sf.data.frame(gtfs$shapes)
-  return(gtfs)
-}
+#' @exportS3Method GTFSwizard::get_shapes_sf gtfs
+get_shapes_sf.gtfs <- get_shapes_sf.list
 
-#' @exportS3Method GTFSwizard::get_shapes_sf
+#' @exportS3Method GTFSwizard::get_shapes_sf data.frame
 get_shapes_sf.data.frame <- function(gtfs){
-  if('sf'%in%class(gtfs)){
-    st_crs(gtfs) <- 4326
-    return(gtfs)
-  }else{
-
-    if('shape_pt_sequence' %in% names(gtfs)){
-      gtfs <- gtfs %>%
-        dplyr::mutate(shape_pt_sequence = as.numeric(shape_pt_sequence)) %>%
-        dplyr::arrange(shape_id,shape_pt_sequence)
-    }else{
-      warning("If ", crayon::cyan('"shape_pt_sequence"')," column is not defined, shapes are built considering the arrange of rows in the data.")
+  if(inherits(gtfs, "sf")){
+    if(is.na(sf::st_crs(gtfs))){
+      gw_stop("the shapes `sf` object must have a defined CRS.")
     }
-
-    if('shape_dist_traveled' %in% names(gtfs)){
-      gtfs <- gtfs %>%
-        dplyr::group_by(shape_id) %>%
-        dplyr::mutate(geometry = paste0(shape_pt_lon,' ',shape_pt_lat)) %>%
-        dplyr::group_by(shape_id) %>%
-        dplyr::reframe(
-          shape_dist_traveled = sum(as.numeric(shape_dist_traveled),na.rm = TRUE),
-          geometry = paste0('LINESTRING(',paste0(geometry,collapse = ', '), ')')
-        ) %>%
-        sf::st_as_sf(wkt = 'geometry',crs=4326) %>%
-        tibble::as_tibble() %>%
-        sf::st_as_sf()
-
-    }else{
-      gtfs <- gtfs %>%
-        dplyr::group_by(shape_id) %>%
-        dplyr::mutate(geometry = paste0(shape_pt_lon,' ',shape_pt_lat)) %>%
-        dplyr::group_by(shape_id) %>%
-        dplyr::reframe(
-          geometry = paste0('LINESTRING(', paste0(geometry, collapse = ', '), ')')
-        ) %>%
-        sf::st_as_sf(wkt = 'geometry',crs=4326) %>%
-          tibble::as_tibble() %>%
-          sf::st_as_sf()
-    }
-
-    return(gtfs)
+    return(sf::st_transform(gtfs, 4326))
   }
+  required <- c("shape_id", "shape_pt_lon", "shape_pt_lat")
+  missing <- setdiff(required, names(gtfs))
+  if(length(missing)){
+    gw_stop("the shapes table is missing: ", paste(missing, collapse = ", "), ".")
+  }
+  if("shape_pt_sequence" %in% names(gtfs)){
+    gtfs <- gtfs[order(gtfs$shape_id, as.numeric(gtfs$shape_pt_sequence)), ]
+  } else {
+    gw_warn("`shape_pt_sequence` is absent; using the current row order.")
+  }
+
+  groups <- split(gtfs, gtfs$shape_id)
+  if(any(vapply(groups, nrow, integer(1)) < 2L)){
+    gw_stop("each shape requires at least two points.")
+  }
+  geometry <- lapply(groups, function(x){
+    sf::st_linestring(as.matrix(x[, c("shape_pt_lon", "shape_pt_lat")]))
+  })
+  attributes <- tibble::tibble(shape_id = names(groups))
+  if("shape_dist_traveled" %in% names(gtfs)){
+    attributes$shape_dist_traveled <- vapply(
+      groups,
+      function(x){
+        distance <- suppressWarnings(as.numeric(x$shape_dist_traveled))
+        if(all(is.na(distance))){
+          return(NA_real_)
+        }
+        max(distance, na.rm = TRUE)
+      },
+      numeric(1)
+    )
+  }
+  sf::st_sf(attributes, geometry = sf::st_sfc(geometry, crs = 4326))
 }

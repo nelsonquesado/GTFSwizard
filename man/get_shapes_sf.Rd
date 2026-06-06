@@ -2,34 +2,27 @@
 % Please edit documentation in R/get_shapes_sf.R
 \name{get_shapes_sf}
 \alias{get_shapes_sf}
-\title{Convert GTFS Shapes Table to Simple Features (sf) Format}
+\title{Convert GTFS Shapes to Simple Features}
 \usage{
 get_shapes_sf(gtfs)
 }
 \arguments{
-\item{gtfs}{A GTFS object containing the `shapes` table or the shape table itself. If the `shapes` table is missing, it will be created using `get_shapes()`.}
+\item{gtfs}{A GTFS object or a `shapes` data frame.}
 }
 \value{
-An `sf` object with shapes as `LINESTRING` geometries:
+For a data frame, one WGS84 `LINESTRING` feature per `shape_id`.
+  For a GTFS object, the same object with its `shapes` table replaced by that
+  `sf` object. If present, `shape_dist_traveled` is summarized as its maximum
+  value for each shape.
 }
 \description{
-`get_shapes_sf` converts the shapes table in a `wizardgtfs` object into a simple features (`sf`) object, making it suitable for spatial analysis. This function checks and processes the `shapes` data in the provided GTFS object and structures it as `LINESTRING` features.
-}
-\details{
-- When the input `wizardgtfs` object lacks a `shapes` table, the function automatically generates one using `get_shapes()`.
-
-- The `shapes` table in the GTFS object are transformed into `LINESTRING` geometries. If `shape_pt_sequence` is absent, the points are treated as ordered by their position in the data.
-
-- If `shape_dist_traveled` is available, cumulative distance calculations are included for each shape point.
-}
-\note{
-If `shape_pt_sequence` is missing, the function will assume that points are ordered, constructing the shape accordingly.
+Convert GTFS Shapes to Simple Features
 }
 \examples{
-# Convert shapes data in a GTFS object to sf format
 gtfs_sf <- get_shapes_sf(for_rail_gtfs)
+shapes_sf <- get_shapes_sf(for_rail_gtfs$shapes)
 
 }
 \seealso{
-[GTFSwizard::get_shapes()], [GTFSwizard::get_shapes_df()]
+[GTFSwizard::get_shapes_df()], [GTFSwizard::get_shapes()]
 }

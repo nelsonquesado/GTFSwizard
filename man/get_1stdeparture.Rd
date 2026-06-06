@@ -2,39 +2,24 @@
 % Please edit documentation in R/get_1stdeparture.R
 \name{get_1stdeparture}
 \alias{get_1stdeparture}
-\title{Get First Departure Times for GTFS Trips}
+\title{Get the First Departure of Each Trip}
 \usage{
 get_1stdeparture(gtfs)
 }
 \arguments{
-\item{gtfs}{A GTFS object. If not of class `wizardgtfs`, it will be converted internally using `as_wizardgtfs()`. This may increase computation time.}
+\item{gtfs}{A GTFS object.}
 }
 \value{
-A tibble with the following columns:
-\describe{
-  \item{route_id}{ID of the route associated with the trip.}
-  \item{trip_id}{ID of the trip.}
-  \item{departure_time}{Time of the first departure for the trip, as a character string in "HH:MM:SS" format.}
-  \item{stop_id}{ID of the stop where the first departure occurs.}
-}
+A tibble with `route_id`, `trip_id`, `departure_time`, and
+  `stop_id`.
 }
 \description{
-Extracts the first departure time for each trip in a `wizardgtfs` object, along with the associated `route_id`, and `stop_id` where the first departure occurs.
-}
-\details{
-This function identifies the first departure time for each trip in the GTFS dataset. It uses the `stop_times` table to find the earliest `departure_time` for each `trip_id` and joins this information with the `trips` table to include the corresponding `route_id`. The result is a tidy tibble suitable for further analysis or visualization.
-
-If the input GTFS object is not of the `wizardgtfs` class, the function converts it using `as_wizardgtfs()`. A message is displayed to inform the user about the conversion.
+Returns the departure at the lowest `stop_sequence` for every trip.
 }
 \examples{
-# Load GTFS data
-gtfs <- for_rail_gtfs
-
-# Get the first departures
-first_departures <- get_1stdeparture(gtfs)
-head(first_departures)
+head(get_1stdeparture(for_rail_gtfs))
 
 }
-\seealso{
-[GTFSwizard::as_wizardgtfs()]
+\references{
+[GTFS Schedule Reference](https://gtfs.org/documentation/schedule/reference/#stop_timestxt)
 }

@@ -2,32 +2,25 @@
 % Please edit documentation in R/get_servicepattern.R
 \name{get_servicepattern}
 \alias{get_servicepattern}
-\title{Identify Service Patterns in GTFS Data}
+\title{Identify Services with the Same Operating Dates}
 \usage{
 get_servicepattern(gtfs)
 }
 \arguments{
-\item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.}
+\item{gtfs}{A GTFS object.}
 }
 \value{
-A data frame containing unique service patterns with the following columns:
-  \describe{
-    \item{`service_id`}{Unique identifier(s) for each service.}
-    \item{`service_pattern`}{An identifier for each distinct service pattern based on operational dates, in the format "servicepattern-N".}
-    \item{`pattern_frequency`}{The frequency of each service pattern, indicating the number of dates associated with that pattern.}
-  }
+A tibble with one row per `service_id`, its `service_pattern`, and
+  `pattern_frequency`, the number of active dates in that pattern. Pattern
+  numbers are ordered from most to least frequent.
 }
 \description{
-The `get_servicepattern` function identifies and organizes unique service patterns within a `wizardgtfs` object. It groups services by common dates of operation and assigns each a frequency-based pattern identifier.
-}
-\details{
-The function first checks if the input `gtfs` object is of class `wizardgtfs`. If not, it converts it using `as_wizardgtfs()`. It then groups services by common dates of operation, assigns a frequency to each unique pattern, and organizes these into service pattern identifiers, ordered by their frequency.
+Groups `service_id` values that operate on exactly the same set of dates.
 }
 \examples{
-# Generate service patterns for a GTFS object
-service_patterns <- get_servicepattern(gtfs = for_rail_gtfs)
+get_servicepattern(for_rail_gtfs)
 
 }
 \seealso{
-[GTFSwizard::as_wizardgtfs()]
+[GTFSwizard::filter_servicepattern()]
 }

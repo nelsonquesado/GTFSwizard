@@ -7,28 +7,17 @@
 plot_frequency(gtfs)
 }
 \arguments{
-\item{gtfs}{A GTFS object. This should ideally be of the `wizardgtfs` class, or it will be converted.}
+\item{gtfs}{A GTFS object.}
 }
 \value{
-A `plotly` interactive plot displaying hourly frequency distributions, including:
-
-  - Hourly Distribution: Boxplots showing frequency distribution across hours.
-
-  - Hourly Average Frequency: A line indicating the weighted average frequency for each hour.
-
-  - Overall Average Frequency: A dashed line marking the system's overall average frequency.
+A `ggplot` object.
 }
 \description{
-`plot_frequency` generates an interactive plot of the frequency of trips by hour across the GTFS dataset. The plot shows hourly trip distributions, hourly average frequency, and an overall average frequency for the system, providing insights into peak times and overall transit service frequency.
-}
-\details{
-The function first calculates hourly and overall average frequencies using a weighted mean based on `pattern_frequency`. Frequencies are plotted by hour of the day to visualize the system's trip distribution patterns.
+Shows the distribution and weighted mean of scheduled trip departures by
+hour. Service-pattern date counts provide the weights.
 }
 \examples{
-if (interactive()) {
-# Plot the frequency of trips by hour for a GTFS object
 plot_frequency(for_rail_gtfs)
-}
 
 }
 \seealso{

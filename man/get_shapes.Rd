@@ -2,37 +2,30 @@
 % Please edit documentation in R/get_shapes.R
 \name{get_shapes}
 \alias{get_shapes}
-\title{Generate Shapes Table for GTFS Data}
+\title{Infer Straight-Line Shapes from Stop Sequences}
 \usage{
 get_shapes(gtfs)
 }
 \arguments{
-\item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted automatically.}
+\item{gtfs}{A GTFS object.}
 }
 \value{
-A modified GTFS object that includes a `shapes` table derived from the stops and trips information.
+A `wizardgtfs` object with a new `shapes` table and updated
+  `trips$shape_id`.
 }
 \description{
-The `get_shapes` function reconstructs the `shapes` table for a GTFS dataset using an approximation based on stop coordinates and sequence information. It creates geometric representations of trips by connecting stops in sequence for each trip.
+Builds one shape for each unique ordered stop pattern and assigns it to the
+corresponding trips.
 }
 \details{
-This function constructs the `shapes` table by sequentially connecting stops along each trip using a Euclidean approximation. If the GTFS object already contains a `shapes` table, it will be overwritten, and a warning will be displayed. The process involves:
-
-- Selecting and arranging stops by trip and sequence
-
-- Connecting stops with line segments to form a path for each trip
-
-- Grouping unique paths into distinct shape IDs
-}
-\note{
-This approximation may not perfectly represent real-world shapes, especially for complex or curved routes.
-`get_shapes()` uses stop sequences to recriate the shapes table; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
+Consecutive stop coordinates are connected directly. The result is useful
+for visualization and approximate distance analysis, but it is not a
+map-matched representation of the vehicle path.
 }
 \examples{
-# Generate a shapes table for a GTFS object
-gtfs_with_shapes <- get_shapes(gtfs = for_rail_gtfs)
+gtfs_with_shapes <- get_shapes(for_rail_gtfs)
 
 }
 \seealso{
-[GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_shapes_df()]
+[GTFSwizard::get_shapes_sf()], [GTFSwizard::get_shapes_df()]
 }

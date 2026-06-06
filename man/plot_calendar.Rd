@@ -2,40 +2,40 @@
 % Please edit documentation in R/plot_calendar.R
 \name{plot_calendar}
 \alias{plot_calendar}
-\title{Plot Trip Frequency Calendar for GTFS Data}
+\title{Plot the GTFS Service Calendar}
 \usage{
-plot_calendar(gtfs, ncol = 6, facet_by_year = FALSE)
+plot_calendar(
+  gtfs,
+  ncol = 4,
+  facet_by_year = FALSE,
+  fill = c("trips", "service_pattern")
+)
 }
 \arguments{
-\item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.}
+\item{gtfs}{A GTFS object.}
 
-\item{ncol}{Number of columns for monthly faceting. Ignored if `facet_by_year = TRUE`.}
+\item{ncol}{Number of facet columns when `facet_by_year = FALSE`.}
 
-\item{facet_by_year}{Logical value. If `TRUE`, plots data by year with each month in a separate column.}
+\item{facet_by_year}{Logical. Arrange years in rows and months in columns.}
+
+\item{fill}{Calendar fill. `"trips"` shows trip counts; `"service_pattern"`
+uses a discrete color for each service pattern.}
 }
 \value{
-A `ggplot2` object showing a calendar heatmap of the daily trip counts across the specified GTFS date range.
+A `ggplot` object.
 }
 \description{
-`plot_calendar` creates a calendar heatmap visualization of the number of trips in a GTFS dataset for each day, with options for monthly and yearly faceting.
-}
-\details{
-- The function calculates daily trip frequencies from the `service_id` and `dates_services` tables in the GTFS object.
-
-- Days with no trips are marked in black, while other days are shaded on a gradient from pink (low trip count) to red (high trip count).
-
-- If `facet_by_year = TRUE`, the plot will display each year in separate rows, and `ncol` is ignored.
+Creates a calendar heatmap of scheduled trips by service date.
 }
 \examples{
-\donttest{
-# Plot a GTFS trip calendar with 4 columns
 plot_calendar(for_rail_gtfs, ncol = 4)
-
-# Plot a GTFS trip calendar, faceting by year
-plot_calendar(for_rail_gtfs, facet_by_year = TRUE)
-}
+plot_calendar(
+  for_rail_gtfs,
+  facet_by_year = TRUE,
+  fill = "service_pattern"
+)
 
 }
 \seealso{
-[GTFSwizard::as_wizardgtfs()]
+[GTFSwizard::get_servicepattern()]
 }

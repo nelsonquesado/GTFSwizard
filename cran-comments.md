@@ -1,18 +1,20 @@
-── R CMD check results ──────────────────────────── GTFSwizard 1.1.0 ────
-Duration: 3m 4.1s
+## R CMD check results
 
-❯ checking package dependencies ... NOTE
-  Imports includes 28 non-default packages.
-  Importing from so many packages makes the package vulnerable to any of
-  them becoming unavailable.  Move as many as possible to Suggests and
-  use conditionally.
+Local check:
 
-❯ checking installed package size ... NOTE
-    installed size is  5.3Mb
-    sub-directories of 1Mb or more:
-      data   4.8Mb
+0 errors | 0 warnings | 0 notes
 
-❯ checking for future file timestamps ... NOTE
-  unable to verify current time
+CRAN incoming remote check may report the standard version-status note.
 
-0 errors ✔ | 0 warnings ✔ | 3 notes ✖
+## Resubmission
+
+This is development version 1.2.1, following version 1.2.0 submitted to CRAN.
+
+Version 1.2.1 standardizes method and argument names, improves
+`tidy_raptor()`, and adds schedule-based planning indicators to
+`explore_gtfs()`.
+
+Legacy dotted method values and argument names remain accepted for backward
+compatibility.
+
+All examples, tests, Rd files, dependencies, and package code passed.

@@ -3,67 +3,64 @@
 \name{selection}
 \alias{selection}
 \alias{unselection}
-\title{Select Subsets of GTFS Data}
+\title{Group or Select GTFS Records Without Filtering the Feed}
 \usage{
 selection(gtfs, ..., add = FALSE)
 
 unselection(gtfs)
 }
 \arguments{
-\item{gtfs}{An object representing GTFS data. It can be a list or a `wizardgtfs` class gtfsect.}
+\item{gtfs}{A GTFS object.}
 
-\item{...}{Expressions used to filter the data within `gtfs`. The expressions can operate on four GTFS variables:
-  \describe{
-    \item{\code{"stop_id"}}{Select the GTFS by stops using a vector of stop_id, must be character.}
-    \item{\code{"route_id"}}{Select the GTFS by routes using a vector of route_id, must be character.}
-    \item{\code{"trip_id"}}{Select the GTFS by trip using a vector of trip_id, must be character.}
-    \item{\code{"geometry"}}{Select the GTFS by stops using an `sf`, `sfc`, or `sfg` object. The geometry predicate function is evaluated with the geometry of the GTFS stops. Available predicates are:
+\item{...}{Unquoted grouping columns, computed grouping expressions, or
+logical selection expressions. Columns from `stop_times`, `trips`,
+`routes`, and `stops` are available. A `geometry` column is available for
+stop-based spatial predicates.}
 
-             \code{\%intersects\%}
-
-             \code{\%touches\%}
-
-             \code{\%within\%}
-
-             \code{\%equals\%}
-
-             \code{\%overlaps\%}
-
-             \code{\%contains\%}.}
-  }}
-
-\item{add}{A logical argument. If `TRUE`, appends the new selection to existing ones in the gtfsect; otherwise, creates a new selection.}
+\item{add}{Logical. When `TRUE`, add the new grouping or selection
+expressions to an existing selection. When `FALSE`, replace it.}
 }
 \value{
-A `wizardgtfs_selected` wizardgtfs, which is a modified version of the original attributes with the selections applied. If the expression yields no matches, returns the original gtfs unchanged.
+The unchanged feed with class `wizardgtfs_selected` and a
+  `selection` attribute. The attribute contains `groups`, `group_vars`,
+  selected route, trip, and stop IDs, and the original expressions.
 }
 \description{
-The “selection” function makes a selection in the GTFS file without altering or filtering the GTFS file.
+Creates persistent selection metadata while leaving every GTFS table
+unchanged. Bare columns and computed values define groups, similarly to
+[dplyr::group_by()]. Logical expressions restrict the records represented
+by those groups.
 }
 \details{
-The function evaluates the provided expressions in an environment restricted to recognized variables (`stop_id`, `route_id`, `trip_id`, `geometry`). An error is thrown if an unrecognized variable is used, indicating that only specific variables are allowed.
+A bare expression such as `route_id` creates one group per route. Multiple
+grouping expressions create combinations, for example
+`selection(gtfs, route_id, direction_id)`. Logical expressions such as
+`route_id %in% c("1", "2")` restrict the records represented in the
+selection but do not remove rows from the GTFS feed.
+
+Spatial expressions may use `geometry` with `%intersects%`, `%touches%`,
+`%crosses%`, `%within%`, `%contains%`, `%overlaps%`, or `%equals%`.
 }
 \examples{
-# Apply the selection function
-result <- selection(for_rail_gtfs,
- stop_id == for_rail_gtfs$stops$stop_id[1] & trip_id \%in\% for_rail_gtfs$trips$trip_id[1:5])
+grouped <- selection(for_rail_gtfs, route_id, direction_id)
+attr(grouped, "selection")$groups
 
-# Check the selection
-class(result)
-attr(result, 'selection')
+selected <- selection(
+  for_rail_gtfs,
+  route_id,
+  stop_id \%in\% for_rail_gtfs$stops$stop_id[1:3]
+)
 
-# Use geometry selection
-bbox <- sf::st_bbox(c(
-  xmin = -38.57219059002416,
-  ymin = -3.7999496173114118,
-  xmax = -38.50455165901261,
-  ymax = -3.756631724636505
-),
-crs = sf::st_crs(4326))  # Set CRS to WGS 84
+bbox <- sf::st_bbox(
+  c(xmin = -38.58, ymin = -3.81, xmax = -38.50, ymax = -3.75),
+  crs = sf::st_crs(4326)
+)
+spatial <- selection(
+  for_rail_gtfs,
+  geometry \%intersects\% sf::st_as_sfc(bbox)
+)
 
-# Convert the bounding box to a polygon
-polygon <- sf::st_as_sfc(bbox)
-
-result <- selection(for_rail_gtfs, geometry \%intersects\% polygon)
-
+}
+\seealso{
+[GTFSwizard::unselection()], [dplyr::group_by()]
 }

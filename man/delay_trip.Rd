@@ -2,39 +2,33 @@
 % Please edit documentation in R/delay_trip.R
 \name{delay_trip}
 \alias{delay_trip}
-\title{Delay Specified Trips in a `wizardgtfs` Object}
+\title{Shift Trips in Time}
 \usage{
 delay_trip(gtfs, trip, duration)
 }
 \arguments{
-\item{gtfs}{An object representing GTFS data, preferably of class `wizardgtfs`.}
+\item{gtfs}{A GTFS object.}
 
-\item{trip}{A character vector of `trip_id`s in the `wizardgtfs` object that will be delayed. Each `trip_id` must exist in `gtfs$trips$trip_id`.}
+\item{trip}{Character vector of `trip_id` values.}
 
-\item{duration}{A delay duration, either as a `duration` object or a numeric value representing seconds.}
+\item{duration}{Numeric seconds or an object coercible to seconds, such as
+a `difftime`.}
 }
 \value{
-A modified `wizardgtfs` object with updated arrival and departure times for the specified trips.
+A modified `wizardgtfs` object.
 }
 \description{
-This function adds a delay to the arrival and departure times of specified trips within a `wizardgtfs` object.
-If the input GTFS object is not of class `wizardgtfs`, it will be converted.
-}
-\details{
-This function adjusts the arrival and departure times of the specified `trip_id`s in `gtfs$stop_times` by the specified `duration`.
-If `gtfs` is not a `wizardgtfs` object, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`, and a warning will be issued.
-The function checks that `trip` contains valid `trip_id`s and that `duration` is either a `duration` or numeric (seconds).
+Adds a number of seconds to every non-empty arrival and departure time for
+selected trips. GTFS times above 24 hours are preserved.
 }
 \examples{
-# Delay trips by 5 minutes
-gtfs <- delay_trip(gtfs = for_rail_gtfs, for_rail_gtfs$trips$trip_id[1:2], duration = 300)
-
-# Delay trips by duration
-gtfs <- delay_trip(gtfs = for_rail_gtfs,
-                    trip = for_rail_gtfs$trips$trip_id[1],
-                    duration = lubridate::duration(10, "minutes"))
+delayed <- delay_trip(
+  for_rail_gtfs,
+  trip = for_rail_gtfs$trips$trip_id[1:2],
+  duration = 300
+)
 
 }
 \seealso{
-[GTFSwizard::as_wizardgtfs()] for converting GTFS objects to `wizardgtfs` class.
+[GTFSwizard::edit_speed()], [GTFSwizard::set_dwelltime()]
 }

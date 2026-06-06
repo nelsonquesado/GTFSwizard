@@ -2,31 +2,22 @@
 % Please edit documentation in R/get_stops_sf.R
 \name{get_stops_sf}
 \alias{get_stops_sf}
-\title{Convert GTFS Stops Table to Simple Features (sf) Format}
+\title{Convert GTFS Stops to Simple Features}
 \usage{
 get_stops_sf(gtfs)
 }
 \arguments{
-\item{gtfs}{A `wizardgtfs` object containing a `stops` table or the stops table itself as a data frame.}
+\item{gtfs}{A GTFS object or a `stops` data frame.}
 }
 \value{
-An `sf` object with stops as point geometries or a `wizardgtfs` object.
+For a data frame, a WGS84 point `sf` object. For a GTFS object, the
+  same object with its `stops` table converted to `sf`.
 }
 \description{
-`get_stops_sf` converts the stops table in a `wizardgtfs` object into a simple features (`sf`) object, making it suitable for spatial analysis. This function checks the format of the `stops` data and structures it as point geometries.
-}
-\details{
-- When the input `stops` table is not in `sf` format, this function converts it to `sf` by using the coordinates in the `stop_lon` and `stop_lat` columns.
-
-- The resulting `sf` object is assigned a CRS of WGS 84 (EPSG:4326) for geographic compatibility.
-
-- If the `stops` table is already in `sf` format, the function simply reassigns the CRS and returns it unchanged.
+Convert GTFS Stops to Simple Features
 }
 \examples{
-# Convert stops data in a GTFS object to sf format
 gtfs_sf <- get_stops_sf(for_rail_gtfs)
+stops_sf <- get_stops_sf(for_rail_gtfs$stops)
 
-}
-\seealso{
-[GTFSwizard::get_shapes()], [GTFSwizard::get_shapes_sf()], [GTFSwizard::get_shapes_df()]
 }

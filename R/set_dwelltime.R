@@ -1,81 +1,73 @@
-#' Set Dwell Time for GTFS Stops
+#' Set Dwell Times
 #'
-#' @description
-#' The `set_dwelltime` function updates the arrival and departure times in the `stop_times` table of a GTFS object based on a specified dwell time duration. The function modifies the dwell time for selected trips and stops, or for all trips and stops by default.
+#' Sets dwell time at selected trip-stop calls and propagates each change to
+#' all later times in the same trip. Arrival at the edited stop is retained.
 #'
-#' @param gtfs A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.
-#' @param duration A numeric value specifying the desired dwell time in seconds. Defaults to 30 seconds.
-#' @param trips A character vector of trip IDs for which the dwell time will be updated. Use `'all'` to update all trips (default).
-#' @param stops A character vector of stop IDs for which the dwell time will be updated. Use `'all'` to update all stops (default).
+#' @param gtfs A GTFS object.
+#' @param duration One non-negative dwell time in seconds.
+#' @param trips,stops Character ID vectors or `"all"`.
 #'
-#' @return A modified GTFS object with updated arrival and departure times in the `stop_times` table.
-#'
-#' @details
-#' This function calculates the midpoint between the original `arrival_time` and `departure_time` for the specified trips and stops. It then adjusts these times based on the desired dwell time (`duration`), ensuring that the dwell time is evenly distributed around the midpoint.
+#' @return A modified `wizardgtfs` object.
 #'
 #' @examples
-#' # Set dwell time to 30 seconds for specific trips and stops
-#' set_dwelltime(for_rail_gtfs, duration = 30,
-#'                trips = for_rail_gtfs$trips$trip_id[1:2],
-#'                stops = for_rail_gtfs$stops$stop_id[1:2])
+#' edited <- set_dwelltime(
+#'   for_rail_gtfs,
+#'   duration = 30,
+#'   trips = for_rail_gtfs$trips$trip_id[1:2],
+#'   stops = for_rail_gtfs$stops$stop_id[1:2]
+#' )
 #'
-#' @note
-#' Ensure the `stop_times` table contains valid `arrival_time` and `departure_time` values. Empty or missing times may cause computation issues.
-#'
-#' @seealso [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_dwelltimes()]
-#'
-#' @importFrom dplyr filter mutate mutate_at select
-#' @importFrom stringr str_split
-#' @importFrom checkmate assert_subset
-#' @importFrom hms as_hms
+#' @seealso [GTFSwizard::edit_dwelltime()], [GTFSwizard::get_dwelltimes()]
 #' @export
-set_dwelltime <- function(gtfs, duration = 30, trips = 'all', stops = 'all') {
-
-  checkmate::assert_subset(trips, choices = c('all', gtfs$trips$trip_id))
-  checkmate::assert_subset(stops, choices = c('all', gtfs$stops$stop_id))
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+set_dwelltime <- function(gtfs, duration = 30, trips = "all", stops = "all"){
+  if(!is.numeric(duration) || length(duration) != 1L ||
+     is.na(duration) || duration < 0){
+    gw_stop("`duration` must be one non-negative number of seconds.")
   }
-
-  if(!is.numeric(duration)) {stop(crayon::cyan("duration"), " must be of the class numeric (seconds)")}
-
-  if(any(stops == 'all')) {stops <- gtfs$stops$stop_id}
-
-  if(any(trips == 'all')) {trips <- gtfs$trips$trip_id}
-
-  gtfs$stop_times <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '' | !departure_time == "") %>%
-    dplyr::mutate(edit = trip_id %in% trips & stop_id %in% stops) %>%
-    dplyr::mutate(
-      arrival_time_sec = arrival_time %>%
-                                  stringr::str_split(":") %>%
-                                  lapply(FUN = as.numeric) %>%
-                                  lapply(FUN = function(x){
-                                    x[1]*60*60+x[2]*60+x[3]
-                                  }) %>%
-                                  unlist() %>%
-                                  na.omit(),
-      departure_time_sec = departure_time %>%
-                                    stringr::str_split(":") %>%
-                                    lapply(FUN = as.numeric) %>%
-                                    lapply(FUN = function(x){
-                                      x[1]*60*60+x[2]*60+x[3]
-                                    }) %>%
-                                    unlist() %>%
-                                    na.omit(),
-      mid_dwelltime = ifelse(edit, (arrival_time_sec + departure_time_sec)/2, NA),
-    ) %>%
-  dplyr::mutate(
-    arrival_time = ifelse(edit, mid_dwelltime - round((duration/2)), arrival_time_sec),
-    departure_time = ifelse(edit, mid_dwelltime + (duration - round((duration/2))), departure_time_sec),
-  ) %>%
-    dplyr::mutate_at(c('arrival_time', 'departure_time'), function(x){as.character(hms::as_hms(x))}) %>%
-    select(-mid_dwelltime, -edit, -arrival_time_sec, -departure_time_sec)
-
-  return(gtfs)
-
+  update_dwell_times(gtfs, trips, stops, function(x) rep(round(duration), length(x)))
 }
 
+update_dwell_times <- function(gtfs, trips, stops, transform){
+  gtfs <- ensure_wizardgtfs(gtfs)
+  trips <- resolve_selection_ids(trips, gtfs$trips$trip_id, "trip")
+  stops <- resolve_selection_ids(stops, gtfs$stops$stop_id, "stop")
+
+  original_order <- seq_len(nrow(gtfs$stop_times))
+  stop_times <- gtfs$stop_times
+  stop_times$.row <- original_order
+  stop_times <- stop_times[order(stop_times$trip_id, stop_times$stop_sequence), ]
+  arrival <- gtfs_time_to_seconds(stop_times$arrival_time)
+  departure <- gtfs_time_to_seconds(stop_times$departure_time)
+  editable <- stop_times$trip_id %in% trips & stop_times$stop_id %in% stops &
+    !is.na(arrival) & !is.na(departure)
+  dwell <- departure - arrival
+  if(any(editable & dwell < 0)){
+    gw_stop("selected calls contain a departure before arrival.")
+  }
+
+  delta <- rep(0, nrow(stop_times))
+  delta[editable] <- transform(dwell[editable]) - dwell[editable]
+  groups <- split(seq_len(nrow(stop_times)), stop_times$trip_id)
+  for(index in groups){
+    cumulative <- cumsum(delta[index])
+    before <- c(0, utils::head(cumulative, -1L))
+    arrival[index] <- arrival[index] + before
+    departure[index] <- departure[index] + cumulative
+  }
+  valid_arrival <- !is.na(arrival)
+  valid_departure <- !is.na(departure)
+  stop_times$arrival_time[valid_arrival] <- seconds_to_gtfs_time(arrival[valid_arrival])
+  stop_times$departure_time[valid_departure] <- seconds_to_gtfs_time(departure[valid_departure])
+  stop_times <- stop_times[order(stop_times$.row), ]
+  stop_times$.row <- NULL
+  gtfs$stop_times <- tibble::as_tibble(stop_times)
+  gtfs
+}
+
+resolve_selection_ids <- function(value, available, label){
+  if(length(value) == 1L && identical(value, "all")){
+    return(as.character(available))
+  }
+  assert_known_ids(value, available, label, paste0("the `", label, "s` table"))
+  as.character(value)
+}

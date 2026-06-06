@@ -4,27 +4,29 @@
 \alias{get_dwelltimes}
 \title{Calculate Dwell Times in GTFS Data}
 \usage{
-get_dwelltimes(gtfs, max.dwelltime = 90, method = "by.route")
+get_dwelltimes(gtfs, max_dwelltime = 90, method = "by_trip", ...)
 }
 \arguments{
 \item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.}
 
-\item{max.dwelltime}{Numeric. The maximum allowable dwell time (in seconds). Dwell times exceeding this value are excluded from the calculations. Defaults to 90 seconds.}
+\item{max_dwelltime}{Numeric. Maximum allowable dwell time in seconds.}
 
 \item{method}{A character string specifying the calculation method. Options include:
 \describe{
-  \item{"by.hour"}{Calculates the average dwell time per hour of the day across all trips.}
-  \item{"by.route"}{Calculates the average dwell time for each route.}
-  \item{"by.trip"}{Calculates the average dwell time for each trip.}
+  \item{"by_hour"}{Calculates the average dwell time per hour of the day across all trips.}
+  \item{"by_route"}{Calculates the average dwell time for each route.}
+  \item{"by_trip"}{Calculates the average dwell time for each trip.}
   \item{"detailed"}{Calculates detailed dwell times at each stop within every trip.}
 }}
+
+\item{...}{Supports the legacy argument `max.dwelltime`.}
 }
 \value{
 A data frame containing dwell times based on the specified method:
   \describe{
-    \item{If `method = "by.hour"`}{Returns a data frame with columns: `hour`, `trips`, `average.dwelltime`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "by.route"`}{Returns a data frame with columns: `route_id`, `trips`, `average.dwelltime`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "by.trip"`}{Returns a data frame with columns: `route_id`, `trip_id`, `average.dwelltime`, `service_pattern`, and `pattern_frequency`.}
+    \item{If `method = "by_hour"`}{Returns a data frame with columns: `hour`, `trips`, `average.dwelltime`, `service_pattern`, and `pattern_frequency`.}
+    \item{If `method = "by_route"`}{Returns average dwell time by route, direction, and service pattern.}
+    \item{If `method = "by_trip"`}{Returns average dwell time by trip, retaining direction when available.}
     \item{If `method = "detailed"`}{Returns a data frame with columns: `route_id`, `trip_id`, `stop_id`, `hour`, `dwell_time`, `service_pattern`, and `pattern_frequency`.}
   }
 }
@@ -34,28 +36,29 @@ The `get_dwelltimes` function calculates dwell times within a `wizardgtfs` objec
 \details{
 This function calls specific sub-functions based on the selected method:
 
-- "by.hour": Calculates the average dwell time for each hour of the day.
+- "by_hour": Calculates the average dwell time for each hour of the day.
 
-- "by.route": Calculates average dwell times across each route.
+- "by_route": Calculates average dwell times across each route.
 
-- "by.trip": Calculates the total dwell time for each trip.
+- "by_trip": Calculates the mean dwell time for each trip.
 
-- "detailed": Calculates the dwell time between consecutive stops within each trip.
+- "detailed": Calculates departure minus arrival at each stop call.
 
-If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
+Legacy dotted values remain accepted. If an invalid `method` is specified,
+the function defaults to `"by_trip"` and provides a warning.
 }
 \examples{
 # Calculate dwell times by hour
-dwelltimes_by_hour <- get_dwelltimes(gtfs = for_rail_gtfs, max.dwelltime = 120, method = "by.hour")
+dwelltimes_by_hour <- get_dwelltimes(gtfs = for_rail_gtfs, max_dwelltime = 120, method = "by_hour")
 
 # Calculate dwell times by route
-dwelltimes_by_route <- get_dwelltimes(gtfs = for_rail_gtfs, max.dwelltime = 90, method = "by.route")
+dwelltimes_by_route <- get_dwelltimes(gtfs = for_rail_gtfs, max_dwelltime = 90, method = "by_route")
 
 # Calculate dwell times by trip
-dwelltimes_by_trip <- get_dwelltimes(gtfs = for_rail_gtfs, max.dwelltime = 45, method = "by.trip")
+dwelltimes_by_trip <- get_dwelltimes(gtfs = for_rail_gtfs, max_dwelltime = 45, method = "by_trip")
 
 # Calculate detailed dwell times between stops
-detailed_dwelltimes <- get_dwelltimes(gtfs = for_rail_gtfs, max.dwelltime = 60, method = "detailed")
+detailed_dwelltimes <- get_dwelltimes(gtfs = for_rail_gtfs, max_dwelltime = 60, method = "detailed")
 
 }
 \seealso{

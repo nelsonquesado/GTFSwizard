@@ -2,33 +2,30 @@
 % Please edit documentation in R/write_gtfs.R
 \name{write_gtfs}
 \alias{write_gtfs}
-\title{Write GTFS Data to Zip File}
+\title{Write a GTFS Feed}
 \usage{
 write_gtfs(gtfs, zipfile, ...)
 }
 \arguments{
-\item{gtfs}{A GTFS object. This can be in `wizardgtfs` or list format.}
+\item{gtfs}{A GTFS object.}
 
-\item{zipfile}{A character string specifying the path to the output zip file.}
+\item{zipfile}{Output `.zip` path.}
 
-\item{...}{Additional arguments to pass to `gtfsio::export_gtfs()`.}
+\item{...}{Additional arguments passed to the format-specific writer.}
 }
 \value{
-None. This function writes the GTFS data directly to the specified `zipfile`.
+The normalized output path, invisibly.
 }
 \description{
-`write_gtfs` exports a GTFS object to a zip file format, suitable for use in various GTFS-compatible software. This function supports multiple GTFS object formats and ensures compatibility by converting data frames and spatial objects as needed.
-}
-\details{
-The function converts spatial data frames (e.g., shapes and stops) to standard data frames, removes additional service pattern tables, and exports.
+Exports a GTFS object to a zip archive. Internal `dates_services` data are
+omitted, GTFS dates use `YYYYMMDD`, and spatial stops/shapes are converted
+back to standard text-table columns.
 }
 \examples{
-\dontrun{
-# Export a wizardgtfs object to a zip file
-write_gtfs(for_rail_gtfs, "gtfs_export.zip")
-}
+path <- tempfile(fileext = ".zip")
+write_gtfs(for_rail_gtfs, path)
 
 }
 \seealso{
-[GTFSwizard::read_gtfs()], [GTFSwizard::as_wizardgtfs()],
+[GTFSwizard::read_gtfs()]
 }

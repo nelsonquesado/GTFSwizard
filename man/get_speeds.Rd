@@ -2,56 +2,37 @@
 % Please edit documentation in R/get_speeds.R
 \name{get_speeds}
 \alias{get_speeds}
-\title{Calculate Speeds for GTFS Routes and Trips}
+\title{Calculate Scheduled Speeds}
 \usage{
-get_speeds(gtfs, method = "by.route", trips = "all")
+get_speeds(gtfs, method = "by_trip", trips = "all")
 }
 \arguments{
-\item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If the `shapes` table is missing, it will be created automatically using `get_shapes()`.}
+\item{gtfs}{A GTFS object.}
 
-\item{method}{A character string specifying the calculation method. Options include:
-\describe{
-  \item{"by.route"}{Calculates the average speed for each route based on average distance and duration.}
-  \item{"by.trip"}{Calculates the average speed for each trip based on total distance and duration.}
-  \item{"detailed"}{Calculates the speed for each segment between stops within a trip.}
-}}
+\item{method}{One of `"by_trip"`, `"by_route"`, or `"detailed"`.
+Legacy dotted values remain accepted.}
 
-\item{trips}{A character vector of trip IDs to consider. When set to `all`, includes all trips.}
+\item{trips}{Character trip IDs or `"all"`.}
 }
 \value{
-A data frame containing speed calculations, depending on the specified method:
-  \describe{
-    \item{If `method = "by.route"`}{Returns a data frame with columns: `route_id`, `trips`, `average.speed`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "by.trip"`}{Returns a data frame with columns: `route_id`, `trip_id`, `average.speed`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "detailed"`}{Returns a data frame with columns: `route_id`, `trip_id`, `hour`, `from_stop_id`, `to_stop_id`, `speed`, `service_pattern`, and `pattern_frequency`.}
-  }
+A tibble with `average.speed` for route and trip methods, or
+  segment-level `speed` for the detailed method. `direction_id` is retained
+  when available.
 }
 \description{
-`get_speeds` calculates the average speed of trips and routes within a `wizardgtfs` object. It uses distance and duration to provide speed outputs based on the specified `method`.
+Combines distance in meters and duration in seconds to calculate kilometers
+per hour.
 }
 \details{
-- This function calls specific sub-functions based on the selected `method`:
-  \describe{
-    \item{`by.route`}{Calculates average speed across each route.}
-    \item{`by.trip`}{Calculates average speed across each trip.}
-    \item{`detailed`}{Calculates speeds between consecutive stops within each trip.}
-  }
-
-- If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
+Detailed distances are straight-line geodesic distances between stops.
+Route and trip distances follow `shapes.txt`, or inferred straight-line
+shapes if the feed has none.
 }
 \examples{
-# Calculate average route speeds
-speeds_by_route <- get_speeds(gtfs = for_rail_gtfs, method = "by.route", trips = 'all')
-
-# Calculate trip speeds
-speeds_by_trip <- get_speeds(gtfs = for_rail_gtfs, method = "by.trip", trips = 'all')
-
-\donttest{
-# Calculate detailed speeds between stops
-detailed_speeds <- get_speeds(gtfs = for_rail_gtfs, method = "detailed", trips = 'all')
-}
+get_speeds(for_rail_gtfs, "by_route")
+get_speeds(for_rail_gtfs, "by_trip")
 
 }
 \seealso{
-[GTFSwizard::get_distances()], [GTFSwizard::get_durations()], [GTFSwizard::get_shapes()]
+[GTFSwizard::get_distances()], [GTFSwizard::get_durations()]
 }

@@ -2,37 +2,25 @@
 % Please edit documentation in R/latlon2epsg.R
 \name{latlon2epsg}
 \alias{latlon2epsg}
-\title{Transform Spatial Data to a Local UTM Coordinate System}
+\title{Transform Spatial Data to a Local Metric CRS}
 \usage{
 latlon2epsg(sf_obj)
 }
 \arguments{
-\item{sf_obj}{An `sf` object representing spatial features. This object must have a valid CRS with latitude and longitude coordinates.}
+\item{sf_obj}{An `sf` or `sfc` object with a defined CRS.}
 }
 \value{
-An `sf` object transformed to the appropriate UTM coordinate reference system.
+The input transformed to EPSG 326xx/327xx, EPSG 3413, or EPSG 3031.
 }
 \description{
-The `latlon2epsg` function determines the appropriate UTM (Universal Transverse Mercator) EPSG code for a given `sf` object
-based on its centroid's latitude and longitude. It then transforms the object to the identified coordinate reference system (CRS).
-}
-\details{
-The function calculates the geographic centroid of the input spatial object and determines its latitude and longitude.
-Based on the latitude:
-\describe{
-  \item{Latitudes above 84°}{The object is transformed to EPSG:3413 (North Pole).}
-  \item{Latitudes below -80°}{The object is transformed to EPSG:3031 (South Pole).}
-  \item{Latitudes between -80° and 84°}{The function calculates the UTM zone based on longitude and transforms the object
-  to the appropriate UTM EPSG code (EPSG:326XX for the Northern Hemisphere, EPSG:327XX for the Southern Hemisphere).}
-}
-}
-\note{
-The function requires that the input `sf` object already has a valid CRS defined (e.g., WGS84).
+Selects a UTM zone from the geographic centroid, or a polar stereographic
+CRS outside UTM's latitude range.
 }
 \examples{
-latlon2epsg(get_shapes_sf(for_bus_gtfs)$shapes)
+shapes <- get_shapes_sf(for_rail_gtfs)$shapes
+metric_shapes <- latlon2epsg(shapes)
 
 }
 \seealso{
-[sf::st_transform()], [sf::st_centroid()], [sf::st_union()]
+[sf::st_transform()]
 }

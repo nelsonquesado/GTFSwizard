@@ -2,74 +2,38 @@
 % Please edit documentation in R/get_headways.R
 \name{get_headways}
 \alias{get_headways}
-\title{Calculate Headways in GTFS Data}
+\title{Calculate Scheduled Headways}
 \usage{
-get_headways(gtfs, method = "by.route")
+get_headways(gtfs, method = "by_trip")
 }
 \arguments{
-\item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.}
+\item{gtfs}{A GTFS object.}
 
-\item{method}{A character string specifying the calculation method. Options include:
-\describe{
-  \item{"by.route"}{Calculates the average headway for each route, assuming constant headways along stops.}
-  \item{"by.hour"}{Calculates the hourly headway for each route, assuming constant headways along stops.}
-  \item{"by.trip"}{Calculates headways for each trip, assuming constant headways along stops.}
-  \item{"by.stop"}{Calculates headways for each stop.}
-  \item{"by.shape"}{Calculates headways for each shape}
-  \item{"detailed"}{Calculates detailed headways between consecutive stops within each route and trip.}
-}}
+\item{method}{One of `"by_trip"`, `"by_route"`, `"by_hour"`, `"by_stop"`,
+`"by_shape"`, or `"detailed"`. Legacy dotted values remain accepted.}
 }
 \value{
-A data frame containing service headways based on the specified method:
-  \describe{
-    \item{If `method = "by.route"`}{Returns a data frame with columns: `route_id`, `valid_trips`, `average_headway`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "by.hour"`}{Returns a data frame with columns: `hour`, `valid_trips`, `average_headway`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "by.trip"`}{Returns a data frame with columns: `route_id`, `trip_id`, `headway`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "by.stop"`}{Returns a data frame with columns: `stop_id`, `direction_id`, `valid_trips`, `headway`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "by.shape"`}{Returns a data frame with columns: `shape_id`, `direction_id`, `valid_trips`, `headway`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "detailed"`}{Returns a data frame with columns: `route_id`, `trip_id`, `stop_id`, `hour`, `headway`, `service_pattern`, and `pattern_frequency`.}
-  }
+A tibble. Headway values are always returned in
+  `headway_minutes`; `valid_trips` is the number of intervals summarized.
 }
 \description{
-The `get_headways` function calculates headways within a `wizardgtfs` object using different methods. Depending on the selected `method`, it can provide average headways by route, by trip, by hour, or detailed stop-level headways.
+Calculates elapsed minutes between successive service instances. Frequency
+based trips are expanded according to `frequencies.txt`.
 }
 \details{
-This function calls specific sub-functions based on the selected method:
-
-- "by.route": Calculates the average headway for each route based on the first stop time per trip.
-
-- "by.hour": Calculates the hourly headway for each route, grouping trips by hour.
-
-- "by.trip": Calculates headways for each trip, considering only the first stop time.
-
-- "by.stop": Calculates headways for each stop.
-
-- "by.shape": Calculates headways for each shape.
-
-- "detailed": Provides headway calculations for each consecutive stop within each trip.
-
-If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
+Route, hour, and trip methods compare first departures. Stop and detailed
+methods compare arrivals at the same stop, route, direction, and service
+pattern. The first service instance in each group has no headway and is
+omitted.
 }
 \examples{
-# Calculate average route headways
-headways_by_route <- get_headways(gtfs = for_rail_gtfs, method = "by.route")
-
-# Calculate hourly headways
-headways_by_hour <- get_headways(gtfs = for_rail_gtfs, method = "by.hour")
-
-# Calculate headways for each trip
-headways_by_trip <- get_headways(gtfs = for_rail_gtfs, method = "by.trip")
-
-# Calculate headways for each stop
-headways_by_stop <- get_headways(gtfs = for_rail_gtfs, method = "by.stop")
-
-# Calculate headways for each shape
-headways_by_shape <- get_headways(gtfs = for_rail_gtfs, method = "by.shape")
-
-# Calculate detailed stop-level headways
-detailed_headways <- get_headways(gtfs = for_rail_gtfs, method = "detailed")
+get_headways(for_rail_gtfs, "by_route")
+get_headways(for_rail_gtfs, "by_hour")
 
 }
+\references{
+[GTFS Schedule Reference](https://gtfs.org/documentation/schedule/reference/#frequenciestxt)
+}
 \seealso{
-[GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
+[GTFSwizard::get_frequency()]
 }

@@ -1,278 +1,71 @@
-#' Calculate Route Frequency in GTFS Data
+#' Calculate Scheduled Service Frequency
 #'
-#' The `get_frequency` function calculates route frequency within a `wizardgtfs` object using different methods. Depending on the selected `method`, it can provide daily frequencies by route, shape, stop or detailed hourly frequencies.
+#' Counts trip departures by route, shape, stop, or hour. Trips referenced by
+#' `frequencies.txt` are expanded using the period's inclusive `start_time`,
+#' exclusive `end_time`, and `headway_secs`, as required by GTFS.
 #'
-#' @param gtfs A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.
-#' @param method A character string specifying the calculation method. Options include:
-#'   \describe{
-#'     \item{"by.route"}{Calculates the total daily frequency for each route.}
-#'     \item{"by.shape"}{Calculates the total daily frequency for each shape.}
-#'     \item{"by.stop"}{Calculates the total daily frequency for each stop.}
-#'     \item{"detailed"}{Calculates the hourly frequency for each route.}
-#'   }
+#' @param gtfs A GTFS object.
+#' @param method One of `"by_trip"`, `"by_route"`, `"by_shape"`, `"by_stop"`,
+#'   or `"detailed"`. Legacy dotted values remain accepted.
 #'
-#' @return A data frame containing route frequencies based on the specified method:
-#'   \describe{
-#'     \item{If `method = "by.route"`}{Returns a data frame with columns: `route_id`, `direction_id`, `daily.frequency`, `service_pattern`, and `pattern_frequency`.}
-#'     \item{If `method = "by.shape"`}{Returns a data frame with columns: `shape_id`, `direction_id`, `daily.frequency`, `service_pattern`, and `pattern_frequency`.}
-#'     \item{If `method = "by.stop"`}{Returns a data frame with columns: `stop_id`, `direction_id`, `daily.frequency`, `service_pattern`, and `pattern_frequency`.}
-#'     \item{If `method = "detailed"`}{Returns a data frame with columns: `route_id`, `direction_id`, `hour`, `frequency`, `service_pattern`, and `pattern_frequency`.}
-#'   }
-#'
-#' @details
-#' This function calls specific sub-functions based on the selected method:
-#'
-#' - "by.route": Calculates the total daily frequency for each route.
-#'
-#' - "by.shape": Calculates the total daily frequency for each shape.
-#'
-#' - "by.stop": Calculates the total daily frequency for each stop.
-#'
-#' - "detailed": Provides an hourly breakdown of frequency, showing the number of departures per hour for each route and direction.
-#'
-#' If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
+#' @return A tibble containing the selected identifiers, frequency, service
+#'   pattern, and number of dates represented by the pattern.
 #'
 #' @examples
-#' # Calculate daily route frequency
-#' frequency_by_route <- get_frequency(gtfs = for_rail_gtfs, method = "by.route")
+#' get_frequency(for_rail_gtfs, "by_route")
+#' get_frequency(for_rail_gtfs, "detailed")
 #'
-#' # Calculate daily shape frequency
-#' frequency_by_shape <- get_frequency(gtfs = for_rail_gtfs, method = "by.shape")
-#'
-#' # Calculate daily stop frequency
-#' frequency_by_stop <- get_frequency(gtfs = for_rail_gtfs, method = "by.stop")
-#'
-#' # Calculate detailed hourly frequency
-#' detailed_frequency <- get_frequency(gtfs = for_rail_gtfs, method = "detailed")
-#'
-#' @seealso
-#' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
-#'
-#' @importFrom dplyr mutate group_by reframe select left_join filter
-#' @importFrom stringr str_extract
+#' @references
+#' [GTFS Schedule Reference](https://gtfs.org/documentation/schedule/reference/#frequenciestxt)
+#' @seealso [GTFSwizard::get_headways()]
 #' @export
-get_frequency <- function(gtfs, method = 'by.route'){
+get_frequency <- function(gtfs, method = "by_trip"){
+  choices <- c("by_trip", "by_route", "by_shape", "by_stop", "detailed")
+  method <- normalize_method(method, choices, "by_trip")
+  gtfs <- ensure_wizardgtfs(gtfs)
+  instances <- trip_instance_starts(gtfs) |>
+    dplyr::left_join(gtfs$trips, by = "trip_id") |>
+    dplyr::left_join(get_servicepattern(gtfs), by = "service_id")
+  direction <- direction_field(instances)
 
-  if (method == "by.route") {
-    freq <- get_frequency_byroute(gtfs)
+  if(method == "by_stop"){
+    calls <- gtfs$stop_times |>
+      dplyr::distinct(trip_id, stop_id)
+    data <- dplyr::left_join(calls, instances, by = "trip_id")
+    groups <- c("stop_id", direction, "service_pattern", "pattern_frequency")
+    return(data |>
+      dplyr::group_by(dplyr::across(dplyr::all_of(groups))) |>
+      dplyr::summarise(daily.frequency = dplyr::n(), .groups = "drop"))
   }
-
-  if (method == "by.shape") {
-    freq <- get_frequency_byshape(gtfs)
+  if(method == "by_shape"){
+    if(!"shape_id" %in% names(instances)){
+      gw_stop("`by_shape` requires `trips$shape_id`.")
+    }
+    groups <- c("shape_id", direction, "service_pattern", "pattern_frequency")
+    return(instances |>
+      dplyr::group_by(dplyr::across(dplyr::all_of(groups))) |>
+      dplyr::summarise(daily.frequency = dplyr::n(), .groups = "drop"))
   }
-
-  if (method == "by.stop") {
-    freq <- get_frequency_bystop(gtfs)
+  if(method == "detailed"){
+    instances$hour <- floor(instances$start_seconds / 3600)
+    groups <- c(
+      "route_id", direction, "hour", "service_pattern", "pattern_frequency"
+    )
+    return(instances |>
+      dplyr::group_by(dplyr::across(dplyr::all_of(groups))) |>
+      dplyr::summarise(frequency = dplyr::n(), .groups = "drop"))
   }
-
-  if (method == "detailed") {
-    freq <- get_frequency_detailed(gtfs)
+  if(method == "by_trip"){
+    groups <- c(
+      "route_id", "trip_id", direction,
+      "service_pattern", "pattern_frequency"
+    )
+    return(instances |>
+      dplyr::group_by(dplyr::across(dplyr::all_of(groups))) |>
+      dplyr::summarise(daily.frequency = dplyr::n(), .groups = "drop"))
   }
-
-  if (!method %in% c("by.route", "detailed", 'by.shape', 'by.stop')) {
-    freq <- get_frequency_byroute(gtfs)
-    warning(crayon::cyan('method '), 'should be one of ', crayon::cyan('by.route'), ', ', crayon::cyan('by.shape'), ', ', crayon::cyan('by.stop'), ' or ', crayon::cyan('detailed'), '. Returning ', crayon::cyan('method = by.route.'))
-  }
-
-  return(freq)
-
+  groups <- c("route_id", direction, "service_pattern", "pattern_frequency")
+  instances |>
+    dplyr::group_by(dplyr::across(dplyr::all_of(groups))) |>
+    dplyr::summarise(daily.frequency = dplyr::n(), .groups = "drop")
 }
-
-get_frequency_byroute <- function(gtfs){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  service_pattern <-
-    GTFSwizard::get_servicepattern(gtfs)
-
-  if(purrr::is_null(gtfs$trips$direction_id)) {
-
-    freq <-
-      gtfs$stop_times %>%
-      dplyr::filter(!arrival_time == '') %>%
-      dplyr::group_by(trip_id) %>%
-      dplyr::reframe(departure = arrival_time[1]) %>%
-      dplyr::left_join(gtfs$trips,
-                       by = 'trip_id') %>%
-      dplyr::left_join(service_pattern,
-                       by = 'service_id',
-                       relationship = "many-to-many") %>%
-      dplyr::group_by(route_id, service_pattern, pattern_frequency) %>%
-      dplyr::reframe(daily.frequency = n()) %>%
-      dplyr::select(route_id, daily.frequency, service_pattern, pattern_frequency)
-
-  } else {
-
-    freq <-
-      gtfs$stop_times %>%
-      dplyr::filter(!arrival_time == '') %>%
-      dplyr::group_by(trip_id) %>%
-      dplyr::reframe(departure = arrival_time[1]) %>%
-      dplyr::left_join(gtfs$trips,
-                       by = 'trip_id') %>%
-      dplyr::left_join(service_pattern,
-                       by = 'service_id',
-                       relationship = "many-to-many") %>%
-      dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
-      dplyr::reframe(daily.frequency = n()) %>%
-      dplyr::select(route_id, direction_id, daily.frequency, service_pattern, pattern_frequency)
-
-  }
-
-  return(freq)
-
-}
-
-get_frequency_byshape <- function(gtfs){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  service_pattern <-
-    GTFSwizard::get_servicepattern(gtfs)
-
-  if(purrr::is_null(gtfs$trips$direction_id)) {
-
-    freq <-
-      gtfs$stop_times %>%
-      dplyr::filter(!arrival_time == '') %>%
-      dplyr::group_by(trip_id) %>%
-      dplyr::reframe(departure = arrival_time[1]) %>%
-      dplyr::left_join(gtfs$trips,
-                       by = 'trip_id') %>%
-      dplyr::left_join(service_pattern,
-                       by = 'service_id',
-                       relationship = "many-to-many") %>%
-      dplyr::group_by(route_id, service_pattern, pattern_frequency) %>%
-      dplyr::reframe(daily.frequency = n()) %>%
-      dplyr::select(route_id, daily.frequency, service_pattern, pattern_frequency) %>%
-      left_join(unique(select(gtfs$trips, route_id, shape_id)), by = c('route_id'), relationship = "many-to-many") %>%
-      group_by(shape_id, service_pattern, pattern_frequency) %>%
-      reframe(daily.frequency = sum(daily.frequency)) %>%
-      select(shape_id, daily.frequency, service_pattern, pattern_frequency)
-
-  } else {
-
-    freq <-
-      gtfs$stop_times %>%
-      dplyr::filter(!arrival_time == '') %>%
-      dplyr::group_by(trip_id) %>%
-      dplyr::reframe(departure = arrival_time[1]) %>%
-      dplyr::left_join(gtfs$trips,
-                       by = 'trip_id') %>%
-      dplyr::left_join(service_pattern,
-                       by = 'service_id',
-                       relationship = "many-to-many") %>%
-      dplyr::group_by(route_id, direction_id, service_pattern, pattern_frequency) %>%
-      dplyr::reframe(daily.frequency = n()) %>%
-      dplyr::select(route_id, direction_id, daily.frequency, service_pattern, pattern_frequency) %>%
-      left_join(unique(select(gtfs$trips, route_id, direction_id, shape_id)), by = c('route_id', 'direction_id')) %>%
-      group_by(shape_id, direction_id, service_pattern, pattern_frequency) %>%
-      reframe(daily.frequency = sum(daily.frequency)) %>%
-      select(shape_id, direction_id, daily.frequency, service_pattern, pattern_frequency)
-
-  }
-
-  return(freq)
-
-}
-
-get_frequency_bystop <- function(gtfs){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  service_pattern <-
-    GTFSwizard::get_servicepattern(gtfs)
-
-  if(purrr::is_null(gtfs$trips$direction_id)) {
-
-    freq <-
-      gtfs$stop_times %>%
-      dplyr::filter(!arrival_time == '') %>%
-      dplyr::left_join(gtfs$trips,
-                       by = 'trip_id') %>%
-      dplyr::left_join(service_pattern,
-                       by = 'service_id',
-                       relationship = "many-to-many") %>%
-      dplyr::group_by(stop_id, service_pattern, pattern_frequency) %>%
-      dplyr::reframe(daily.frequency = n()) %>%
-      select(stop_id, daily.frequency, service_pattern, pattern_frequency)
-
-  } else {
-
-    freq <-
-      gtfs$stop_times %>%
-      dplyr::filter(!arrival_time == '') %>%
-      dplyr::left_join(gtfs$trips,
-                       by = 'trip_id') %>%
-      dplyr::left_join(service_pattern,
-                       by = 'service_id',
-                       relationship = "many-to-many") %>%
-      dplyr::group_by(stop_id, direction_id, service_pattern, pattern_frequency) %>%
-      dplyr::reframe(daily.frequency = n()) %>%
-      select(stop_id, direction_id, daily.frequency, service_pattern, pattern_frequency)
-
-  }
-
-  return(freq)
-
-}
-
-get_frequency_detailed <- function(gtfs){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  service_pattern <-
-    GTFSwizard::get_servicepattern(gtfs)
-
-  if(purrr::is_null(gtfs$trips$direction_id)) {
-
-    freq <-
-      gtfs$stop_times %>%
-      dplyr::filter(!arrival_time == '') %>%
-      dplyr::group_by(trip_id) %>%
-      dplyr::reframe(departure = arrival_time[1]) %>%
-      dplyr::left_join(gtfs$trips,
-                       by = 'trip_id') %>%
-      dplyr::left_join(service_pattern,
-                       by = 'service_id',
-                       relationship = "many-to-many") %>%
-      dplyr::mutate(hour = str_extract(as.character(departure), '\\d+')) %>%
-      dplyr::group_by(route_id, hour, service_pattern, pattern_frequency) %>%
-      dplyr::reframe(frequency = n()) %>%
-      dplyr::select(route_id, hour, frequency, service_pattern, pattern_frequency)
-
-  } else {
-
-    freq <-
-      gtfs$stop_times %>%
-      dplyr::filter(!arrival_time == '') %>%
-      dplyr::group_by(trip_id) %>%
-      dplyr::reframe(departure = arrival_time[1]) %>%
-      dplyr::left_join(gtfs$trips,
-                       by = 'trip_id') %>%
-      dplyr::left_join(service_pattern,
-                       by = 'service_id',
-                       relationship = "many-to-many") %>%
-      dplyr::mutate(hour = str_extract(as.character(departure), '\\d+')) %>%
-      dplyr::group_by(route_id, direction_id, hour, service_pattern, pattern_frequency) %>%
-      dplyr::reframe(frequency = n()) %>%
-      dplyr::select(route_id, direction_id, hour, frequency, service_pattern, pattern_frequency)
-
-  }
-
-  return(freq)
-
-}
-

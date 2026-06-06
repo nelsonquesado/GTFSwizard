@@ -1,109 +1,132 @@
-#' Identify and Extract Transit Corridors
+#' Identify High-Frequency Transit Corridors
 #'
-#' The `get_corridor` function identifies and extracts high-density transit corridors based on trip frequency between stops. It groups segments into connected corridors, and filters them based on a minimum length criterion.
+#' Finds frequently served adjacent stop pairs, joins connected pairs into
+#' corridors, and measures them in a local metric CRS.
 #'
-#' @param gtfs A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.
-#' @param i A numeric value representing the percentile threshold for selecting high-density segments. Defaults to `0.01` (top 1\% of segments by trip frequency).
-#' @param min.length A numeric value specifying the minimum corridor length (in meters) to retain. Defaults to `1500`.
+#' @param gtfs A GTFS object.
+#' @param i Proportion of the highest-frequency stop pairs to retain. Must be
+#'   greater than 0 and no greater than 1.
+#' @param min_length Minimum corridor length in meters.
+#' @param ... Supports the legacy argument `min.length`.
 #'
-#' @return An `sf` object containing the following columns:
-#' \describe{
-#'   \item{corridor}{A unique identifier for each corridor, prefixed with "corridor-".}
-#'   \item{stops}{A list of stop IDs included in each corridor.}
-#'   \item{trip_id}{A list of trip IDs included in each corridor.}
-#'   \item{length}{The total length of the corridor, in meters.}
-#'   \item{geometry}{The spatial representation of the corridor as an `sf` linestring object.}
-#' }
-#'
-#' @details The function performs the following steps:
-#' \enumerate{
-#'   \item Filters and orders `stop_times` data to identify consecutive stops (`stop_from` and `stop_to`) for each trip.
-#'   \item Counts the number of trips between each stop pair and selects the top `i` percentile of segments by trip frequency.
-#'   \item Groups spatially connected segments into corridors using graph theory and adjacency matrices.
-#'   \item Filters corridors by the minimum length (`min.length`).
-#'   \item Returns the resulting corridors with their metadata and geometry.
-#'   }
-#'
-#' @note The function uses `sf` and `igraph` for spatial and graph-based computations. Ensure the `gtfs` object includes `stop_times` table.
+#' @return An `sf` object with `corridor`, list-columns `stop_id` and
+#'   `trip_id`, numeric `length` in meters, and WGS84 geometry. Segments are
+#'   straight lines between stop coordinates, not shape geometry.
 #'
 #' @examples
-#' corridors <- get_corridor(for_bus_gtfs, i = 0.02, min.length = 2000)
+#' corridors <- get_corridor(for_rail_gtfs, i = 0.2, min_length = 100)
 #'
-#' @seealso
-#' [GTFSwizard::as_wizardgtfs()]
-#'
-#' @importFrom dplyr filter arrange select group_by mutate reframe
-#' @importFrom sf st_as_sf st_distance st_touches st_length st_union
-#' @importFrom igraph graph_from_adj_list components
-#' @importFrom stats na.omit
+#' @seealso [GTFSwizard::plot_corridor()]
 #' @export
-get_corridor <- function(gtfs, i = .01, min.length = 1500) {
-
-  # INCLUIR A DIVISAO POR SERVICE PATTERN
-
-  # Validate input parameters
-  if (!is.numeric(i) || i <= 0 || i >= 1) {
-    stop('Parameter ', crayon::cyan('i'), ' must be a numeric value between 0 and 1 (', crayon::red('exclusive'), ').')
+get_corridor <- function(gtfs, i = 0.01, min_length = 1500, ...){
+  resolved <- resolve_legacy_argument(
+    min_length, missing(min_length), list(...), "min.length", "min_length"
+  )
+  min_length <- resolved$value
+  gw_check_unused_dots(resolved$dots)
+  if(!is.numeric(i) || length(i) != 1L || is.na(i) || i <= 0 || i > 1){
+    gw_stop("`i` must be one number greater than 0 and no greater than 1.")
   }
-  if (!is.numeric(min.length) || min.length <= 0) {
-    stop('Parameter ', crayon::cyan('min.length'), ' must be a ', crayon::green('positive'), ' numeric value (in meters).')
+  if(!is.numeric(min_length) || length(min_length) != 1L ||
+     is.na(min_length) || min_length < 0){
+    gw_stop("`min_length` must be one non-negative number of meters.")
   }
+  gtfs <- ensure_wizardgtfs(gtfs)
 
-  if(!"wizardgtfs" %in% class(gtfs)){
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
+  segments <- gtfs$stop_times |>
+    dplyr::arrange(trip_id, stop_sequence) |>
+    dplyr::group_by(trip_id) |>
+    dplyr::mutate(.next_stop = dplyr::lead(stop_id)) |>
+    dplyr::ungroup() |>
+    dplyr::filter(!is.na(.next_stop)) |>
+    dplyr::transmute(
+      trip_id,
+      stop_from = pmin(as.character(stop_id), as.character(.next_stop)),
+      stop_to = pmax(as.character(stop_id), as.character(.next_stop))
+    ) |>
+    dplyr::distinct() |>
+    dplyr::group_by(stop_from, stop_to) |>
+    dplyr::summarise(
+      trips = dplyr::n(),
+      trip_id = list(trip_id),
+      .groups = "drop"
+    )
+  if(!nrow(segments)){
+    gw_stop("the feed has no consecutive stop pairs.")
   }
+  cutoff <- stats::quantile(
+    segments$trips, probs = 1 - i, names = FALSE, type = 1
+  )
+  segments <- segments[segments$trips >= cutoff, , drop = FALSE]
 
-  stops_sf <- get_stops_sf(gtfs$stops)
-
-  suppressMessages({transit_data <-
-    gtfs$stop_times %>%
-    dplyr::filter(arrival_time != '') %>%
-    dplyr::arrange(trip_id, arrival_time) %>%
-    dplyr::select(trip_id, stop_from = stop_id) %>%
-    dplyr::mutate(stop_to = dplyr::lead(stop_from)) %>%
-    stats::na.omit() %>%
-    dplyr::group_by(stop_from, stop_to) %>%
-    dplyr::reframe(trips = dplyr::n(),
-                   trip_id = list(trip_id)) %>%
-    dplyr::filter(dplyr::percent_rank(trips) >= (1 - i)) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(origin = stops_sf$geometry[stops_sf$stop_id == stop_from],
-           destination = stops_sf$geometry[stops_sf$stop_id == stop_to],
-           ) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(geometry = purrr::map2(origin, destination, ~sf::st_sfc(sf::st_linestring(rbind(sf::st_coordinates(.x), sf::st_coordinates(.y))), crs = 4326))) %>%
-    dplyr::select(-origin, -destination) %>%
-    tidyr::unnest(cols = 'geometry') %>%
-    sf::st_as_sf()})
-
-  if(nrow(transit_data) == 0) {
-    stop(crayon::red('No'), ' corridors found for current ', crayon::cyan('i'), ' and ',  crayon::cyan('min.length'), ' values.')
+  stops <- gtfs$stops |>
+    dplyr::select(stop_id, stop_lon, stop_lat) |>
+    dplyr::mutate(stop_id = as.character(stop_id))
+  from <- dplyr::left_join(
+    segments, stops, by = c("stop_from" = "stop_id")
+  )
+  to <- dplyr::left_join(
+    segments, stops, by = c("stop_to" = "stop_id")
+  )
+  valid <- stats::complete.cases(
+    from$stop_lon, from$stop_lat, to$stop_lon, to$stop_lat
+  )
+  segments <- segments[valid, , drop = FALSE]
+  from <- from[valid, , drop = FALSE]
+  to <- to[valid, , drop = FALSE]
+  geometry <- lapply(seq_len(nrow(segments)), function(row){
+    sf::st_linestring(matrix(
+      c(
+        from$stop_lon[row], from$stop_lat[row],
+        to$stop_lon[row], to$stop_lat[row]
+      ),
+      ncol = 2, byrow = TRUE
+    ))
+  })
+  segments <- sf::st_sf(
+    segments,
+    geometry = sf::st_sfc(geometry, crs = 4326)
+  )
+  segments$.component <- segment_components(
+    segments$stop_from, segments$stop_to
+  )
+  metric <- latlon2epsg(segments)
+  metric <- metric |>
+    dplyr::group_by(.component) |>
+    dplyr::summarise(
+      stop_id = list(unique(c(stop_from, stop_to))),
+      trip_id = list(unique(unlist(trip_id))),
+      length = as.numeric(sum(sf::st_length(geometry))),
+      .groups = "drop"
+    ) |>
+    dplyr::filter(length >= min_length) |>
+    dplyr::arrange(dplyr::desc(length))
+  if(!nrow(metric)){
+    gw_warn("no corridors meet `min_length`; returning an empty result.")
+    return(sf::st_transform(metric, 4326))
   }
-
-  suppressMessages({adjacency_matrix <- sf::st_touches(transit_data$geometry)}) # Step 1: Create a spatial adjacency matrix using 'st_touches'
-
-  graph <- igraph::graph_from_adj_list(adjacency_matrix, mode = "all") # Step2: Build an undirected graph from the adjacency matrix
-
-  components <- igraph::components(graph) # Step 3: Identify connected components in the graph
-
-  transit_data$group_id <- components$membership # Step 4: Add the component ID as a new column to your data
-
-  suppressMessages({transit_data <-
-    transit_data %>%
-    dplyr::group_by(group_id) %>%
-    dplyr::reframe(geometry = sf::st_union(geometry),
-                   stops = list(c(unique(stop_from), unique(stop_to))),
-                   trip_id = list(unique(unlist(trip_id)))
-    ) %>%
-    dplyr::mutate(length = sf::st_length(geometry)) %>%
-    dplyr::filter(as.numeric(length) >= min.length) %>%
-    dplyr::arrange(-length) %>%
-    dplyr::mutate(corridor = paste0('corridor-', 1:dplyr::n()) %>% factor(levels = paste0('corridor-', 1:dplyr::n()))) %>%
-    dplyr::select(corridor, stop_id = stops, trip_id, length, geometry) %>%
-    sf::st_as_sf()})
-
-  return(transit_data)
-
+  metric$corridor <- paste("Corridor", seq_len(nrow(metric)))
+  metric <- metric[, c("corridor", "stop_id", "trip_id", "length", "geometry")]
+  sf::st_transform(metric, 4326)
 }
 
+segment_components <- function(from, to){
+  vertices <- unique(c(as.character(from), as.character(to)))
+  parent <- seq_along(vertices)
+  find_root <- function(x){
+    while(parent[x] != x){
+      parent[x] <<- parent[parent[x]]
+      x <- parent[x]
+    }
+    x
+  }
+  for(i in seq_along(from)){
+    a <- find_root(match(as.character(from[i]), vertices))
+    b <- find_root(match(as.character(to[i]), vertices))
+    if(a != b){
+      parent[b] <- a
+    }
+  }
+  roots <- vapply(match(as.character(from), vertices), find_root, integer(1))
+  match(roots, unique(roots))
+}

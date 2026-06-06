@@ -1,139 +1,182 @@
-#' Split a Trip into Sub-Trips within a GTFS Object
+#' Split Trips into Consecutive Parts
 #'
-#' `split_trip` divides a specified trip in a `wizardgtfs` object into multiple sub-trips by updating the stop sequences, trip identifiers, and related data, allowing for analysis or adjustments to different segments of the original trip.
+#' Splits each selected trip into approximately equal consecutive parts. The
+#' boundary stop is included at the end of one part and the start of the next,
+#' producing valid complete stop sequences.
 #'
-#' @param gtfs A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.
-#' @param trip A character vector specifying the `trip_id` to be split.
-#' @param split An integer indicating the number of splits to apply. One split means two trip segments.
+#' @param gtfs A GTFS object.
+#' @param trip Character vector of `trip_id` values.
+#' @param split Positive integer number of split points. `split = 1` creates
+#'   two parts. For each trip, the maximum is the number of stop-time records
+#'   minus two, so every resulting part contains at least two stops.
 #'
-#' @return A GTFS object with the specified trip split into new sub-trips.
+#' @return A modified `wizardgtfs` object.
 #'
 #' @details
-#' - The function creates sub-trips by dividing the specified trip(s) into equal parts based on the stop sequence.
-#'
-#' - New trip IDs are generated for each sub-trip, and `stop_times`, `trips`, `frequencies`, and `transfers` tables are updated accordingly.
-#'
-#' - If `shape_dist_traveled` is present, it is adjusted to reflect distances within each new sub-trip.
-#'
-#' - After the split, the function re-generates the shapes table for the new trips using `get_shapes`, and merges it back into the `wizardgtfs` object.
-#'
-#' - Be aware: `get_shapes` reconstructs shapes using euclidean approximation and may not be accurate.
-#'
-#' - The maximum number of sections in a given trip is restricted by its amount of stops
-#'
-#' @note
-#' `split_trip()` uses stop sequences to recriate the shapes table of split trips; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
+#' New IDs use `.part1`, `.part2`, and so on. New straight-line shapes are
+#' inferred from stop coordinates for the split parts. Frequency periods are
+#' shifted by each part's offset from the original first departure. Trip-level
+#' transfers are reassigned to the part containing their transfer stop.
+#' Trips with fewer than three retained stop-time records cannot be split.
 #'
 #' @examples
-#' # Split a trip into 3 segments
-#' gtfs_split <- split_trip(for_rail_gtfs, trip = for_rail_gtfs$trips$trip_id[1:3], split = 2)
+#' gtfs_split <- split_trip(
+#'   for_rail_gtfs,
+#'   trip = for_rail_gtfs$trips$trip_id[1],
+#'   split = 2
+#' )
 #'
-#' @seealso
-#' [GTFSwizard::get_shapes()], [GTFSwizard::merge_gtfs()]
-#'
-#' @importFrom dplyr mutate select group_by ungroup left_join bind_rows
-#' @importFrom checkmate assert_int assert_subset
-#' @importFrom crayon cyan
+#' @seealso [GTFSwizard::get_shapes()], [GTFSwizard::merge_gtfs()]
 #' @export
-split_trip <- function(gtfs, trip, split = 1){
+split_trip <- function(gtfs, trip, split = 1L){
+  gtfs <- ensure_wizardgtfs(gtfs)
+  gw_assert_int(split, "split", lower = 1L)
+  assert_known_ids(trip, gtfs$trips$trip_id, "trip", "`gtfs$trips`")
+  parts_count <- split + 1L
 
-  # checa os argumentos --------------------------------------------  -----------------------------
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+  selected_times <- gtfs$stop_times[
+    gtfs$stop_times$trip_id %in% trip, , drop = FALSE
+  ]
+  selected_times <- selected_times[
+    order(selected_times$trip_id, selected_times$stop_sequence), , drop = FALSE
+  ]
+  counts <- table(selected_times$trip_id)
+  if(any(counts < parts_count + 1L)){
+    too_short <- names(counts)[counts < parts_count + 1L]
+    limits <- pmax(0L, as.integer(counts[too_short]) - 2L)
+    gw_stop(
+      "`split` is too large for trip(s): ",
+      paste0(too_short, " (maximum ", limits, ")", collapse = ", "), "."
+    )
   }
 
-  checkmate::assert_int(split)
-
-  checkmate::assert_subset(trip, choices = gtfs$trips$trip_id)
-
-  # identifica trips -------------------------------------------------------------------------
-  groups <- split + 1
-
-  split_data <-
-    gtfs$stop_times %>%
-    dplyr::mutate(split = trip_id %in% trip) %>%
-    dplyr::group_by(trip_id) %>%
-    dplyr::mutate(subtrip = if_else(split == TRUE, ceiling(1:n()/n() * groups), NA) %>% forcats::as_factor() %>% as.numeric(),
-           dupe = split == TRUE & !subtrip == lead(subtrip)) %>%
-    dplyr::ungroup() %>%
-    dplyr::bind_rows(dplyr::slice(., .$dupe %>% which()) %>% mutate(subtrip = subtrip + 1)) %>%
-    group_by(trip_id, subtrip) %>%
-    mutate(n = n()) %>%
-    filter(!n == 1) %>%
-    ungroup() %>%
-    select(-n)
-
-  trip.dic <-
-    split_data %>%
-    dplyr::select(trip_id, subtrip) %>%
-    na.omit() %>%
-    dplyr::distinct() %>%
-    group_by(trip_id) %>%
-    dplyr::mutate(new.trip_id = 1:n())  %>%
-    dplyr::mutate(new.trip_id = paste0(trip_id, '.', LETTERS[new.trip_id]))
-
-  # stop times ----------------------------------------------------------------------------------
-  gtfs$stop_times <-
-    split_data %>%
-    left_join(trip.dic, by = c('trip_id', 'subtrip')) %>%
-    mutate(trip_id = if_else(is.na(new.trip_id), trip_id, new.trip_id)) %>%
-    select(-subtrip, -dupe, -new.trip_id)
-
-  if (!purrr::is_null(gtfs$stop_times$shape_dist_traveled)) {
-
-    gtfs$stop_times <-
-      gtfs$stop_times %>%
-      dplyr::mutate(shape_dist_traveled = if_else(split, shape_dist_traveled - shape_dist_traveled[1], shape_dist_traveled))
-
+  part_times <- list()
+  dictionary <- list()
+  offsets <- list()
+  for(trip_id in trip){
+    rows <- selected_times[selected_times$trip_id == trip_id, , drop = FALSE]
+    boundaries <- round(seq(1, nrow(rows), length.out = parts_count + 1L))
+    first_departure <- gtfs_time_to_seconds(rows$departure_time[1L])
+    for(part in seq_len(parts_count)){
+      index <- boundaries[part]:boundaries[part + 1L]
+      section <- rows[index, , drop = FALSE]
+      new_id <- paste0(trip_id, ".part", part)
+      section$trip_id <- new_id
+      section$stop_sequence <- seq_len(nrow(section))
+      if("shape_dist_traveled" %in% names(section)){
+        section$shape_dist_traveled <- as.numeric(section$shape_dist_traveled) -
+          as.numeric(section$shape_dist_traveled[1L])
       }
+      part_times[[length(part_times) + 1L]] <- section
+      dictionary[[length(dictionary) + 1L]] <- data.frame(
+        trip_id = trip_id, new_trip_id = new_id, part = part,
+        first_stop_id = section$stop_id[1L],
+        last_stop_id = section$stop_id[nrow(section)],
+        stringsAsFactors = FALSE
+      )
+      offsets[[length(offsets) + 1L]] <- data.frame(
+        trip_id = trip_id, new_trip_id = new_id,
+        offset = gtfs_time_to_seconds(section$departure_time[1L]) -
+          first_departure,
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+  dictionary <- dplyr::bind_rows(dictionary)
+  offsets <- dplyr::bind_rows(offsets)
 
-  gtfs$stop_times <- dplyr::select(gtfs$stop_times, -split)
+  gtfs$stop_times <- dplyr::bind_rows(
+    gtfs$stop_times[!gtfs$stop_times$trip_id %in% trip, , drop = FALSE],
+    dplyr::bind_rows(part_times)
+  )
 
-  # trips --------------------------------------------------------------------------------------
-  gtfs$trips <-
-    dplyr::left_join(gtfs$trips, trip.dic, by = 'trip_id') %>%
-    dplyr::mutate(trip_id = if_else(is.na(new.trip_id), trip_id, new.trip_id),
-                  shape_id = if_else(is.na(new.trip_id), shape_id, paste0('shape-', new.trip_id))) %>%
-    dplyr::select(-new.trip_id, -subtrip)
+  original_trips <- gtfs$trips[gtfs$trips$trip_id %in% trip, , drop = FALSE]
+  new_trips <- dplyr::left_join(dictionary, original_trips, by = "trip_id")
+  new_trips$trip_id <- new_trips$new_trip_id
+  new_trips$new_trip_id <- NULL
+  new_trips$part <- NULL
+  new_trips$first_stop_id <- NULL
+  new_trips$last_stop_id <- NULL
+  new_trips$shape_id <- paste0("shape-", new_trips$trip_id)
+  gtfs$trips <- dplyr::bind_rows(
+    gtfs$trips[!gtfs$trips$trip_id %in% trip, , drop = FALSE],
+    new_trips
+  )
 
-  # frequencies ---------------------------------------------------------------------------------
-  if (!purrr::is_null(gtfs$frequencies$trip_id)) {
-
-    gtfs$frequencies <-
-      dplyr::left_join(gtfs$frequencies, trip.dic, by = 'trip_id') %>%
-      dplyr::mutate(trip_id = if_else(is.na(new.trip_id), trip_id, new.trip_id)) %>%
-      dplyr::select(-new.trip_id, -subtrip)
-
+  if(!is.null(gtfs$frequencies)){
+    original_frequency <- gtfs$frequencies[
+      gtfs$frequencies$trip_id %in% trip, , drop = FALSE
+    ]
+    if(nrow(original_frequency)){
+      new_frequency <- dplyr::left_join(offsets, original_frequency, by = "trip_id")
+      new_frequency$trip_id <- new_frequency$new_trip_id
+      new_frequency$start_time <- seconds_to_gtfs_time(
+        gtfs_time_to_seconds(new_frequency$start_time) + new_frequency$offset
+      )
+      new_frequency$end_time <- seconds_to_gtfs_time(
+        gtfs_time_to_seconds(new_frequency$end_time) + new_frequency$offset
+      )
+      new_frequency$new_trip_id <- NULL
+      new_frequency$offset <- NULL
+      gtfs$frequencies <- dplyr::bind_rows(
+        gtfs$frequencies[!gtfs$frequencies$trip_id %in% trip, , drop = FALSE],
+        new_frequency
+      )
+    }
   }
 
-  # transfers -----------------------------------------------------------------------------------
-  if (!purrr::is_null(gtfs$transfers$trip_id)) {
-
-    gtfs$transfers <-
-      dplyr::left_join(gtfs$transfers, trip.dic, by = 'trip_id') %>%
-      dplyr::mutate(trip_id = if_else(is.na(new.trip_id), trip_id, new.trip_id)) %>%
-      dplyr::select(-new.trip_id)
-
+  if(!is.null(gtfs$transfers)){
+    gtfs$transfers <- reassign_split_transfers(
+      gtfs$transfers, dictionary, "from_trip_id", "from_stop_id"
+    )
+    gtfs$transfers <- reassign_split_transfers(
+      gtfs$transfers, dictionary, "to_trip_id", "to_stop_id"
+    )
   }
 
-  # corrigindo shapes ---------------------------------------------------------------------------
-  if(all(gtfs$trips$trip_id %in% trip.dic$new.trip_id)) {
-
-    gtfs <- GTFSwizard::get_shapes(gtfs)
-
-  } else {
-    gtfs.x <-
-      GTFSwizard::filter_trip(gtfs, trip.dic$new.trip_id, keep = FALSE)
-
-    gtfs.y <-
-      GTFSwizard::filter_trip(gtfs, trip.dic$new.trip_id, keep = TRUE) %>%
-      GTFSwizard::get_shapes()
-
-    gtfs <- GTFSwizard::merge_gtfs(gtfs.x, gtfs.y, suffix = TRUE)
+  old_shapes <- gtfs$shapes
+  gtfs$shapes <- NULL
+  split_only <- prune_gtfs(gtfs, dictionary$new_trip_id)
+  split_only <- get_shapes(split_only)
+  referenced_old <- unique(gtfs$trips$shape_id[
+    !gtfs$trips$trip_id %in% dictionary$new_trip_id
+  ])
+  if(!is.null(old_shapes)){
+    old_shapes <- old_shapes[old_shapes$shape_id %in% referenced_old, , drop = FALSE]
   }
+  gtfs$shapes <- dplyr::bind_rows(old_shapes, split_only$shapes)
+  gtfs$dates_services <- NULL
+  gtfs <- create_dates_services_table(gtfs)
+  class(gtfs) <- c("wizardgtfs", "gtfs", "list")
+  gtfs
+}
 
-  # retornando gtfs -----------------------------------------------------------------------------
-  return(gtfs)
-
+reassign_split_transfers <- function(transfers, dictionary, trip_field, stop_field){
+  if(!trip_field %in% names(transfers) || !stop_field %in% names(transfers)){
+    return(transfers)
+  }
+  selected <- !is.na(transfers[[trip_field]]) &
+    transfers[[trip_field]] %in% dictionary$trip_id
+  if(!any(selected)){
+    return(transfers)
+  }
+  for(i in which(selected)){
+    candidates <- dictionary[
+      dictionary$trip_id == transfers[[trip_field]][i], , drop = FALSE
+    ]
+    match <- candidates$new_trip_id[
+      candidates$first_stop_id == transfers[[stop_field]][i] |
+        candidates$last_stop_id == transfers[[stop_field]][i]
+    ]
+    if(length(match)){
+      transfers[[trip_field]][i] <- match[1L]
+    } else {
+      gw_warn(
+        "could not assign a trip-specific transfer at stop `",
+        transfers[[stop_field]][i], "`; removing its `", trip_field, "` value."
+      )
+      transfers[[trip_field]][i] <- ""
+    }
+  }
+  transfers
 }

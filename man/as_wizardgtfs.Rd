@@ -2,31 +2,35 @@
 % Please edit documentation in R/as_wizardgtfs.R
 \name{as_wizardgtfs}
 \alias{as_wizardgtfs}
-\title{Convert GTFS Object to wizardgtfs Format}
+\title{Convert a GTFS Feed to `wizardgtfs`}
 \usage{
 as_wizardgtfs(gtfs_list, build_shapes = TRUE)
 }
 \arguments{
-\item{gtfs_list}{A GTFS object in list or `tidygtfs` format.}
+\item{gtfs_list}{A named list of GTFS tables or a `tidygtfs` object.}
 
-\item{build_shapes}{Logical. If `TRUE`, builds the shapes table if it is missing in the provided GTFS object. Default is `TRUE`.}
+\item{build_shapes}{Logical. If `TRUE`, infer `shapes` when the table is
+absent. Inferred shapes connect stops with straight line segments and are
+intended for analysis and visualization, not map-matched routing.}
 }
 \value{
-An object of class `wizardgtfs`, which includes multiple data frames for transit data analysis.
+A `wizardgtfs` object.
 }
 \description{
-`as_wizardgtfs` transforms a GTFS object into the `wizardgtfs` format, providing enhanced functionality and compatibility with the GTFSwizard package. This function supports GTFS objects in various formats, including `tidygtfs` and list-based structures, and can optionally create a shapes table if it is missing.
+Converts a list-like GTFS feed to the class used by GTFSwizard. Character
+GTFS dates are converted to [Date] values, a date-to-service lookup is
+created, and missing shapes can optionally be inferred from stop locations.
 }
 \details{
-- `as_wizardgtfs` is a generic function with S3 methods for different GTFS object formats.
-
-- The `wizardgtfs` format includes additional processing and checks, such as validation of unique IDs and structure formatting.
+The input is checked for required tables, required fields, primary-key
+duplication, foreign-key consistency, increasing stop and shape sequences,
+valid service dates, and valid GTFS time strings. Times remain character
+values because GTFS permits hours greater than 24.
 }
 \examples{
-# Convert a GTFS object to wizardgtfs format
 gtfs_wizard <- as_wizardgtfs(for_rail_gtfs, build_shapes = TRUE)
 
 }
 \seealso{
-[GTFSwizard::get_shapes()]
+[GTFSwizard::create_gtfs()], [GTFSwizard::get_shapes()]
 }

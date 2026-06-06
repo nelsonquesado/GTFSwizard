@@ -1,0 +1,21 @@
+citHeader("To cite GTFSwizard in publications use:")
+
+bibentry(
+  bibtype = "Manual",
+  key = "quesado.guimaraes.oliveiraneto.2026",
+  title = "GTFSwizard: Creating, Exploring and Manipulating GTFS Files",
+  author = c(
+    person(given = "N. O.", family = "Quesado Filho"),
+    person(given = "C. G. C.", family = "Guimaraes"),
+    person(given = "F. M.", family = "de Oliveira Neto")
+  ),
+  year = "2026",
+  note = "R package version 1.2.1",
+  url = "https://CRAN.R-project.org/package=GTFSwizard",
+  doi = "10.32614/CRAN.package.GTFSwizard",
+  textVersion = paste(
+    "Quesado Filho, N. O.; Guimaraes, C. G. C.; de Oliveira Neto, F. M.",
+    "(2026). GTFSwizard: Creating, Exploring and Manipulating GTFS Files.",
+    "R package version 1.2.1. https://CRAN.R-project.org/package=GTFSwizard."
+  )
+)

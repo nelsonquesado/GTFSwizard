@@ -4,15 +4,15 @@
 \alias{get_durations}
 \title{Calculate Trip Durations in GTFS Data}
 \usage{
-get_durations(gtfs, method = "by.route", trips = "all")
+get_durations(gtfs, method = "by_trip", trips = "all")
 }
 \arguments{
 \item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.}
 
 \item{method}{A character string specifying the calculation method. Options include:
 \describe{
-  \item{"by.route"}{Calculates the average duration for each route.}
-  \item{"by.trip"}{Calculates the total duration for each trip.}
+  \item{"by_route"}{Calculates the average duration for each route.}
+  \item{"by_trip"}{Calculates the total duration for each trip.}
   \item{"detailed"`}{Calculates detailed durations for each stop-to-stop segment within a trip.}
 }}
 
@@ -21,31 +21,32 @@ get_durations(gtfs, method = "by.route", trips = "all")
 \value{
 A data frame containing trip durations based on the specified method:
   \describe{
-    \item{If `method = "by.route"`}{It includes dwell times. Returns a summary data frame with columns: `route_id`, `trips`, `average.duration`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "by.trip"`}{It includes dwell times. Returns a data frame with columns: `route_id`, `trip_id`, `duration`, `service_pattern`, and `pattern_frequency`.}
+    \item{If `method = "by_route"`}{Includes dwell from first departure to final arrival and groups by direction when available.}
+    \item{If `method = "by_trip"`}{Includes dwell from first departure to final arrival and retains direction when available.}
     \item{If `method = "detailed"`}{It does not include dwell times. Returns a data frame with columns: `route_id`, `trip_id`, `hour`, `from_stop_id`, `to_stop_id`, `duration`, `service_pattern`, and `pattern_frequency`.}
   }
 }
 \description{
-The `get_durations` function calculates trip durations within a `wizardgtfs` object using different methods. Depending on the selected `method`, it can provide average durations per route, durations for individual trips, or detailed segment durations between stops.
+Calculates scheduled trip and segment durations in seconds.
 }
 \details{
 This function calls specific sub-functions based on the selected method:
 
-- "by.route": Calculates average durations for each route.
+- "by_route": Calculates average durations for each route.
 
-- "by.trip": Calculates the total duration of each trip.
+- "by_trip": Calculates the total duration of each trip.
 
 - "detailed": Calculates detailed durations between consecutive stops within each trip, excluding dwell times.
 
-If an invalid `method` is specified, the function defaults to `"by.route"` and provides a warning.
+Legacy dotted values remain accepted. If an invalid `method` is specified,
+the function defaults to `"by_trip"` and provides a warning.
 }
 \examples{
 # Calculate average route durations
-durations_by_route <- get_durations(gtfs = for_rail_gtfs, method = "by.route", trips = 'all')
+durations_by_route <- get_durations(gtfs = for_rail_gtfs, method = "by_route", trips = 'all')
 
 # Calculate trip durations
-durations_by_trip <- get_durations(gtfs = for_rail_gtfs, method = "by.trip", trips = 'all')
+durations_by_trip <- get_durations(gtfs = for_rail_gtfs, method = "by_trip", trips = 'all')
 
 # Calculate detailed durations between stops
 detailed_durations <- get_durations(gtfs = for_rail_gtfs, method = "detailed", trips = 'all')

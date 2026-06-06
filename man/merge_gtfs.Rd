@@ -2,38 +2,35 @@
 % Please edit documentation in R/merge_gtfs.R
 \name{merge_gtfs}
 \alias{merge_gtfs}
-\title{Merge Two GTFS Datasets}
+\title{Merge Two GTFS Feeds}
 \usage{
-merge_gtfs(gtfs.x, gtfs.y, suffix = TRUE)
+merge_gtfs(gtfs_x = NULL, gtfs_y = NULL, suffix = TRUE, ...)
 }
 \arguments{
-\item{gtfs.x}{The first GTFS dataset, ideally of class `wizardgtfs`. If not, it will be converted.}
+\item{gtfs_x, gtfs_y}{GTFS objects.}
 
-\item{gtfs.y}{The second GTFS dataset, ideally of class `wizardgtfs`. If not, it will be converted.}
+\item{suffix}{Logical. Append `.x` and `.y` to identifiers when `TRUE`.}
 
-\item{suffix}{A logical value. If `TRUE`, appends `.x` and `.y` suffixes to identifier columns in `gtfs.x` and `gtfs.y`, respectively, to prevent conflicts.}
+\item{...}{Supports the legacy arguments `gtfs.x` and `gtfs.y`.}
 }
 \value{
-A merged `wizardgtfs` object containing all records from `gtfs.x` and `gtfs.y` across GTFS tables.
+A validated `wizardgtfs` object.
 }
 \description{
-`merge_gtfs` combines two GTFS datasets into a single `wizardgtfs` object, with an option to append suffixes to ensure unique identifiers across tables.
+Combines two feeds table by table. By default, all identifiers and their
+foreign-key references receive feed-specific suffixes, preventing accidental
+collisions.
 }
 \details{
-- When `suffix = TRUE`, unique suffixes are appended to key identifiers in `gtfs.x` and `gtfs.y` (e.g., `agency_id`, `route_id`, `trip_id`).
-
-- After suffix handling, the function merges individual tables, ensuring no duplicated entries.
-
-- Finally, the resulting list is converted into a `wizardgtfs` object.
-}
-\note{
-This function assumes that both input datasets follow GTFS structure. Non-standard tables or columns may be ignored or cause warnings.
+Standard references in routes, trips, stop times, shapes, calendars,
+frequencies, transfers, pathways, fare tables, networks, and booking rules
+are updated together. Non-standard tables are row-bound without identifier
+rewriting.
 }
 \examples{
-# Merge two GTFS datasets with suffix handling
-merged_gtfs <- merge_gtfs(for_rail_gtfs, for_bus_gtfs, suffix = TRUE)
+merged <- merge_gtfs(for_rail_gtfs, for_rail_gtfs, suffix = TRUE)
 
 }
-\seealso{
-[GTFSwizard::as_wizardgtfs()]
+\references{
+[GTFS Schedule Reference](https://gtfs.org/documentation/schedule/reference/)
 }

@@ -1,86 +1,83 @@
-#' Generate Shapes Table for GTFS Data
+#' Infer Straight-Line Shapes from Stop Sequences
 #'
-#' The `get_shapes` function reconstructs the `shapes` table for a GTFS dataset using an approximation based on stop coordinates and sequence information. It creates geometric representations of trips by connecting stops in sequence for each trip.
+#' Builds one shape for each unique ordered stop pattern and assigns it to the
+#' corresponding trips.
 #'
-#' @param gtfs A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted automatically.
+#' @param gtfs A GTFS object.
 #'
-#' @return A modified GTFS object that includes a `shapes` table derived from the stops and trips information.
+#' @return A `wizardgtfs` object with a new `shapes` table and updated
+#'   `trips$shape_id`.
 #'
 #' @details
-#' This function constructs the `shapes` table by sequentially connecting stops along each trip using a Euclidean approximation. If the GTFS object already contains a `shapes` table, it will be overwritten, and a warning will be displayed. The process involves:
-#'
-#' - Selecting and arranging stops by trip and sequence
-#'
-#' - Connecting stops with line segments to form a path for each trip
-#'
-#' - Grouping unique paths into distinct shape IDs
-#'
-#' @note
-#' This approximation may not perfectly represent real-world shapes, especially for complex or curved routes.
-#' `get_shapes()` uses stop sequences to recriate the shapes table; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
+#' Consecutive stop coordinates are connected directly. The result is useful
+#' for visualization and approximate distance analysis, but it is not a
+#' map-matched representation of the vehicle path.
 #'
 #' @examples
-#' # Generate a shapes table for a GTFS object
-#' gtfs_with_shapes <- get_shapes(gtfs = for_rail_gtfs)
+#' gtfs_with_shapes <- get_shapes(for_rail_gtfs)
 #'
-#' @seealso
-#' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_shapes_df()]
-#'
-#' @importFrom dplyr select arrange group_by left_join mutate reframe summarise
-#' @importFrom sf st_as_sf st_cast st_combine
-#' @importFrom tidyr unnest
-#' @importFrom crayon cyan red
+#' @seealso [GTFSwizard::get_shapes_sf()], [GTFSwizard::get_shapes_df()]
 #' @export
-
 get_shapes <- function(gtfs){
-
-  message(crayon::cyan('get_shapes()'), ' reconstructs the shapes table using euclidean approximation, based on the coordinates and sequence of stops for each trip, and', crayon::red(' may not be accurate'), '.')
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+  gtfs <- ensure_wizardgtfs(gtfs)
+  if(!is.null(gtfs$shapes)){
+    gw_warn("overwriting the existing `shapes` table with inferred shapes.")
+  } else {
+    gw_msg("building straight-line shapes from ordered stop coordinates.")
   }
 
-  if(!purrr::is_null(gtfs$shapes)){
-    warning('This gtfs object already contains a shapes table. ', crayon::cyan('get_shapes()'), ' will', crayon::red(" overwrite"), ' it.')
+  calls <- gtfs$stop_times |>
+    dplyr::arrange(trip_id, stop_sequence) |>
+    dplyr::select(trip_id, stop_id, stop_sequence) |>
+    dplyr::left_join(
+      gtfs$stops |> dplyr::select(stop_id, stop_lon, stop_lat),
+      by = "stop_id"
+    )
+  if(any(!stats::complete.cases(calls$stop_lon, calls$stop_lat))){
+    gw_stop("all stops used by trips need valid coordinates to infer shapes.")
   }
+  if(any(table(calls$trip_id) < 2L)){
+    gw_stop("each trip needs at least two stops to infer a shape.")
+  }
+  patterns <- calls |>
+    dplyr::group_by(trip_id) |>
+    dplyr::summarise(
+      .signature = paste(stop_id, collapse = "\r"),
+      .groups = "drop"
+    )
+  signatures <- unique(patterns$.signature)
+  patterns$shape_id <- paste0("shape-", match(patterns$.signature, signatures))
 
-  shapes.dic <-
-    gtfs$stop_times %>%
-    dplyr::select(trip_id, stop_id, stop_sequence) %>%
-    dplyr::arrange(trip_id, stop_sequence) %>%
-    dplyr::left_join(gtfs$stops %>%
-                       GTFSwizard::get_stops_sf() %>%
-                       dplyr::select(stop_id),
-                     by = dplyr::join_by(stop_id)
-    ) %>%
-    sf::st_as_sf(crs = 4326) %>%
-    dplyr::group_by(trip_id) %>%
-    dplyr::arrange(stop_sequence) %>%
-    dplyr::reframe(geometry = sf::st_cast(geometry, to = 'LINESTRING', ids = trip_id)) %>%
-    dplyr::left_join(gtfs$trips %>%
-                       dplyr::select(trip_id, route_id),
-                     by = dplyr::join_by(trip_id)
-    ) %>%
-    dplyr::group_by(geometry) %>%
-    dplyr::reframe(trip_id = list(trip_id)) %>%
-    dplyr::mutate(shape_id = paste0('shape-', 1:n()))
+  representative <- patterns |>
+    dplyr::group_by(shape_id) |>
+    dplyr::slice_head(n = 1L) |>
+    dplyr::ungroup() |>
+    dplyr::select(shape_id, trip_id)
+  shape_points <- dplyr::left_join(representative, calls, by = "trip_id") |>
+    dplyr::arrange(shape_id, stop_sequence) |>
+    dplyr::group_by(shape_id) |>
+    dplyr::mutate(
+      shape_pt_sequence = dplyr::row_number(),
+      shape_dist_traveled = c(
+        0,
+        cumsum(haversine_m(
+          stop_lon[-dplyr::n()], stop_lat[-dplyr::n()],
+          stop_lon[-1L], stop_lat[-1L]
+        ))
+      )
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::transmute(
+      shape_id, shape_pt_lat = stop_lat, shape_pt_lon = stop_lon,
+      shape_pt_sequence, shape_dist_traveled
+    )
 
-  gtfs$shapes <-
-    shapes.dic[, c(3, 1)] %>%
-    sf::st_as_sf()
-
-  gtfs$trips <-
-    gtfs$trips %>%
-    dplyr::select(-shape_id) %>%
-    dplyr::left_join(shapes.dic %>%
-                       dplyr::select(-geometry) %>%
-                       tidyr::unnest(cols = 'trip_id'),
-                     dplyr::join_by(trip_id))
-
-  gtfs$shapes <-
-    GTFSwizard::get_shapes_df(gtfs$shapes)
-
-  return(gtfs)
-
+  gtfs$shapes <- shape_points
+  gtfs$trips <- gtfs$trips |>
+    dplyr::select(-dplyr::any_of("shape_id")) |>
+    dplyr::left_join(
+      patterns |> dplyr::select(trip_id, shape_id),
+      by = "trip_id"
+    )
+  gtfs
 }

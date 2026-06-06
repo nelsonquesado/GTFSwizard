@@ -14,7 +14,8 @@ tidy_raptor(
   time_range = 3600,
   max_transfers = NULL,
   keep = "all",
-  filter = TRUE
+  filter = TRUE,
+  separate_starts = FALSE
 )
 }
 \arguments{
@@ -24,7 +25,8 @@ tidy_raptor(
 
 \item{max_arrival}{A string representing the latest arrival time, in "HH:MM:SS" format. Defaults to `"23:59:59"`.}
 
-\item{dates}{A date (in `"YYYY-MM-DD"` format) to filter the GTFS dataset to specific calendar days. Defaults to `NULL`, meaning the furthest date.}
+\item{dates}{One service date. When `NULL`, the latest active service date
+is used.}
 
 \item{stop_ids}{A character vector of stop IDs from where journeys should start (or end, if `arrival = TRUE`).}
 
@@ -40,7 +42,11 @@ tidy_raptor(
 - `"earliest"`: Journeys arriving at stops the earliest.
 - `"latest"`: Journeys arriving at stops the latest.}
 
-\item{filter}{A logical to filter for min_departure, max_arrivel, and dates. Defaults to `TRUE`.}
+\item{filter}{Logical. Apply `min_departure`, `max_arrival`, and `dates`
+before routing.}
+
+\item{separate_starts}{Logical. Keep results for each origin start time
+separately; passed to [tidytransit::raptor()].}
 }
 \value{
 A tibble containing the RAPTOR algorithm results, including:
@@ -50,6 +56,7 @@ A tibble containing the RAPTOR algorithm results, including:
   \item{departure_time}{Departure time from the origin stop.}
   \item{arrival_time}{Arrival time at the destination stop.}
   \item{travel_time}{Total travel time in seconds.}
+  \item{transfers}{Number of transfers in the journey.}
 }
 }
 \description{
@@ -59,7 +66,7 @@ It uses the RAPTOR (Round-Based Public Transit Routing) algorithm from the `tidy
 \note{
 Ensure that the `stop_times` is present and correctly structured in the GTFS dataset.
 Time values in `min_departure`, `max_arrival`, and `time_range` should be correctly formatted to avoid errors.
-`max_arrival` must be 23:59:59 or earlier.
+GTFS times beyond 24:00:00 are supported.
 }
 \examples{
 tidy_raptor(for_rail_gtfs,

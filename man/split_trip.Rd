@@ -2,42 +2,40 @@
 % Please edit documentation in R/split_trip.R
 \name{split_trip}
 \alias{split_trip}
-\title{Split a Trip into Sub-Trips within a GTFS Object}
+\title{Split Trips into Consecutive Parts}
 \usage{
-split_trip(gtfs, trip, split = 1)
+split_trip(gtfs, trip, split = 1L)
 }
 \arguments{
-\item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.}
+\item{gtfs}{A GTFS object.}
 
-\item{trip}{A character vector specifying the `trip_id` to be split.}
+\item{trip}{Character vector of `trip_id` values.}
 
-\item{split}{An integer indicating the number of splits to apply. One split means two trip segments.}
+\item{split}{Positive integer number of split points. `split = 1` creates
+two parts. For each trip, the maximum is the number of stop-time records
+minus two, so every resulting part contains at least two stops.}
 }
 \value{
-A GTFS object with the specified trip split into new sub-trips.
+A modified `wizardgtfs` object.
 }
 \description{
-`split_trip` divides a specified trip in a `wizardgtfs` object into multiple sub-trips by updating the stop sequences, trip identifiers, and related data, allowing for analysis or adjustments to different segments of the original trip.
+Splits each selected trip into approximately equal consecutive parts. The
+boundary stop is included at the end of one part and the start of the next,
+producing valid complete stop sequences.
 }
 \details{
-- The function creates sub-trips by dividing the specified trip(s) into equal parts based on the stop sequence.
-
-- New trip IDs are generated for each sub-trip, and `stop_times`, `trips`, `frequencies`, and `transfers` tables are updated accordingly.
-
-- If `shape_dist_traveled` is present, it is adjusted to reflect distances within each new sub-trip.
-
-- After the split, the function re-generates the shapes table for the new trips using `get_shapes`, and merges it back into the `wizardgtfs` object.
-
-- Be aware: `get_shapes` reconstructs shapes using euclidean approximation and may not be accurate.
-
-- The maximum number of sections in a given trip is restricted by its amount of stops
-}
-\note{
-`split_trip()` uses stop sequences to recriate the shapes table of split trips; accordingly, it should not be used after `filter_time()`, as this function removes invalid `stop_times`.
+New IDs use `.part1`, `.part2`, and so on. New straight-line shapes are
+inferred from stop coordinates for the split parts. Frequency periods are
+shifted by each part's offset from the original first departure. Trip-level
+transfers are reassigned to the part containing their transfer stop.
+Trips with fewer than three retained stop-time records cannot be split.
 }
 \examples{
-# Split a trip into 3 segments
-gtfs_split <- split_trip(for_rail_gtfs, trip = for_rail_gtfs$trips$trip_id[1:3], split = 2)
+gtfs_split <- split_trip(
+  for_rail_gtfs,
+  trip = for_rail_gtfs$trips$trip_id[1],
+  split = 2
+)
 
 }
 \seealso{

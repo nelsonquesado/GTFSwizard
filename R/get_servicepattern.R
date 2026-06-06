@@ -1,50 +1,36 @@
-#' Identify Service Patterns in GTFS Data
+#' Identify Services with the Same Operating Dates
 #'
-#' The `get_servicepattern` function identifies and organizes unique service patterns within a `wizardgtfs` object. It groups services by common dates of operation and assigns each a frequency-based pattern identifier.
+#' Groups `service_id` values that operate on exactly the same set of dates.
 #'
-#' @param gtfs A GTFS object, ideally of class `wizardgtfs`. If not, it will be converted.
+#' @param gtfs A GTFS object.
 #'
-#' @return A data frame containing unique service patterns with the following columns:
-#'   \describe{
-#'     \item{`service_id`}{Unique identifier(s) for each service.}
-#'     \item{`service_pattern`}{An identifier for each distinct service pattern based on operational dates, in the format "servicepattern-N".}
-#'     \item{`pattern_frequency`}{The frequency of each service pattern, indicating the number of dates associated with that pattern.}
-#'   }
-#'
-#' @details
-#' The function first checks if the input `gtfs` object is of class `wizardgtfs`. If not, it converts it using `as_wizardgtfs()`. It then groups services by common dates of operation, assigns a frequency to each unique pattern, and organizes these into service pattern identifiers, ordered by their frequency.
+#' @return A tibble with one row per `service_id`, its `service_pattern`, and
+#'   `pattern_frequency`, the number of active dates in that pattern. Pattern
+#'   numbers are ordered from most to least frequent.
 #'
 #' @examples
-#' # Generate service patterns for a GTFS object
-#' service_patterns <- get_servicepattern(gtfs = for_rail_gtfs)
+#' get_servicepattern(for_rail_gtfs)
 #'
-#' @seealso
-#' [GTFSwizard::as_wizardgtfs()]
-#'
-#' @importFrom dplyr group_by reframe arrange mutate select
-#' @importFrom rlang is_list
+#' @seealso [GTFSwizard::filter_servicepattern()]
 #' @export
 get_servicepattern <- function(gtfs){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('This gtfs object is not of the ', crayon::cyan('wizardgtfs'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  service_pattern <-
-    gtfs$dates_services %>%
-    dplyr::group_by(service_id) %>%
-    dplyr::reframe(dates = list(as.character(date)),
-                   pattern_frequency = n()) %>%
-    dplyr::arrange(-pattern_frequency) %>%
-    dplyr::mutate(service_pattern = paste0('servicepattern-', 1:n()) %>% as_factor()) %>%
+  gtfs <- ensure_wizardgtfs(gtfs)
+  service_dates <- tidyr::unnest(gtfs$dates_services, cols = "service_id") |>
+    dplyr::arrange(service_id, date) |>
+    dplyr::group_by(service_id) |>
+    dplyr::summarise(
+      .signature = paste(as.character(date), collapse = "|"),
+      pattern_frequency = dplyr::n(),
+      .groups = "drop"
+    )
+  patterns <- service_dates |>
+    dplyr::distinct(.signature, pattern_frequency) |>
+    dplyr::arrange(dplyr::desc(pattern_frequency), .signature) |>
+    dplyr::mutate(
+      service_pattern = paste0("servicepattern-", dplyr::row_number())
+    )
+  service_dates |>
+    dplyr::left_join(patterns, by = c(".signature", "pattern_frequency")) |>
+    dplyr::arrange(service_pattern, service_id) |>
     dplyr::select(service_id, service_pattern, pattern_frequency)
-
-
-  while(rlang::is_list(service_pattern$service_id)) {
-    service_pattern <- service_pattern %>% unnest(., cols = c(service_id))
-  }
-
-  return(service_pattern)
-
 }

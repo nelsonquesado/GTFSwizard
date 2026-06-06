@@ -2,49 +2,25 @@
 % Please edit documentation in R/plot_.R
 \name{plot_corridor}
 \alias{plot_corridor}
-\title{Plot Transit Corridors}
+\title{Plot High-Frequency Corridors}
 \usage{
-plot_corridor(gtfs, i = 0.01, min.length = 1500)
+plot_corridor(gtfs, i = 0.01, min_length = 1500, ...)
 }
 \arguments{
-\item{gtfs}{A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.}
+\item{gtfs}{A GTFS object.}
 
-\item{i}{A numeric value representing the percentile threshold for selecting high-density segments. Defaults to `0.01` (top 1\% of segments by trip frequency).}
+\item{i}{Proportion of highest-frequency segments to retain.}
 
-\item{min.length}{A numeric value specifying the minimum corridor length (in meters) to retain. Defaults to `1500`.}
+\item{min_length}{Minimum corridor length in meters.}
+
+\item{...}{Supports the legacy argument `min.length`.}
 }
 \value{
-A `ggplot` object representing the transit network with corridors overlaid. The plot includes:
-\describe{
-  \item{Base map}{Route shapes from the GTFS data, displayed in gray.}
-  \item{Corridors}{High-density transit corridors, colored uniquely for each corridor.}
-}
+A `ggplot` map.
 }
 \description{
-The `plot_corridor` function visualizes high-density transit corridors on a map. It overlays the identified corridors
-on the route shapes from the GTFS data, providing a representation of the transit network and its key corridors.
-}
-\details{
-The function performs the following steps:
-\enumerate{
-  \item Extracts route shapes from the GTFS data using `get_shapes_sf`.
-  \item Identifies transit corridors using the `get_corridor` function with the specified `i` and `min.length` parameters.
-  \item Creates a map using `ggplot2` with:
-    \enumerate{
-      \item Route shapes as the base layer (gray lines).
-      \item High-density transit corridors as colored lines, with transparency for visualization.
-    }
-}
-}
-\note{
-Ensure the `gtfs` object includes valid `shapes` and `stop_times` tables for accurate visualization. The corridors are identified
-using the `get_corridor` function, which relies on stop and trip data.
-}
-\examples{
-plot_corridor(for_bus_gtfs, i = 0.02, min.length = 2000)
-
-
+Plot High-Frequency Corridors
 }
 \seealso{
-[GTFSwizard::get_corridor()], [GTFSwizard::get_shapes_sf()]
+[GTFSwizard::get_corridor()]
 }

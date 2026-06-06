@@ -1,907 +1,202 @@
-#' Filter GTFS Data by Service, Route, Date, Stop, Trip, and Time
+#' Filter a GTFS Feed
 #'
-#' The `filter_` functions selectively filter data within a `wizardgtfs` object based on criteria such as service patterns, specific dates, service IDs, route IDs, trip IDs, stop IDs, or time ranges.
+#' Filters a GTFS feed while preserving referential integrity across routes,
+#' trips, stops, shapes, calendars, frequencies, fares, and transfers.
 #'
-#' @param gtfs A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.
-#' @param servicepattern (Optional) A character vector of service patterns to retain. Defaults to the most frequent pattern (typical day) if `NULL`.
-#' @param dates (Optional) A date or vector of dates (as "YYYY-MM-DD" character or POSIXct) to filter services active on those dates. Return the furtherst available date if `NULL`.
-#' @param service (Optional) A character vector of service IDs to retain in the `wizardgtfs` object.
-#' @param route (Optional) A character vector of route IDs to retain in the `wizardgtfs` object. When `keep = FALSE`, excludes the specified routes.
-#' @param trip (Optional) A character vector of trip IDs to retain in the `wizardgtfs` object. When `keep = FALSE`, excludes the specified trips.
-#' @param stop (Optional) A character vector of stop IDs to retain.
-#' @param from (Optional) Start time in "HH:MM:SS" format to include only trips that start after this time. Defaults to `0:0:0`.
-#' @param to (Optional) End time in "HH:MM:SS" format to include only trips that end before this time. Defaults to `48:00:00`.
-#' @param keep Logical. When `TRUE` (default), retains specified `route` or `trip` IDs; when `FALSE`, excludes them.
+#' @param gtfs A GTFS object.
+#' @param servicepattern Character vector of service-pattern IDs returned by
+#'   [get_servicepattern()]. When `NULL`, the most frequent pattern is used.
+#' @param dates Dates to retain. Values accepted by [as.Date()] are supported.
+#'   When `NULL`, the latest available service date is used.
+#' @param service,route,trip,stop Character vectors of IDs to retain.
+#' @param from,to Inclusive GTFS time bounds in `"HH:MM:SS"` form. Hours may
+#'   exceed 24.
+#' @param keep Logical. If `FALSE`, the specified route or trip IDs are
+#'   excluded.
 #'
 #' @details
-#' Each `filter_` function targets a specific aspect of the GTFS data, applying filters to the relevant tables:
+#' `filter_stop()` retains the requested stop calls and therefore may return
+#' partial trips. `filter_time()` retains individual stop calls whose arrival
+#' or departure falls inside the inclusive time interval and may also return
+#' partial trips. This behavior is useful for network experiments. Route,
+#' trip, service, service-pattern, and date filters retain complete trips.
 #'
-#' - filter_servicepattern: Filters by specified service patterns in the GTFS data. If no pattern is provided, defaults to the most frequent one.
+#' `filter_date()` rewrites service availability as `calendar_dates` additions
+#' for exactly the selected dates. Other filters preserve the selected
+#' services' original date ranges and exceptions.
 #'
-#' - filter_date: Filters data by a date or dates, returning only services active on those dates.
-#'
-#' - filter_service: Filters by service ID, retaining data related to specified services.
-#'
-#' - filter_route: Filters by route ID. When `keep = TRUE`, only specified routes are retained; when `FALSE`, the specified routes are excluded.
-#'
-#' - filter_trip: Filters by trip ID, using `keep` to either retain or exclude specified trips.
-#'
-#' - filter_stop: Filters by stop ID, retaining only stops and related data (trips, routes, etc.) associated with the specified stops.
-#'
-#' - filter_time: Filters stop times within a specified time range (between `from` and `to`).
-#'
-#' These functions selectively subset the GTFS tables (`trips`, `stop_times`, `routes`, `agency`, `shapes`, etc.), maintaining only the records that meet the defined criteria. If a table or required column is missing from the GTFS data, the function will either attempt to infer it using available data or exclude the table as necessary.
-#'
-#' @return A filtered `wizardgtfs` object containing only the records that match the specified criteria.
+#' @return A `wizardgtfs` object.
 #'
 #' @examples
-#' # Filter by service pattern
-#' filtered_gtfs <- filter_servicepattern(gtfs = for_rail_gtfs, servicepattern = "servicepattern-1")
+#' typical <- filter_servicepattern(for_rail_gtfs)
+#' one_day <- filter_date(for_rail_gtfs, "2021-02-10")
+#' one_route <- filter_route(for_rail_gtfs, for_rail_gtfs$routes$route_id[1])
+#' two_trips <- filter_trip(for_rail_gtfs, for_rail_gtfs$trips$trip_id[1:2])
+#' serving_stop <- filter_stop(for_rail_gtfs, for_rail_gtfs$stops$stop_id[1])
+#' morning <- filter_time(for_rail_gtfs, from = "06:30:00", to = "10:00:00")
 #'
-#' # Filter by a specific date
-#' filtered_gtfs <- filter_date(gtfs = for_rail_gtfs, dates = "2021-02-10")
-#'
-#' # Filter by route ID, keeping only specified routes
-#' filtered_gtfs <- filter_route(gtfs = for_rail_gtfs, route = for_rail_gtfs$routes$route_id[1:2])
-#'
-#' # Filter by trip ID, excluding specified trips
-#' filtered_gtfs <- filter_trip(gtfs = for_rail_gtfs,
-#'                               trip = for_rail_gtfs$trips$trip_id[1:2],
-#'                               keep = FALSE)
-#'
-#' # Filter by a time range
-#' filtered_gtfs <- filter_time(gtfs = for_rail_gtfs, from = "06:30:00", to = "10:00:00")
-#'
-#' @seealso
-#' [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
-#'
-#' @importFrom dplyr filter group_by mutate left_join reframe select
-#' @importFrom tidyr unnest
-#' @importFrom checkmate assert_logical
-#' @importFrom stringr str_split
-
+#' @references
+#' [GTFS Schedule Reference](https://gtfs.org/documentation/schedule/reference/)
+#' @seealso [GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
 #' @rdname filter_functions
-#' @aliases filter_servicepattern
 #' @export
 filter_servicepattern <- function(gtfs, servicepattern = NULL){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+  gtfs <- ensure_wizardgtfs(gtfs)
+  patterns <- GTFSwizard::get_servicepattern(gtfs)
+  if(!nrow(patterns)){
+    gw_stop("no service patterns are available.")
   }
-
   if(is.null(servicepattern)){
-    warning(crayon::red('No '), 'service pattern(s) provided. Returning most frequent pattern.')
-    servicepattern <- 'servicepattern-1'
+    servicepattern <- patterns$service_pattern[
+      which.max(patterns$pattern_frequency)
+    ]
+    gw_warn(
+      "no `servicepattern` supplied; using `", servicepattern,
+      "`, the most frequent pattern."
+    )
   }
-
-  service_pattern <-
-    GTFSwizard::get_servicepattern(gtfs)
-
-  if(any(!servicepattern %in% unique(service_pattern$service_pattern))){
-
-    stop(paste0('Service pattern should be one of ',
-                paste(unique(service_pattern$service_pattern), collapse = ', '),
-                '. Use ', crayon::cyan('get_servicepattern()'), ' function to check service patterns.'))
-
-  }
-
-  service_patterns <-
-    service_pattern[service_pattern$service_pattern %in% servicepattern, ] %>%
-    dplyr::group_by(service_pattern) %>%
-    dplyr::reframe(service_id = list(service_id))
-
-  services <-
-    unlist(service_patterns$service_id) %>%
-    unique
-
-  gtfs$trips <-
-    gtfs$trips[gtfs$trips$service_id %in% services, ]
-
-  routes <-
-    gtfs$trips$route_id %>%
-    unique
-
-  gtfs$routes <-
-    gtfs$routes[gtfs$routes$route_id %in% routes, ]
-
-  agencies <-
-    gtfs$routes$agency_id %>%
-    unique
-
-  gtfs$agency <-
-    gtfs$agency[gtfs$agency$agency_id %in% agencies, ]
-
-  trips <-
-    gtfs$trips$trip_id %>%
-    unique
-
-  gtfs$stop_times <-
-    gtfs$stop_times[gtfs$stop_times$trip_id %in% trips, ]
-
-  stops <-
-    gtfs$stop_times$stop_id %>%
-    unique
-
-  gtfs$stops <-
-    gtfs$stops[gtfs$stops$stop_id %in% stops, ]
-
-  shapes <-
-    gtfs$trips$shape_id %>%
-    unique
-
-  if(!purrr::is_null(gtfs$shapes)){
-    gtfs$shapes <-
-      gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
-  }
-
-  if(!purrr::is_null(gtfs$fare_rules)){
-    gtfs$fare_rules <-
-      gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
-
-    fares <-
-      gtfs$fare_rules$fare_id %>%
-      unique
-  }
-
-  if(!purrr::is_null(gtfs$fare_attributes)){
-    gtfs$fare_attributes <-
-      gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
-  }
-
-  if(!purrr::is_null(gtfs$calendar)){
-    gtfs$calendar <-
-      gtfs$calendar[gtfs$calendar$service_id %in% services, ]
-  }
-
-  # if(!purrr::is_null(gtfs$calendar_dates)){
-  #   gtfs$calendar_dates <-
-  #   gtfs$calendar_dates %>%
-  #   dplyr::filter(service_id %in% services)
-  # }
-
-  if(!purrr::is_null(gtfs$frequencies)){
-    gtfs$frequencies <-
-      gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
-  }
-
-  if(!purrr::is_null(gtfs$transfers)){
-    gtfs$transfers <-
-      gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
-  }
-
-  if(!purrr::is_null(gtfs$dates_services)){
-
-    gtfs$dates_services <- NULL
-
-  }
-
-  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-
-  return(gtfs)
-
+  assert_known_ids(
+    servicepattern, patterns$service_pattern, "service pattern",
+    "`get_servicepattern()`"
+  )
+  services <- unique(patterns$service_id[
+    patterns$service_pattern %in% servicepattern
+  ])
+  prune_gtfs(gtfs, gtfs$trips$trip_id[gtfs$trips$service_id %in% services])
 }
 
 #' @rdname filter_functions
-#' @aliases filter_date
 #' @export
 filter_date <- function(gtfs, dates = NULL){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+  gtfs <- ensure_wizardgtfs(gtfs)
+  available <- as.Date(gtfs$dates_services$date)
+  if(!length(available)){
+    gw_stop("the feed has no active service dates.")
   }
-
-  if(is.null(dates)) {
-    warning(crayon::red('No date(s) provided.'), ' Returning furtherst date.')
-    date <- gtfs$dates_services$date[length(gtfs$dates_services$date)] %>% as.Date()
+  if(is.null(dates)){
+    dates <- max(available)
+    gw_warn("no `dates` supplied; using the latest service date, ", dates, ".")
   } else {
-    date <- as.Date(dates)
-    }
-
-  if(any(!date %in% as.Date(gtfs$dates_services$date))){
-    stop(crayon::red('Date(s) do not belongs to calendar.'), ' Must be either a ', crayon::cyan('YYYY-MM-DD'), ' character vector or a ', crayon::cyan('POSIXct'), ' object. Please use ', crayon::cyan('get_calendar()'), ' to check available dates.')
+    dates <- parse_gtfs_date(dates)
+  }
+  if(anyNA(dates)){
+    gw_stop("`dates` must contain valid calendar dates.")
+  }
+  unavailable <- setdiff(dates, available)
+  if(length(unavailable)){
+    gw_stop(
+      "date(s) are outside the feed calendar: ",
+      paste(unavailable, collapse = ", "), "."
+    )
   }
 
-  services <-
-    gtfs$dates_services[as.Date(gtfs$dates_services$date) %in% date, ] %>%
-    tidyr::unnest(cols = 'service_id') %>%
-    .$service_id
-
-  gtfs$trips <-
-    gtfs$trips[gtfs$trips$service_id %in% services, ]
-
-  routes <-
-    gtfs$trips$route_id %>%
-    unique
-
-  gtfs$routes <-
-    gtfs$routes[gtfs$routes$route_id %in% routes, ]
-
-  agencies <-
-    gtfs$routes$agency_id %>%
-    unique
-
-  gtfs$agency <-
-    gtfs$agency[gtfs$agency$agency_id %in% agencies, ]
-
-  trips <-
-    gtfs$trips$trip_id %>%
-    unique
-
-  gtfs$stop_times <-
-    gtfs$stop_times[gtfs$stop_times$trip_id %in% trips, ]
-
-  stops <-
-    gtfs$stop_times$stop_id %>%
-    unique
-
-  gtfs$stops <-
-    gtfs$stops[gtfs$stops$stop_id %in% stops, ]
-
-  shapes <-
-    gtfs$trips$shape_id %>%
-    unique
-
-  if(!purrr::is_null(gtfs$shapes)){
-    gtfs$shapes <-
-      gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
-  }
-
-  if(!purrr::is_null(gtfs$fare_rules)){
-    gtfs$fare_rules <-
-      gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
-
-    fares <-
-      gtfs$fare_rules$fare_id %>%
-      unique
-  }
-
-  if(!purrr::is_null(gtfs$fare_attributes)){
-    gtfs$fare_attributes <-
-      gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
-  }
-
-  if(!purrr::is_null(gtfs$calendar)){
-    new.calendar.dates <-
-      tibble(service_id = as.character(services),
-             start_date = list(date),
-             end_date = list(date)) %>%
-      tidyr::unnest(cols = c('start_date', 'end_date'))
-
-    gtfs$calendar <-
-      gtfs$calendar[gtfs$calendar$service_id %in% services, ] %>%
-      .[, 1:8] %>%
-      dplyr::left_join(new.calendar.dates, by = dplyr::join_by(service_id))
-  }
-
-  if(!purrr::is_null(gtfs$calendar_dates)){
-    gtfs$calendar_dates <-
-      gtfs$calendar_dates[gtfs$calendar_dates$date %in% date, ]
-  }
-
-  if(!purrr::is_null(gtfs$frequencies)){
-    gtfs$frequencies <-
-      gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
-  }
-
-  if(!purrr::is_null(gtfs$transfers)){
-    gtfs$transfers <-
-      gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
-  }
-
-  if(!purrr::is_null(gtfs$dates_services)){
-
-    gtfs$dates_services <- NULL
-
-  }
-
-  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-
-  return(gtfs)
-
+  selected <- gtfs$dates_services[
+    as.Date(gtfs$dates_services$date) %in% dates, , drop = FALSE
+  ]
+  services_by_date <- tidyr::unnest(selected, cols = "service_id")
+  gtfs <- prune_gtfs(gtfs, gtfs$trips$trip_id[
+    gtfs$trips$service_id %in% services_by_date$service_id
+  ])
+  gtfs[["calendar"]] <- NULL
+  gtfs[["calendar_dates"]] <- unique(tibble::tibble(
+    service_id = as.character(services_by_date$service_id),
+    date = as.Date(services_by_date$date),
+    exception_type = 1L
+  ))
+  gtfs <- create_dates_services_table(gtfs)
+  class(gtfs) <- c("wizardgtfs", "gtfs", "list")
+  gtfs
 }
 
 #' @rdname filter_functions
-#' @aliases filter_service
 #' @export
 filter_service <- function(gtfs, service){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  if(is.null(service)){
-    stop(crayon::red('No '), 'service(s) provided. Use ', crayon::cyan('get_servicepattern() '), 'to check available services.')
-  }
-
-  if(any(!service %in% gtfs$trips$service_id)){
-    stop(paste0('\nService(s) should be one of ',
-                paste(unique(gtfs$trips$service_id), collapse = ', '),
-                '.'))
-
-  }
-
-  services <- service
-
-  gtfs$trips <-
-    gtfs$trips[gtfs$trips$service_id %in% services, ]
-
-  routes <-
-    gtfs$trips$route_id %>%
-    unique
-
-  gtfs$routes <-
-    gtfs$routes[gtfs$routes$route_id %in% routes, ]
-
-  agencies <-
-    gtfs$routes$agency_id %>%
-    unique
-
-  gtfs$agency <-
-    gtfs$agency[gtfs$agency$agency_id %in% agencies, ]
-
-  trips <-
-    gtfs$trips$trip_id %>%
-    unique
-
-  gtfs$stop_times <-
-    gtfs$stop_times[gtfs$stop_times$trip_id %in% trips, ]
-
-  stops <-
-    gtfs$stop_times$stop_id %>%
-    unique
-
-  gtfs$stops <-
-    gtfs$stops[gtfs$stops$stop_id %in% stops, ]
-
-  shapes <-
-    gtfs$trips$shape_id %>%
-    unique
-
-  if(!purrr::is_null(gtfs$shapes)){
-    gtfs$shapes <-
-      gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
-  }
-
-  if(!purrr::is_null(gtfs$fare_rules)){
-    gtfs$fare_rules <-
-      gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
-
-    fares <-
-      gtfs$fare_rules$fare_id %>%
-      unique
-  }
-
-  if(!purrr::is_null(gtfs$fare_attributes)){
-    gtfs$fare_attributes <-
-      gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
-  }
-
-  if(!purrr::is_null(gtfs$calendar)){
-    gtfs$calendar <-
-      gtfs$calendar[gtfs$calendar$service_id %in% services, ]
-  }
-
-  if(!purrr::is_null(gtfs$calendar_dates)){
-    gtfs$calendar_dates <-
-      gtfs$calendar_dates %>%
-      dplyr::filter(service_id %in% services)
-  }
-
-  if(!purrr::is_null(gtfs$frequencies)){
-    gtfs$frequencies <-
-      gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
-  }
-
-  if(!purrr::is_null(gtfs$transfers)){
-    gtfs$transfers <-
-      gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
-  }
-
-  if(!purrr::is_null(gtfs$dates_services)){
-
-      gtfs$dates_services <- NULL
-
-  }
-
-  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-
-  return(gtfs)
-
+  gtfs <- ensure_wizardgtfs(gtfs)
+  assert_known_ids(service, gtfs$trips$service_id, "service", "`gtfs$trips`")
+  prune_gtfs(gtfs, gtfs$trips$trip_id[gtfs$trips$service_id %in% service])
 }
 
 #' @rdname filter_functions
-#' @aliases filter_route
 #' @export
 filter_route <- function(gtfs, route, keep = TRUE){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+  gtfs <- ensure_wizardgtfs(gtfs)
+  gw_assert_flag(keep, "keep")
+  assert_known_ids(route, gtfs$routes$route_id, "route", "`gtfs$routes`")
+  selected <- if(keep){
+    gtfs$trips$route_id %in% route
+  } else {
+    !gtfs$trips$route_id %in% route
   }
-
-  if(purrr::is_null(route)){
-    stop(crayon::red('No '), 'route(s) provided. Run ', crayon::cyan('gtfs$routes '), 'to check available routes.')
-  }
-
-  if(any(!route %in% gtfs$routes$route_id)){
-    stop('There is ', crayon::red('no '), 'such route(s). Run ', crayon::cyan('gtfs$routes '), 'to check available routes.')
-    }
-
-  checkmate::assert_logical(keep)
-
-  if(isTRUE(keep)) {
-    routes <- route
-  }
-
-  if(!isTRUE(keep)) {
-    routes <- gtfs$routes$route_id[!gtfs$routes$route_id %in% route]
-  }
-
-  gtfs$routes <-
-    gtfs$routes[gtfs$routes$route_id %in% routes, ]
-
-  gtfs$trips <-
-    gtfs$trips[gtfs$trips$route_id %in% routes, ]
-
-  agencies <-
-    gtfs$routes$agency_id %>%
-    unique
-
-  gtfs$agency <-
-    gtfs$agency[gtfs$agency$agency_id %in% agencies, ]
-
-  trips <-
-    gtfs$trips$trip_id %>%
-    unique
-
-  gtfs$stop_times <-
-    gtfs$stop_times[gtfs$stop_times$trip_id %in% trips, ]
-
-  stops <-
-    gtfs$stop_times$stop_id %>%
-    unique
-
-  gtfs$stops <-
-    gtfs$stops[gtfs$stops$stop_id %in% stops, ]
-
-  shapes <-
-    gtfs$trips$shape_id %>%
-    unique
-
-  if(!purrr::is_null(gtfs$shapes)){
-    gtfs$shapes <-
-      gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
-  }
-
-  if(!purrr::is_null(gtfs$fare_rules)){
-    gtfs$fare_rules <-
-      gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
-
-    fares <-
-      gtfs$fare_rules$fare_id %>%
-      unique
-  }
-
-  if(!purrr::is_null(gtfs$fare_attributes)){
-    gtfs$fare_attributes <-
-      gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
-  }
-
-  services <-
-    gtfs$trips$service_id %>%
-    unique
-
-  if(!purrr::is_null(gtfs$calendar)){
-    gtfs$calendar <-
-      gtfs$calendar[gtfs$calendar$service_id %in% services, ]
-  }
-
-  if(!purrr::is_null(gtfs$calendar_dates)){
-    gtfs$calendar_dates <-
-      gtfs$calendar_dates %>%
-      dplyr::filter(service_id %in% services)
-  }
-
-  if(!purrr::is_null(gtfs$frequencies)){
-    gtfs$frequencies <-
-      gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
-  }
-
-  if(!purrr::is_null(gtfs$transfers)){
-    gtfs$transfers <-
-      gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
-  }
-
-  if(!purrr::is_null(gtfs$dates_services)){
-
-    gtfs$dates_services <- NULL
-
-  }
-
-  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-
-  return(gtfs)
-
+  prune_gtfs(gtfs, gtfs$trips$trip_id[selected])
 }
 
 #' @rdname filter_functions
-#' @aliases filter_trip
 #' @export
 filter_trip <- function(gtfs, trip, keep = TRUE){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the ', crayon::cyan('gtfswizard'), ' class. Computation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+  gtfs <- ensure_wizardgtfs(gtfs)
+  gw_assert_flag(keep, "keep")
+  assert_known_ids(trip, gtfs$trips$trip_id, "trip", "`gtfs$trips`")
+  selected <- if(keep){
+    gtfs$trips$trip_id %in% trip
+  } else {
+    !gtfs$trips$trip_id %in% trip
   }
-
-
-  if(is.null(trip)){
-    stop(crayon::red('No '), 'trip(s) provided. Run ', crayon::cyan('gtfs$trips '), 'to check available trips.')
-  }
-
-  if(any(!trip %in% gtfs$trips$trip_id)){
-    stop('\nThere is ', crayon::red('no '), 'such trip(s). Run ', crayon::cyan('gtfs$trips'), ' to check available trips.')
-  }
-
-  checkmate::assert_logical(keep)
-
-  if(isTRUE(keep)) {
-    trips <- trip
-  }
-
-  if(!isTRUE(keep)) {
-    trips <- gtfs$trips$trip_id[!gtfs$trips$trip_id %in% trip]
-  }
-
-  gtfs$trips <-
-    gtfs$trips[gtfs$trips$trip_id %in% trips, ]
-
-  routes <-
-    gtfs$trips$route_id %>%
-    unique
-
-  gtfs$routes <-
-    gtfs$routes[gtfs$routes$route_id %in% routes, ]
-
-  agencies <-
-    gtfs$routes$agency_id %>%
-    unique
-
-  gtfs$agency <-
-    gtfs$agency[gtfs$agency$agency_id %in% agencies, ]
-
-  gtfs$stop_times <-
-    gtfs$stop_times[gtfs$stop_times$trip_id %in% trips, ]
-
-  stops <-
-    gtfs$stop_times$stop_id %>%
-    unique
-
-  gtfs$stops <-
-    gtfs$stops[gtfs$stops$stop_id %in% stops, ]
-
-  shapes <-
-    gtfs$trips$shape_id %>%
-    unique
-
-  if(!purrr::is_null(gtfs$shapes)){
-    gtfs$shapes <-
-      gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
-  }
-
-  if(!purrr::is_null(gtfs$fare_rules)){
-    gtfs$fare_rules <-
-      gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
-
-    fares <-
-      gtfs$fare_rules$fare_id %>%
-      unique
-  }
-
-  if(!purrr::is_null(gtfs$fare_attributes)){
-    gtfs$fare_attributes <-
-      gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
-  }
-
-  services <-
-    gtfs$trips$service_id %>%
-    unique
-
-  if(!purrr::is_null(gtfs$calendar)){
-    gtfs$calendar <-
-      gtfs$calendar[gtfs$calendar$service_id %in% services, ]
-  }
-
-  if(!purrr::is_null(gtfs$calendar_dates)){
-    gtfs$calendar_dates <-
-      gtfs$calendar_dates %>%
-      dplyr::filter(service_id %in% services)
-  }
-
-  if(!purrr::is_null(gtfs$frequencies)){
-    gtfs$frequencies <-
-      gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
-  }
-
-  if(!purrr::is_null(gtfs$transfers)){
-    gtfs$transfers <-
-      gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
-  }
-
-  if(!purrr::is_null(gtfs$dates_services)){
-
-    gtfs$dates_services <- NULL
-
-  }
-
-  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-
-  return(gtfs)
-
+  prune_gtfs(gtfs, gtfs$trips$trip_id[selected])
 }
 
 #' @rdname filter_functions
-#' @aliases filter_stop
 #' @export
 filter_stop <- function(gtfs, stop){
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
-  }
-
-  if(is.null(stop)){
-    stop(crayon::red('No '), 'stop(s) provided. Run ', crayon::cyan('gtfs$stops '), 'to check available stops.')
-  }
-
-  if(any(!stop %in% gtfs$stops$stop_id)){
-    stop('There is ', crayon::red('no '), 'such stop(s). Run ', crayon::cyan('gtfs$stops '), 'to check available stops.')
-  }
-
-  stops <- stop
-
-  gtfs$stops <-
-    gtfs$stops[gtfs$stops$stop_id %in% stops, ]
-
-  gtfs$stop_times <-
-    gtfs$stop_times[gtfs$stop_times$stop_id %in% stops, ]
-
-  trips <-
-    gtfs$stop_times$trip_id %>%
-    unique
-
-  gtfs$trips <-
-    gtfs$trips[gtfs$trips$trip_id %in% trips, ]
-
-  routes <-
-    gtfs$trips$route_id %>%
-    unique
-
-  gtfs$routes <-
-    gtfs$routes[gtfs$routes$route_id %in% routes, ]
-
-  agencies <-
-    gtfs$routes$agency_id %>%
-    unique
-
-  gtfs$agency <-
-    gtfs$agency[gtfs$agency$agency_id %in% agencies, ]
-
-  if(!purrr::is_null(gtfs$shapes)){
-    shapes <-
-      gtfs$trips$shape_id %>%
-      unique
-
-    gtfs$shapes <-
-      gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
-  }
-
-  if(!purrr::is_null(gtfs$fare_rules)){
-    gtfs$fare_rules <-
-      gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
-
-  }
-
-  if(!purrr::is_null(gtfs$fare_attributes)){
-    fares <-
-      gtfs$fare_rules$fare_id %>%
-      unique
-
-    gtfs$fare_attributes <-
-      gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
-  }
-
-  services <-
-    gtfs$trips$service_id %>%
-    unique
-
-  if(!purrr::is_null(gtfs$calendar)){
-    gtfs$calendar <-
-      gtfs$calendar[gtfs$calendar$service_id %in% services, ]
-  }
-
-  if(!purrr::is_null(gtfs$calendar_dates)){
-    gtfs$calendar_dates <-
-      gtfs$calendar_dates %>%
-      dplyr::filter(service_id %in% services)
-  }
-
-  if(!purrr::is_null(gtfs$frequencies)){
-    gtfs$frequencies <-
-      gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
-  }
-
-  if(!purrr::is_null(gtfs$transfers)){
-    gtfs$transfers <-
-      gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
-  }
-
-  if(!purrr::is_null(gtfs$dates_services)){
-
-      gtfs$dates_services <- NULL
-
-  }
-
-  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-
-  return(gtfs)
-
+  gtfs <- ensure_wizardgtfs(gtfs)
+  assert_known_ids(stop, gtfs$stops$stop_id, "stop", "`gtfs$stops`")
+  stop_times <- gtfs$stop_times[
+    gtfs$stop_times$stop_id %in% stop, , drop = FALSE
+  ]
+  prune_gtfs(gtfs, unique(stop_times$trip_id), stop_times = stop_times)
 }
 
 #' @rdname filter_functions
-#' @aliases filter_time
 #' @export
-filter_time <- function(gtfs, from = '0:0:0', to = "48:00:00"){
-
-  message(crayon::cyan('filter_time()'), crayon::red(' removes'), ' invalid stop times.') # evitar isso em uma proxima versao
-
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+filter_time <- function(gtfs, from = "00:00:00", to = "48:00:00"){
+  gtfs <- ensure_wizardgtfs(gtfs)
+  bounds <- gtfs_time_to_seconds(c(from, to))
+  if(anyNA(bounds)){
+    gw_stop("`from` and `to` must be valid GTFS times in `HH:MM:SS` form.")
+  }
+  if(bounds[1] > bounds[2]){
+    gw_stop("`from` must be earlier than or equal to `to`.")
   }
 
-  if(suppressWarnings(is.na(stringr::str_split(from, ":") %>%
-                            lapply(FUN = as.numeric)))){
-    stop(crayon::red('Wrong '), crayon::cyan('from'), ' time format. Please use ', crayon::cyan('HH:MM:SS'), '.')
+  arrival <- gtfs_time_to_seconds(gtfs$stop_times$arrival_time)
+  departure <- gtfs_time_to_seconds(gtfs$stop_times$departure_time)
+  selected <- (
+    !is.na(arrival) & arrival >= bounds[1] & arrival <= bounds[2]
+  ) | (
+    !is.na(departure) & departure >= bounds[1] & departure <= bounds[2]
+  )
+  stop_times <- gtfs$stop_times[selected, , drop = FALSE]
+  if(!nrow(stop_times)){
+    gw_warn("the time interval returned no stop calls.")
   }
-
-  if(suppressWarnings(is.na(stringr::str_split(to, ":") %>%
-                            lapply(FUN = as.numeric)))){
-    stop(crayon::red('Wrong '), crayon::cyan('to'), ' time format. Please use ', crayon::cyan('HH:MM:SS'), '.')
-  }
-
-  from <-
-    stringr::str_split(from, ":") %>%
-    lapply(FUN = as.numeric) %>%
-    lapply(FUN = function(x){
-      x[1]*60*60+x[2]*60+x[3]
-    }) %>%
-    unlist %>%
-    na.omit()
-
-  to <-
-    stringr::str_split(to, ":") %>%
-    lapply(FUN = as.numeric) %>%
-    lapply(FUN = function(x){
-      x[1]*60*60+x[2]*60+x[3]
-    }) %>%
-    unlist %>%
-    na.omit()
-
-  gtfs$stop_times <-
-    gtfs$stop_times %>%
-    dplyr::filter(!arrival_time == '' & !departure_time == "") %>%
-    dplyr::mutate(arrival_filter = arrival_time %>%
-                    stringr::str_split(":") %>%
-                    lapply(FUN = as.numeric) %>%
-                    lapply(FUN = function(x){
-                      x[1]*60*60+x[2]*60+x[3]
-                    }) %>%
-                    unlist() %>%
-                    na.omit(),
-                  departure_filter = departure_time %>%
-                    stringr::str_split(":") %>%
-                    lapply(FUN = as.numeric) %>%
-                    lapply(FUN = function(x){
-                      x[1]*60*60+x[2]*60+x[3]
-                    }) %>%
-                    unlist() %>%
-                    na.omit()) %>%
-    dplyr::filter(arrival_filter >= from & arrival_filter <= to & departure_filter >= from & departure_filter <= to) %>%
-    dplyr::select(-arrival_filter, -departure_filter)
-
-  stops <-
-    gtfs$stop_times$stop_id %>%
-    unique
-
-  gtfs$stops <-
-    gtfs$stops[gtfs$stops$stop_id %in% stops, ]
-
-  trips <-
-    gtfs$stop_times$trip_id %>%
-    unique
-
-  gtfs$trips <-
-    gtfs$trips[gtfs$trips$trip_id %in% trips, ]
-
-  services <-
-    gtfs$trips$service_id %>%
-    unique
-
-  routes <-
-    gtfs$trips$route_id %>%
-    unique
-
-  gtfs$routes <-
-    gtfs$routes[gtfs$routes$route_id %in% routes, ]
-
-  agencies <-
-    gtfs$routes$agency_id %>%
-    unique
-
-  gtfs$agency <-
-    gtfs$agency[gtfs$agency$agency_id %in% agencies, ]
-
-  if(!purrr::is_null(gtfs$shapes)){
-    shapes <-
-      gtfs$trips$shape_id %>%
-      unique
-
-    gtfs$shapes <-
-      gtfs$shapes[gtfs$shapes$shape_id %in% shapes, ]
-  }
-
-  if(!purrr::is_null(gtfs$fare_rules)){
-    gtfs$fare_rules <-
-      gtfs$fare_rules[gtfs$fare_rules$route_id %in% routes, ]
-
-  }
-
-  if(!purrr::is_null(gtfs$fare_attributes)){
-    fares <-
-      gtfs$fare_rules$fare_id %>%
-      unique
-
-    gtfs$fare_attributes <-
-      gtfs$fare_attributes[gtfs$fare_attributes$fare_id %in% fares, ]
-  }
-
-  if(!purrr::is_null(gtfs$calendar)){
-    gtfs$calendar <-
-      gtfs$calendar[gtfs$calendar$service_id %in% services, ]
-  }
-
-  if(!purrr::is_null(gtfs$calendar_dates)){
-    gtfs$calendar_dates <-
-      gtfs$calendar_dates %>%
-      dplyr::filter(service_id %in% services)
-  }
-
-  if(!purrr::is_null(gtfs$frequencies)){
-    gtfs$frequencies <-
-      gtfs$frequencies[gtfs$frequencies$trip_id %in% trips, ]
-  }
-
-  if(!purrr::is_null(gtfs$transfers)){
-    gtfs$transfers <-
-      gtfs$transfers[gtfs$transfers$stop_id %in% stops, ]
-  }
-
-  if(!purrr::is_null(gtfs$dates_services)){
-
-      gtfs$dates_services <- NULL
-
-  }
-
-  gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-
-  return(gtfs)
-
+  prune_gtfs(
+    gtfs,
+    unique(stop_times$trip_id),
+    stop_times = stop_times
+  )
 }
 
-# inserir filter_polygon ou filter_space
-# stops <- st_filter(as_stops_sf(gtfs$stops) %>% st_make_valid(), shp.de.interesse) %>% .$stop_id
-# gtfs <- filter_stop(gtfs, stops)
+assert_known_ids <- function(ids, available, label, source){
+  if(is.null(ids) || !length(ids)){
+    gw_stop("supply at least one ", label, " ID.")
+  }
+  unknown <- setdiff(as.character(ids), as.character(available))
+  if(length(unknown)){
+    shown <- paste(utils::head(unknown, 5L), collapse = ", ")
+    suffix <- if(length(unknown) > 5L) ", ..." else ""
+    gw_stop(
+      "unknown ", label, " ID(s): ", shown, suffix,
+      ". See ", source, " for available values."
+    )
+  }
+  invisible(TRUE)
+}

@@ -8,13 +8,14 @@ unselection <- function(gtfs){
 
 #' @exportS3Method GTFSwizard::unselection wizardgtfs_selected
 unselection.wizardgtfs_selected <- function(gtfs){
-  attributes(gtfs) <- attributes(gtfs)[names(attributes(gtfs))%nin%c('selection','selection_expr')]
-  class(gtfs) <- c('wizardgtfs','gtfs','list')
-  return(gtfs)
+  attr(gtfs, "selection") <- NULL
+  attr(gtfs, "selection_expr") <- NULL
+  class(gtfs) <- c("wizardgtfs", "gtfs", "list")
+  gtfs
 }
 
 #' @exportS3Method GTFSwizard::unselection wizardgtfs
 unselection.wizardgtfs <- function(gtfs){
-  message('There is no selection on the gtfsect')
-  return(gtfs)
+  gw_msg("the object has no active selection.")
+  gtfs
 }

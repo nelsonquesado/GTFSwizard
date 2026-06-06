@@ -1,76 +1,45 @@
-#' Delay Specified Trips in a `wizardgtfs` Object
+#' Shift Trips in Time
 #'
-#' This function adds a delay to the arrival and departure times of specified trips within a `wizardgtfs` object.
-#' If the input GTFS object is not of class `wizardgtfs`, it will be converted.
+#' Adds a number of seconds to every non-empty arrival and departure time for
+#' selected trips. GTFS times above 24 hours are preserved.
 #'
-#' @param gtfs An object representing GTFS data, preferably of class `wizardgtfs`.
-#' @param trip A character vector of `trip_id`s in the `wizardgtfs` object that will be delayed. Each `trip_id` must exist in `gtfs$trips$trip_id`.
-#' @param duration A delay duration, either as a `duration` object or a numeric value representing seconds.
+#' @param gtfs A GTFS object.
+#' @param trip Character vector of `trip_id` values.
+#' @param duration Numeric seconds or an object coercible to seconds, such as
+#'   a `difftime`.
 #'
-#' @details
-#' This function adjusts the arrival and departure times of the specified `trip_id`s in `gtfs$stop_times` by the specified `duration`.
-#' If `gtfs` is not a `wizardgtfs` object, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`, and a warning will be issued.
-#' The function checks that `trip` contains valid `trip_id`s and that `duration` is either a `duration` or numeric (seconds).
-#'
-#' @return A modified `wizardgtfs` object with updated arrival and departure times for the specified trips.
+#' @return A modified `wizardgtfs` object.
 #'
 #' @examples
-#' # Delay trips by 5 minutes
-#' gtfs <- delay_trip(gtfs = for_rail_gtfs, for_rail_gtfs$trips$trip_id[1:2], duration = 300)
+#' delayed <- delay_trip(
+#'   for_rail_gtfs,
+#'   trip = for_rail_gtfs$trips$trip_id[1:2],
+#'   duration = 300
+#' )
 #'
-#' # Delay trips by duration
-#' gtfs <- delay_trip(gtfs = for_rail_gtfs,
-#'                     trip = for_rail_gtfs$trips$trip_id[1],
-#'                     duration = lubridate::duration(10, "minutes"))
-#'
-#' @seealso
-#' [GTFSwizard::as_wizardgtfs()] for converting GTFS objects to `wizardgtfs` class.
-#'
-#' @importFrom lubridate hms as.duration duration
-#' @importFrom checkmate assert_subset
+#' @seealso [GTFSwizard::edit_speed()], [GTFSwizard::set_dwelltime()]
 #' @export
 delay_trip <- function(gtfs, trip, duration){
-
-  # checa os argumentos -------------------------------------------------------------------------
-  if(!"wizardgtfs" %in% class(gtfs)){
-    gtfs <- GTFSwizard::as_wizardgtfs(gtfs)
-    message('The gtfs object is not of the wizardgtfs class.\nComputation may take longer. Using ', crayon::cyan('as_gtfswizard()'), ' is advised.')
+  gtfs <- ensure_wizardgtfs(gtfs)
+  assert_known_ids(trip, gtfs$trips$trip_id, "trip", "`gtfs$trips`")
+  if(!(is.numeric(duration) || inherits(duration, c("difftime", "Duration"))) ||
+     length(duration) != 1L || is.na(duration)){
+    gw_stop("`duration` must be one numeric duration in seconds.")
   }
+  seconds <- as.numeric(duration)
 
-  if(!lubridate::is.duration(duration)) {
-
-    if(!is.numeric(duration)) {
-      stop(crayon::cyan("duration"), " must be of the class duration or numeric (seconds)")
+  selected <- gtfs$stop_times$trip_id %in% trip
+  for(field in c("arrival_time", "departure_time")){
+    original <- gtfs$stop_times[[field]]
+    parsed <- gtfs_time_to_seconds(original)
+    edit <- selected & !is.na(parsed)
+    shifted <- parsed
+    shifted[edit] <- shifted[edit] + seconds
+    if(any(shifted[edit] < 0)){
+      gw_stop("the requested shift would create a negative GTFS time.")
     }
-
-    dur <- lubridate::duration(duration, units = 'seconds')
-
-  } else {dur <- duration}
-
-  checkmate::assert_subset(trip, choices = gtfs$trips$trip_id)
-
-  # atrasa as trips -----------------------------------------------------------------------------
-  temp.arrival <-
-    gtfs$stop_times$arrival_time[gtfs$stop_times$trip_id %in% trip & !gtfs$stop_times$arrival_time == ""] %>%
-    lubridate::hms() %>%
-    lubridate::as.duration() + dur
-
-  gtfs$stop_times$arrival_time[gtfs$stop_times$trip_id %in% trip & !gtfs$stop_times$arrival_time == ""] <-
-    temp.arrival %>%
-    as.numeric() %>%
-    { sprintf("%02d:%02d:%02d", . %/% 3600, (. %% 3600) %/% 60, round(. %% 60)) }
-
-  temp.departure <-
-    gtfs$stop_times$departure_time[gtfs$stop_times$trip_id %in% trip & !gtfs$stop_times$departure_time == ""] %>%
-    lubridate::hms() %>%
-    lubridate::as.duration() + dur
-
-  gtfs$stop_times$departure_time[gtfs$stop_times$trip_id %in% trip & !gtfs$stop_times$departure_time == ""] <-
-    temp.departure %>%
-    as.numeric() %>%
-    { sprintf("%02d:%02d:%02d", . %/% 3600, (. %% 3600) %/% 60, round(. %% 60)) }
-
-  # retornando gtfs -----------------------------------------------------------------------------
-  return(gtfs)
-
+    original[edit] <- seconds_to_gtfs_time(shifted[edit])
+    gtfs$stop_times[[field]] <- original
+  }
+  gtfs
 }

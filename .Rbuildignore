@@ -1,4 +1,11 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.github$
+^\.DS_Store$
+^\.Rhistory$
+^.*\.Rcheck$
+^GTFSwizard_[0-9.]+\.tar\.gz$
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
+^figs$
+^revdep$

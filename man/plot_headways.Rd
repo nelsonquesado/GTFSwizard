@@ -2,31 +2,21 @@
 % Please edit documentation in R/plot_.R
 \name{plot_headways}
 \alias{plot_headways}
-\title{Plot System Average Headway by Hour}
+\title{Plot System Headway by Hour}
 \usage{
 plot_headways(gtfs)
 }
 \arguments{
-\item{gtfs}{A GTFS object. This should ideally be of the `wizardgtfs` class, or it will be converted.}
+\item{gtfs}{A GTFS object.}
 }
 \value{
-A `plotly` interactive plot showing the hourly average headway (in minutes) across service patterns, including:
-
-  - Service Pattern Distribution: Lines for each service pattern, showing hourly headway values.
-
-  - Overall Average Headway: A dashed line marking the weighted overall average headway.
+A `ggplot` object with headway in minutes.
 }
 \description{
-`plot_headways` generates an interactive plot of the average headways (time between trips) by hour across the GTFS dataset. The plot displays hourly headway distributions for each service pattern and includes an overall average headway line.
-}
-\details{
-The function calculates hourly and overall average headways by weighting `pattern_frequency` and `trips` for each service pattern. The plot provides a visual representation of how average headways vary by hour and across service patterns.
+Plot System Headway by Hour
 }
 \examples{
-if (interactive()) {
-# Plot average headway by hour for a GTFS object
 plot_headways(for_rail_gtfs)
-}
 
 }
 \seealso{
