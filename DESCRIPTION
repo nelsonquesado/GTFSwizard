@@ -26,7 +26,7 @@ Description: Creating, exploring, analyzing, and manipulating General Transit
     <doi:10.1007/978-0-387-75857-2>, and Gentile and Noekel (2016)
     <doi:10.1007/978-3-319-25082-3>.
 Imports: sf, tidyr, dplyr, ggplot2, gtfsio, rlang, tibble
-Suggests: data.table, gtfstools, hms, leaflet, shiny, testthat, tidytransit
+Suggests: data.table, gtfstools, hms, leaflet, plotly, rstudioapi, shiny, testthat, tidytransit
 Depends: R (>= 4.1.0)
 License: GPL-3
 Encoding: UTF-8

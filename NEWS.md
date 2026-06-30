@@ -14,6 +14,10 @@
   commercial speed, service span, vehicle-hours, peak fleet, stop spacing, and
   route connectivity.
 
+* Calendar and service-pattern summaries now represent dates with no active
+  service explicitly: trip counts are `0`, and the service pattern is labeled
+  `"No service"`.
+
 # GTFSwizard 1.2.0
 
 * `plot_routefrequency()` now uses a route-hour-service pattern tile plot and

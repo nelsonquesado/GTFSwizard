@@ -89,10 +89,11 @@ GTFSwizard::explore_gtfs()
 ## Service Patterns
 The concept of a `service_pattern` in GTFSwizard helps to address a common limitation of GTFS: its lack of a standardized way to distinguish distinct service patterns within the same route. GTFS files can have multiple `service_ids` for trips within the same route on the same day, such as regular and extra services. However, GTFS does not inherently identify unique service patterns, _i.e._ unique set of `service_id`s.
 
-In `wizardgtfs` objects, the `dates_services` table is an extended feature that consolidates dates and associated `service_id`s into a single, organized table. This table is not standard in typical GTFS files but is added specifically in `wizardgtfs` objects. The `dates_services` table is structured so that each date is associated with a `list` of `service_id`s representing the transit services operating on that specific day. Essentially, each unique `list` of `service_id`s observed across dates defines a distinct `service pattern`. It is common to observe at least 3 service patterns: weekdays, saturdays and sundays.
+In `wizardgtfs` objects, the `dates_services` table is an extended feature that consolidates dates and associated `service_id`s into a single, organized table. This table is not standard in typical GTFS files but is added specifically in `wizardgtfs` objects. The `dates_services` table is structured so that each date is associated with a `list` of `service_id`s representing the transit services operating on that specific day. Essentially, each unique `list` of `service_id`s observed across dates defines a distinct `service pattern`. It is common to observe at least 3 service patterns: weekdays, saturdays and sundays. Dates inside the feed calendar range with no active services are treated as an explicit empty service set: trip counts are `0`, and the calendar-level pattern is labeled `"No service"`.
 
 - Structure of `dates_services`: Each date in the `dates_service`s table has an associated `list` of `service_id`s, capturing the set of services active on that particular day.
 - Defining Service Patterns: A unique `service_pattern` is identified by a unique combination of `service_id`s operating on a given date. For instance, if two dates share the exact same `service_id`s, they are considered part of the same `service_pattern`.
+- No-service dates: A date with no active `service_id`s is represented as the `"No service"` pattern in calendar-level outputs and by `get_servicepattern()` with `service_id = NA`. It is not a trip-bearing pattern and cannot be used with `filter_servicepattern()`.
 
 You can check `service_pattern` using the `get_servicepattern()` function.
 
@@ -126,7 +127,7 @@ GTFSwizard::plot_routefrequency(for_bus_gtfs, route = for_bus_gtfs$routes$route_
 
 <img align="center" src="figs/get_routefrequency.png" width="700"/>
 
-You can use `plot_calendar()` to check the number of trips along the calendar and get a better sense of the `service_pattern` rationale.
+You can use `plot_calendar()` to check the number of trips along the calendar and get a better sense of the `service_pattern` rationale. Dates without active service appear as `0` trips in trip-count mode and as `"No service"` in service-pattern mode.
 ``` r
 GTFSwizard::plot_calendar(for_bus_gtfs, facet_by_year = TRUE)
 ```
@@ -204,7 +205,7 @@ GTFSwizard::plot_hubs(for_bus_gtfs)
 ## Filtering
 Filtering tools allows customization of GTFS data by service patterns, specific dates, service IDs, route IDs, trip IDs, stop IDs, and time ranges. These `filter_` functions help retain only the relevant data, making analysis easier and more focused.
 
-- `filter_servicepattern()`: Filter by specified service patterns. Defaults to the most frequent pattern (typical day) if none is provided.
+- `filter_servicepattern()`: Filter by specified active service patterns. Defaults to the most frequent active pattern (typical day) if none is provided. The `"No service"` pattern describes calendar days without trips and is not accepted by this filter.
 - `filter_date()`: Filter data by specific dates, returning only services active on those dates.
 - `filter_service()`: Filter by specific service IDs to retain.
 - `filter_route()`: Filter by route ID. Set `keep = TRUE` to retain specified routes or `keep = FALSE` to exclude them.

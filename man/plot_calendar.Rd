@@ -18,8 +18,10 @@ plot_calendar(
 
 \item{facet_by_year}{Logical. Arrange years in rows and months in columns.}
 
-\item{fill}{Calendar fill. `"trips"` shows trip counts; `"service_pattern"`
-uses a discrete color for each service pattern.}
+\item{fill}{Calendar fill. `"trips"` shows trip counts and draws dates with
+no active service as zero trips; `"service_pattern"` uses a discrete color
+for each service pattern and labels dates with no active service as
+`"No service"`.}
 }
 \value{
 A `ggplot` object.

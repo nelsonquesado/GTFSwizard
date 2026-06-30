@@ -41,7 +41,9 @@ get_stops_sf(gtfs)
 ```
 
 Use `summary()` for table counts, service range, and spacing diagnostics. Use
-`plot()` for a quick network map.
+`plot()` for a quick network map. `get_servicepattern()` reports active service
+patterns and uses `"No service"` with `service_id = NA` for calendar dates that
+have no trips.
 
 ## 3. Select Parts Of The Feed
 
@@ -66,7 +68,9 @@ filter_time(gtfs, from = "06:00:00", to = "09:00:00")
 ```
 
 `selection()` is useful when combining filters. The `filter_*()` functions are
-explicit one-step tools.
+explicit one-step tools. Use `filter_servicepattern()` with active service
+patterns; `"No service"` describes trip-free calendar days and is not a trip
+filter.
 
 ## 4. Analyze Operations
 
@@ -98,7 +102,8 @@ plot_calendar(gtfs, facet_by_year = TRUE)
 ```
 
 These functions return `ggplot2` objects and can be customized with regular
-`ggplot2` layers.
+`ggplot2` layers. In `plot_calendar()`, dates without active service are shown
+as `0` trips or `"No service"`, depending on the fill mode.
 
 ## 6. Find Corridors And Hubs
 

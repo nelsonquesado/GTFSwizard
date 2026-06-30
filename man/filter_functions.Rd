@@ -28,7 +28,9 @@ filter_time(gtfs, from = "00:00:00", to = "48:00:00")
 \item{gtfs}{A GTFS object.}
 
 \item{servicepattern}{Character vector of service-pattern IDs returned by
-[get_servicepattern()]. When `NULL`, the most frequent pattern is used.}
+[get_servicepattern()]. When `NULL`, the most frequent active pattern is
+used. The synthetic `"No service"` calendar pattern cannot be used to
+filter trips.}
 
 \item{dates}{Dates to retain. Values accepted by [as.Date()] are supported.
 When `NULL`, the latest available service date is used.}

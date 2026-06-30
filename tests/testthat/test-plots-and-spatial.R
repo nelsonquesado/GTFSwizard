@@ -99,6 +99,36 @@ test_that("calendar service-pattern legends are discrete in both layouts", {
   expect_s3_class(faceted$scales$get_scales("fill"), "ScaleDiscrete")
 })
 
+test_that("calendar shows no-service days as zero trips", {
+  trip_data <- ggplot2::ggplot_build(
+    plot_calendar(for_rail_gtfs, facet_by_year = TRUE)
+  )$plot$data
+  sunday_trips <- trip_data$count[weekdays(trip_data$date) == "Sunday"]
+
+  expect_true(length(sunday_trips) > 0)
+  expect_true(all(sunday_trips == 0))
+
+  pattern_data <- ggplot2::ggplot_build(
+    plot_calendar(for_rail_gtfs, facet_by_year = TRUE, fill = "service_pattern")
+  )$plot$data
+  sunday_patterns <- pattern_data$service_pattern[
+    weekdays(pattern_data$date) == "Sunday"
+  ]
+
+  expect_true(all(sunday_patterns == "No service"))
+})
+
+test_that("service patterns expose no-service date ranges without filtering trips", {
+  patterns <- get_servicepattern(for_rail_gtfs)
+
+  expect_true("No service" %in% patterns$service_pattern)
+  expect_true(is.na(patterns$service_id[patterns$service_pattern == "No service"]))
+  expect_error(
+    filter_servicepattern(for_rail_gtfs, "No service"),
+    "does not identify trips"
+  )
+})
+
 test_that("planning indicators expose schedule-based system and route metrics", {
   feed <- minimal_feed()
   system <- planning_system_indicators(feed)
@@ -144,6 +174,91 @@ test_that("explorer dispatches on a feed selected from the file browser", {
   environment(browse_explorer) <- mock_environment
 
   expect_s3_class(browse_explorer(), "shiny.appobj")
+})
+
+test_that("explorer accepts optional plotly rendering", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("leaflet")
+  expect_s3_class(explore_gtfs(minimal_feed(), plotly = FALSE), "shiny.appobj")
+  if(requireNamespace("plotly", quietly = TRUE)){
+    expect_s3_class(explore_gtfs(minimal_feed(), plotly = TRUE), "shiny.appobj")
+  }
+})
+
+test_that("explorer keeps static plots for calendar and trip duration", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("leaflet")
+  app <- explore_gtfs(minimal_feed(), plotly = TRUE)
+
+  suppressMessages(suppressWarnings(
+    shiny::testServer(app, {
+      session$flushReact()
+      session$setInputs(calendar_fill_pattern = FALSE)
+      session$flushReact()
+      calendar_trips <- output$calendar_plot$src
+      session$setInputs(calendar_fill_pattern = TRUE)
+      session$flushReact()
+      expect_true(all(c("src", "width", "height") %in% names(output$calendar_plot)))
+      expect_true(all(c("src", "width", "height") %in% names(output$route_duration_plot)))
+      expect_true(all(c("src", "width", "height") %in% names(output$frequency_plot)))
+      expect_false(identical(calendar_trips, output$calendar_plot$src))
+      expect_s3_class(output$headway_plot, "json")
+    })
+  ))
+})
+
+test_that("explorer edit tab applies delay and split settings", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("leaflet")
+  original <- minimal_feed()
+  original_trips <- original$trips
+  original_stop_times <- original$stop_times
+  app <- explore_gtfs(original)
+
+  suppressMessages(suppressWarnings(
+    shiny::testServer(app, {
+      session$flushReact()
+      session$setInputs(delay_enabled = TRUE, delay_duration = 60)
+      session$flushReact()
+      expect_match(output$edit_status, "Delay/advance: 60 seconds")
+
+      session$setInputs(
+        delay_enabled = FALSE,
+        edit_speed_enabled = TRUE,
+        edit_trips = "T1",
+        edit_stops = "S1",
+        edit_speed_factor = 1.1
+      )
+      session$flushReact()
+      expect_match(output$edit_status, "Speed multiplier: 1.1")
+      expect_match(output$edit_status, "1 selected stop")
+
+      session$setInputs(
+        edit_speed_enabled = FALSE,
+        edit_trips = "T1",
+        split_enabled = TRUE,
+        split_count = 1
+      )
+      session$flushReact()
+      expect_match(output$edit_status, "Split points: 1")
+      expect_match(output$edit_status, "3 trips")
+
+      export_path <- tempfile(fileext = ".zip")
+      session$setInputs(
+        export_directory = dirname(export_path),
+        export_filename = basename(export_path),
+        export_gtfs = 1
+      )
+      session$flushReact()
+      expect_true(file.exists(export_path))
+
+      session$setInputs(split_count = 2)
+      session$flushReact()
+      expect_error(output$edit_status, "`split` is too large")
+    })
+  ))
+  expect_identical(original$trips, original_trips)
+  expect_identical(original$stop_times, original_stop_times)
 })
 
 test_that("explorer tolerates feeds without shape identifiers", {

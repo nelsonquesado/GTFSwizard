@@ -5,8 +5,10 @@
 #' @param gtfs A GTFS object.
 #' @param ncol Number of facet columns when `facet_by_year = FALSE`.
 #' @param facet_by_year Logical. Arrange years in rows and months in columns.
-#' @param fill Calendar fill. `"trips"` shows trip counts; `"service_pattern"`
-#'   uses a discrete color for each service pattern.
+#' @param fill Calendar fill. `"trips"` shows trip counts and draws dates with
+#'   no active service as zero trips; `"service_pattern"` uses a discrete color
+#'   for each service pattern and labels dates with no active service as
+#'   `"No service"`.
 #'
 #' @return A `ggplot` object.
 #'
@@ -29,32 +31,12 @@ plot_calendar <- function(gtfs, ncol = 4, facet_by_year = FALSE,
   colors <- gtfswizard_colors()
 
   trips_per_service <- gtfs$trips |>
-    dplyr::count(service_id, name = "trips")
-  counts <- tidyr::unnest(gtfs$dates_services, cols = "service_id") |>
-    dplyr::left_join(trips_per_service, by = "service_id") |>
-    dplyr::group_by(date) |>
-    dplyr::summarise(
-      count = sum(trips, na.rm = TRUE),
-      service_ids = list(sort(unique(service_id))),
-      .groups = "drop"
-    )
-  signatures <- counts |>
-    dplyr::mutate(.signature = vapply(
-      .data$service_ids, paste, collapse = "|", FUN.VALUE = character(1)
-    )) |>
-    dplyr::count(.signature, sort = TRUE, name = "pattern_frequency") |>
-    dplyr::mutate(
-      service_pattern = paste0("servicepattern-", dplyr::row_number())
-    )
-  counts <- counts |>
-    dplyr::mutate(.signature = vapply(
-      .data$service_ids, paste, collapse = "|", FUN.VALUE = character(1)
-    )) |>
-    dplyr::left_join(signatures, by = ".signature")
-  all_dates <- tibble::tibble(
-    date = seq(min(gtfs$dates_services$date), max(gtfs$dates_services$date), by = "day")
-  )
-  data <- dplyr::left_join(all_dates, counts, by = "date")
+    dplyr::count(.data$service_id, name = "trips")
+  trip_counts <- stats::setNames(trips_per_service$trips, trips_per_service$service_id)
+  data <- service_pattern_date_table(gtfs)
+  data$count <- vapply(data$service_ids, function(service_ids){
+    sum(trip_counts[service_ids], na.rm = TRUE)
+  }, numeric(1))
   weekday_number <- as.integer(format(data$date, "%w"))
   first <- as.Date(format(data$date, "%Y-%m-01"))
   data$weekday <- factor(
@@ -73,10 +55,12 @@ plot_calendar <- function(gtfs, ncol = 4, facet_by_year = FALSE,
 
   plot <- ggplot2::ggplot(data, ggplot2::aes(weekday, -week_of_month))
   if(fill == "service_pattern"){
+    pattern_levels <- unique(data$service_pattern)
     pattern_values <- stats::setNames(
-      gtfswizard_palette(length(unique(stats::na.omit(data$service_pattern)))),
-      unique(stats::na.omit(data$service_pattern))
+      gtfswizard_palette(length(pattern_levels)),
+      pattern_levels
     )
+    pattern_values["No service"] <- "#F0F2F3"
     plot <- plot +
       ggplot2::geom_tile(
         ggplot2::aes(fill = service_pattern),

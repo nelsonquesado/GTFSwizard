@@ -41,7 +41,9 @@ get_shapes_sf(gtfs)
 get_stops_sf(gtfs)
 </code></pre>
 <p>Use <code>summary()</code> for table counts, service range, and spacing diagnostics. Use
-<code>plot()</code> for a quick network map.</p>
+<code>plot()</code> for a quick network map. <code>get_servicepattern()</code> reports active service
+patterns and uses <code>&quot;No service&quot;</code> with <code>service_id = NA</code> for calendar dates that
+have no trips.</p>
 <h2>3. Select Parts Of The Feed</h2>
 <pre><code class="language-r">route_choice &lt;- gtfs$routes$route_id[1]
 trip_choice &lt;- gtfs$trips$trip_id[1]
@@ -62,7 +64,9 @@ filter_date(gtfs, as.Date(&quot;2021-12-31&quot;))
 filter_time(gtfs, from = &quot;06:00:00&quot;, to = &quot;09:00:00&quot;)
 </code></pre>
 <p><code>selection()</code> is useful when combining filters. The <code>filter_*()</code> functions are
-explicit one-step tools.</p>
+explicit one-step tools. Use <code>filter_servicepattern()</code> with active service
+patterns; <code>&quot;No service&quot;</code> describes trip-free calendar days and is not a trip
+filter.</p>
 <h2>4. Analyze Operations</h2>
 <pre><code class="language-r">get_frequency(gtfs)
 get_headways(gtfs, method = &quot;by_hour&quot;)
@@ -86,7 +90,8 @@ plot_routeduration(gtfs, top_n = 20)
 plot_calendar(gtfs, facet_by_year = TRUE)
 </code></pre>
 <p>These functions return <code>ggplot2</code> objects and can be customized with regular
-<code>ggplot2</code> layers.</p>
+<code>ggplot2</code> layers. In <code>plot_calendar()</code>, dates without active service are shown
+as <code>0</code> trips or <code>&quot;No service&quot;</code>, depending on the fill mode.</p>
 <h2>6. Find Corridors And Hubs</h2>
 <pre><code class="language-r">get_corridor(gtfs, i = 0.01, min_length = 1500)
 plot_corridor(gtfs, i = 0.01, min_length = 1500)
