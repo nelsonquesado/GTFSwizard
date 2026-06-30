@@ -4,12 +4,16 @@
 \alias{explore_gtfs}
 \title{Explore GTFS Data in an Interactive Shiny Dashboard}
 \usage{
-explore_gtfs(gtfs = NULL)
+explore_gtfs(gtfs = NULL, plotly = FALSE)
 }
 \arguments{
 \item{gtfs}{A GTFS object, preferably of class `wizardgtfs`. When omitted
 or `NULL` in an interactive session, a file-selection window opens so the
 user can choose a GTFS `.zip` archive.}
+
+\item{plotly}{Logical. If `TRUE`, dashboard ggplot panels are rendered with
+interactive plotly widgets. `plotly` is optional and only required when
+this argument is `TRUE`.}
 }
 \value{
 A Shiny app object.

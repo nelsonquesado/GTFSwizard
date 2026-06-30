@@ -5,7 +5,9 @@
 #'
 #' @param gtfs A GTFS object.
 #' @param servicepattern Character vector of service-pattern IDs returned by
-#'   [get_servicepattern()]. When `NULL`, the most frequent pattern is used.
+#'   [get_servicepattern()]. When `NULL`, the most frequent active pattern is
+#'   used. The synthetic `"No service"` calendar pattern cannot be used to
+#'   filter trips.
 #' @param dates Dates to retain. Values accepted by [as.Date()] are supported.
 #'   When `NULL`, the latest available service date is used.
 #' @param service,route,trip,stop Character vectors of IDs to retain.
@@ -43,12 +45,13 @@
 filter_servicepattern <- function(gtfs, servicepattern = NULL){
   gtfs <- ensure_wizardgtfs(gtfs)
   patterns <- GTFSwizard::get_servicepattern(gtfs)
-  if(!nrow(patterns)){
+  active_patterns <- patterns[!is.na(patterns$service_id), , drop = FALSE]
+  if(!nrow(active_patterns)){
     gw_stop("no service patterns are available.")
   }
   if(is.null(servicepattern)){
-    servicepattern <- patterns$service_pattern[
-      which.max(patterns$pattern_frequency)
+    servicepattern <- active_patterns$service_pattern[
+      which.max(active_patterns$pattern_frequency)
     ]
     gw_warn(
       "no `servicepattern` supplied; using `", servicepattern,
@@ -59,9 +62,12 @@ filter_servicepattern <- function(gtfs, servicepattern = NULL){
     servicepattern, patterns$service_pattern, "service pattern",
     "`get_servicepattern()`"
   )
-  services <- unique(patterns$service_id[
-    patterns$service_pattern %in% servicepattern
+  services <- unique(active_patterns$service_id[
+    active_patterns$service_pattern %in% servicepattern
   ])
+  if(!length(services)){
+    gw_stop("`No service` is a calendar pattern and does not identify trips.")
+  }
   prune_gtfs(gtfs, gtfs$trips$trip_id[gtfs$trips$service_id %in% services])
 }
 

@@ -1,14 +1,20 @@
 #' Split Trips into Consecutive Parts
 #'
-#' Splits each selected trip into approximately equal consecutive parts. The
-#' boundary stop is included at the end of one part and the start of the next,
-#' producing valid complete stop sequences.
+#' Splits each selected trip into consecutive parts. Trips can be split into an
+#' approximately even number of parts with `split`, or at specific internal stop
+#' IDs with `stops`. The boundary stop is included at the end of one part and
+#' the start of the next, producing valid complete stop sequences.
 #'
 #' @param gtfs A GTFS object.
 #' @param trip Character vector of `trip_id` values.
 #' @param split Positive integer number of split points. `split = 1` creates
 #'   two parts. For each trip, the maximum is the number of stop-time records
-#'   minus two, so every resulting part contains at least two stops.
+#'   minus two, so every resulting part contains at least two stops. Used when
+#'   `stops = NULL`.
+#' @param stops Optional character vector of stop IDs where the trip should be
+#'   split. When supplied, `split` must be omitted. Each internal occurrence of
+#'   these stops becomes a split boundary. First and last stops cannot be used as
+#'   split boundaries because they would create one-stop parts.
 #'
 #' @return A modified `wizardgtfs` object.
 #'
@@ -17,7 +23,9 @@
 #' inferred from stop coordinates for the split parts. Frequency periods are
 #' shifted by each part's offset from the original first departure. Trip-level
 #' transfers are reassigned to the part containing their transfer stop.
-#' Trips with fewer than three retained stop-time records cannot be split.
+#' Trips with fewer than three retained stop-time records cannot be split. When
+#' using `stops`, each selected trip must contain at least one matching internal
+#' stop.
 #'
 #' @examples
 #' gtfs_split <- split_trip(
@@ -26,13 +34,29 @@
 #'   split = 2
 #' )
 #'
+#' first_trip_stops <- for_rail_gtfs$stop_times[
+#'   for_rail_gtfs$stop_times$trip_id == for_rail_gtfs$trips$trip_id[1],
+#' ]
+#' gtfs_split_at_stop <- split_trip(
+#'   for_rail_gtfs,
+#'   trip = for_rail_gtfs$trips$trip_id[1],
+#'   stops = first_trip_stops$stop_id[2]
+#' )
+#'
 #' @seealso [GTFSwizard::get_shapes()], [GTFSwizard::merge_gtfs()]
 #' @export
-split_trip <- function(gtfs, trip, split = 1L){
+split_trip <- function(gtfs, trip, split = 1L, stops = NULL){
   gtfs <- ensure_wizardgtfs(gtfs)
-  gw_assert_int(split, "split", lower = 1L)
+  split_missing <- missing(split)
+  if(!is.null(stops) && !split_missing){
+    gw_stop("use either `split` or `stops`, not both.")
+  }
+  if(is.null(stops)){
+    gw_assert_int(split, "split", lower = 1L)
+  } else {
+    assert_known_ids(stops, gtfs$stops$stop_id, "stop", "`gtfs$stops`")
+  }
   assert_known_ids(trip, gtfs$trips$trip_id, "trip", "`gtfs$trips`")
-  parts_count <- split + 1L
 
   selected_times <- gtfs$stop_times[
     gtfs$stop_times$trip_id %in% trip, , drop = FALSE
@@ -40,14 +64,17 @@ split_trip <- function(gtfs, trip, split = 1L){
   selected_times <- selected_times[
     order(selected_times$trip_id, selected_times$stop_sequence), , drop = FALSE
   ]
-  counts <- table(selected_times$trip_id)
-  if(any(counts < parts_count + 1L)){
-    too_short <- names(counts)[counts < parts_count + 1L]
-    limits <- pmax(0L, as.integer(counts[too_short]) - 2L)
-    gw_stop(
-      "`split` is too large for trip(s): ",
-      paste0(too_short, " (maximum ", limits, ")", collapse = ", "), "."
-    )
+  if(is.null(stops)){
+    parts_count <- split + 1L
+    counts <- table(selected_times$trip_id)
+    if(any(counts < parts_count + 1L)){
+      too_short <- names(counts)[counts < parts_count + 1L]
+      limits <- pmax(0L, as.integer(counts[too_short]) - 2L)
+      gw_stop(
+        "`split` is too large for trip(s): ",
+        paste0(too_short, " (maximum ", limits, ")", collapse = ", "), "."
+      )
+    }
   }
 
   part_times <- list()
@@ -55,9 +82,9 @@ split_trip <- function(gtfs, trip, split = 1L){
   offsets <- list()
   for(trip_id in trip){
     rows <- selected_times[selected_times$trip_id == trip_id, , drop = FALSE]
-    boundaries <- round(seq(1, nrow(rows), length.out = parts_count + 1L))
+    boundaries <- split_trip_boundaries(rows, split, stops)
     first_departure <- gtfs_time_to_seconds(rows$departure_time[1L])
-    for(part in seq_len(parts_count)){
+    for(part in seq_len(length(boundaries) - 1L)){
       index <- boundaries[part]:boundaries[part + 1L]
       section <- rows[index, , drop = FALSE]
       new_id <- paste0(trip_id, ".part", part)
@@ -149,6 +176,21 @@ split_trip <- function(gtfs, trip, split = 1L){
   gtfs <- create_dates_services_table(gtfs)
   class(gtfs) <- c("wizardgtfs", "gtfs", "list")
   gtfs
+}
+
+split_trip_boundaries <- function(rows, split, stops){
+  if(is.null(stops)){
+    return(round(seq(1, nrow(rows), length.out = split + 2L)))
+  }
+  positions <- which(rows$stop_id %in% stops)
+  positions <- positions[positions > 1L & positions < nrow(rows)]
+  if(!length(positions)){
+    gw_stop(
+      "trip `", rows$trip_id[1L],
+      "` has no matching internal stop from `stops`."
+    )
+  }
+  unique(c(1L, positions, nrow(rows)))
 }
 
 reassign_split_transfers <- function(transfers, dictionary, trip_field, stop_field){

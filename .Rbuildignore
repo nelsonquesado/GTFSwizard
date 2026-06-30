@@ -8,4 +8,5 @@
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
 ^figs$
+^_config\.yml$
 ^revdep$

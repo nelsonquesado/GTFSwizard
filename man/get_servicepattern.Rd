@@ -12,7 +12,9 @@ get_servicepattern(gtfs)
 \value{
 A tibble with one row per `service_id`, its `service_pattern`, and
   `pattern_frequency`, the number of active dates in that pattern. Pattern
-  numbers are ordered from most to least frequent.
+  numbers are ordered from most to least frequent. Date ranges that include
+  no active services are represented by `service_pattern = "No service"` and
+  `service_id = NA`.
 }
 \description{
 Groups `service_id` values that operate on exactly the same set of dates.

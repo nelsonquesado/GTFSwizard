@@ -100,8 +100,7 @@ plot_serviceheatmap <- function(gtfs){
   frequency <- get_frequency(gtfs, "detailed") |>
     dplyr::group_by(.data$service_pattern, .data$hour) |>
     dplyr::summarise(departures = sum(.data$frequency), .groups = "drop")
-  pattern_dates <- tidyr::unnest(gtfs$dates_services, cols = "service_id") |>
-    dplyr::left_join(get_servicepattern(gtfs), by = "service_id") |>
+  pattern_dates <- service_pattern_date_table(gtfs) |>
     dplyr::distinct(.data$date, .data$service_pattern) |>
     dplyr::mutate(
       weekday = factor(

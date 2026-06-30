@@ -186,6 +186,29 @@ test_that("merge and split update identifiers and references", {
     split_trip(partial, "T1", split = 1L),
     "`split` is too large.*maximum 0"
   )
+
+  split_at_stop <- split_trip(feed, "T1", stops = "S2")
+  expect_true(all(c("T1.part1", "T1.part2") %in% split_at_stop$trips$trip_id))
+  expect_equal(
+    split_at_stop$stop_times$stop_id[
+      split_at_stop$stop_times$trip_id == "T1.part1"
+    ],
+    c("S1", "S2")
+  )
+  expect_equal(
+    split_at_stop$stop_times$stop_id[
+      split_at_stop$stop_times$trip_id == "T1.part2"
+    ],
+    c("S2", "S3")
+  )
+  expect_error(
+    split_trip(feed, "T1", split = 1L, stops = "S2"),
+    "either `split` or `stops`"
+  )
+  expect_error(
+    split_trip(feed, "T1", stops = "S1"),
+    "no matching internal stop"
+  )
 })
 
 test_that("frequency rows are expanded with an exclusive end time", {
