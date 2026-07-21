@@ -1,0 +1,126 @@
+---
+title: "Getting started with GTFSwizard"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with GTFSwizard}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+GTFSwizard creates, reads, validates, explores, edits, and exports General
+Transit Feed Specification (GTFS) Schedule feeds. Its functions work with a
+`wizardgtfs` object: a named list of GTFS tables plus a `dates_services` table
+that connects calendar dates, services, and service patterns.
+
+## Use an included feed
+
+The package includes two real, reduced examples from Fortaleza, Brazil.
+`for_rail_gtfs` is small enough for learning and examples; `for_bus_gtfs` is
+useful for checking workflows on a larger bus network.
+
+```{r}
+library(GTFSwizard)
+
+gtfs <- for_rail_gtfs
+summary(gtfs)
+```
+
+Access an individual GTFS table with the usual list syntax.
+
+```{r}
+head(gtfs$routes)
+head(gtfs$stops)
+```
+
+## Read an existing feed
+
+`read_gtfs()` reads a GTFS zip archive and validates its required tables,
+fields, identifiers, sequences, dates, and times. With no path in an
+interactive R session, it opens a file browser.
+
+```{r, eval=FALSE}
+gtfs <- read_gtfs("path/to/feed.zip")
+gtfs <- read_gtfs() # choose a zip file interactively
+```
+
+Use `as_wizardgtfs()` when the GTFS tables are already available as a named
+list. If `shapes.txt` is absent, the default behavior infers straight lines
+from ordered stop coordinates for analysis and visualization.
+
+```{r}
+converted <- as_wizardgtfs(unclass(for_rail_gtfs))
+inherits(converted, "wizardgtfs")
+```
+
+## Create a feed from tables
+
+`create_gtfs()` validates the supplied tables using the same package rules. A
+feed must define service using `calendar`, `calendar_dates`, or both.
+
+```{r}
+created <- create_gtfs(
+  agency = data.frame(
+    agency_id = "A",
+    agency_name = "Demo Transit",
+    agency_url = "https://example.com",
+    agency_timezone = "America/Fortaleza"
+  ),
+  routes = data.frame(
+    route_id = "R1", agency_id = "A", route_short_name = "1",
+    route_long_name = "Central", route_type = 3
+  ),
+  trips = data.frame(
+    route_id = "R1", service_id = "WK", trip_id = "T1"
+  ),
+  stop_times = data.frame(
+    trip_id = "T1",
+    arrival_time = c("08:00:00", "08:10:00"),
+    departure_time = c("08:00:00", "08:10:00"),
+    stop_id = c("S1", "S2"),
+    stop_sequence = 1:2
+  ),
+  stops = data.frame(
+    stop_id = c("S1", "S2"),
+    stop_name = c("First", "Second"),
+    stop_lat = c(-3.73, -3.74),
+    stop_lon = c(-38.52, -38.53)
+  ),
+  calendar = data.frame(
+    service_id = "WK",
+    monday = 1, tuesday = 1, wednesday = 1, thursday = 1,
+    friday = 1, saturday = 0, sunday = 0,
+    start_date = "20260101", end_date = "20261231"
+  )
+)
+
+created
+```
+
+## Inspect and plot
+
+The print method previews tables, `summary()` reports system-level properties,
+and `plot()` draws the network. Analytical functions return ordinary tibbles
+or `sf` objects so they remain compatible with standard R workflows.
+
+```{r, fig.width=7, fig.height=5}
+plot(gtfs)
+```
+
+## Export a feed
+
+`write_gtfs()` removes the internal `dates_services` table, restores standard
+GTFS date and spatial columns, and writes a zip archive.
+
+```{r}
+output <- tempfile(fileext = ".zip")
+write_gtfs(created, output)
+file.exists(output)
+unlink(output)
+```
+
+Continue with [service analysis](service-analysis.html), or learn how to
+[filter and edit feeds](filtering-editing.html).

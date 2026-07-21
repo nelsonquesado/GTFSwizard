@@ -11,7 +11,8 @@ Author: Nelson de Oliveira Quesado Filho [aut, cre],
   Francisco Moraes de Oliveira Neto [aut]
 Maintainer: Nelson de Oliveira Quesado Filho <nquesado@gmail.com>
 Date: 2026-06-21
-URL: https://github.com/OPATP/GTFSwizard
+URL: https://github.com/OPATP/GTFSwizard,
+    https://opatp.github.io/GTFSwizard/
 BugReports: https://github.com/OPATP/GTFSwizard/issues
 Description: Creating, exploring, analyzing, and manipulating General Transit
     Feed Specification (GTFS) files, which represent public transportation
@@ -26,7 +27,8 @@ Description: Creating, exploring, analyzing, and manipulating General Transit
     <doi:10.1007/978-0-387-75857-2>, and Gentile and Noekel (2016)
     <doi:10.1007/978-3-319-25082-3>.
 Imports: sf, tidyr, dplyr, ggplot2, gtfsio, rlang, tibble
-Suggests: data.table, gtfstools, hms, leaflet, plotly, rstudioapi, shiny, testthat, tidytransit
+Suggests: data.table, gtfstools, hms, knitr, leaflet, plotly, rmarkdown,
+    rstudioapi, shiny, testthat, tidytransit
 Depends: R (>= 4.1.0)
 License: GPL-3
 Encoding: UTF-8
@@ -34,3 +36,4 @@ LazyData: true
 LazyDataCompression: xz
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
+VignetteBuilder: knitr

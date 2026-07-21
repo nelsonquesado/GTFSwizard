@@ -1,0 +1,118 @@
+url: https://opatp.github.io/GTFSwizard/
+
+template:
+  bootstrap: 5
+  light-switch: true
+  bslib:
+    primary: "#006D77"
+    link-color: "#006D77"
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github, lightswitch]
+  components:
+    articles:
+      text: Guides
+      menu:
+      - text: Start here
+      - text: Getting started
+        href: articles/getting-started.html
+      - text: Analyze and visualize
+      - text: Service analysis
+        href: articles/service-analysis.html
+      - text: Modify and explore
+      - text: Filtering and editing
+        href: articles/filtering-editing.html
+      - text: Interactive dashboard
+        href: articles/explore-dashboard.html
+
+articles:
+- title: Start here
+  navbar: Start here
+  contents:
+  - getting-started
+- title: Analyze and visualize
+  navbar: Analyze and visualize
+  contents:
+  - service-analysis
+- title: Modify and explore
+  navbar: Modify and explore
+  contents:
+  - filtering-editing
+  - explore-dashboard
+
+reference:
+- title: Create, read, and export feeds
+  desc: Build the GTFSwizard object used throughout the package.
+  contents:
+  - create_gtfs
+  - read_gtfs
+  - as_wizardgtfs
+  - write_gtfs
+  - merge_gtfs
+
+- title: Filter, select, and group
+  desc: Focus an analysis while retaining a valid, internally consistent feed.
+  contents:
+  - filter_servicepattern
+  - selection
+  - unselection
+
+- title: Analyze scheduled service
+  desc: Calculate service patterns and planning or operational indicators.
+  contents:
+  - get_servicepattern
+  - get_frequency
+  - get_headways
+  - get_dwelltimes
+  - get_durations
+  - get_distances
+  - get_speeds
+  - get_fleet
+  - get_1stdeparture
+
+- title: Analyze geography and networks
+  desc: Work with stops, shapes, corridors, hubs, and metric coordinate systems.
+  contents:
+  - get_stops_sf
+  - get_shapes
+  - get_shapes_sf
+  - get_shapes_df
+  - latlon2epsg
+  - get_corridor
+  - get_hubs
+
+- title: Edit scheduled service
+  desc: Apply timetable and trip-structure scenarios to a copy of a feed.
+  contents:
+  - delay_trip
+  - split_trip
+  - edit_speed
+  - set_dwelltime
+  - edit_dwelltime
+
+- title: Visualize feeds and service
+  desc: Produce the package's consistent static network and service plots.
+  contents:
+  - wizardgtfs-methods
+  - plot_calendar
+  - plot_frequency
+  - plot_routefrequency
+  - plot_headways
+  - plot_servicespan
+  - plot_serviceheatmap
+  - plot_routeduration
+  - plot_servicesupply
+  - plot_corridor
+  - plot_hubs
+
+- title: Explore and route interactively
+  contents:
+  - explore_gtfs
+  - tidy_raptor
+
+- title: Example feeds
+  contents:
+  - for_bus_gtfs
+  - for_rail_gtfs

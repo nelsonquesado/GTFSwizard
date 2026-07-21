@@ -1,0 +1,119 @@
+---
+title: "Service analysis and visualization"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Service analysis and visualization}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(GTFSwizard)
+gtfs <- for_rail_gtfs
+```
+
+GTFSwizard analyzes scheduled service. Results describe the timetable rather
+than observed vehicle movements or passenger demand. Pay attention to each
+function's aggregation method because it defines the observational unit.
+
+## Service patterns
+
+A GTFS `service_id` identifies one service calendar. Several IDs can operate
+on the same date, and large feeds can contain many IDs that represent the same
+set of active dates. GTFSwizard groups identical active-date sets into
+`service_pattern` values.
+
+```{r}
+get_servicepattern(gtfs)
+```
+
+`pattern_frequency` is the number of dates represented by a pattern. The most
+frequent active pattern is therefore a useful default typical day, but it is
+not necessarily a weekday and should be interpreted from the feed calendar.
+
+```{r, fig.width=7, fig.height=4.5}
+plot_calendar(gtfs, fill = "service_pattern", facet_by_year = TRUE)
+```
+
+## Frequency and headway
+
+Frequency counts scheduled departures. Headway measures elapsed minutes
+between successive service instances in a comparable group. Route-level
+results retain `direction_id` when it is available.
+
+```{r}
+head(get_frequency(gtfs, method = "by_route"))
+head(get_headways(gtfs, method = "by_route"))
+```
+
+Common method names use underscores:
+
+- `by_trip` returns one observation per trip;
+- `by_route` aggregates by route, direction, and service pattern where
+  applicable;
+- `by_hour` aggregates scheduled service by hour;
+- `detailed` returns stop-call or interval-level observations.
+
+Check a function's help page because not every method is meaningful for every
+indicator.
+
+```{r, fig.width=7, fig.height=4.5}
+plot_frequency(gtfs)
+plot_headways(gtfs)
+```
+
+## Duration, distance, speed, dwell time, and fleet
+
+Duration and distance are schedule and geometry properties. Speed combines
+them, dwell time is departure minus arrival at a stop call, and fleet counts
+simultaneously active scheduled trip instances.
+
+```{r}
+head(get_durations(gtfs, method = "by_trip"))
+head(get_distances(gtfs, method = "by_trip"))
+head(get_speeds(gtfs, method = "by_route"))
+head(get_dwelltimes(gtfs, method = "by_route"))
+get_fleet(gtfs, method = "peak")
+```
+
+These are scheduled indicators. They do not estimate congestion, reliability,
+vehicle availability, layover policy, deadheading, or passenger loads unless
+those effects are already represented in the feed.
+
+## Spatial structure
+
+The spatial helpers return standard `sf` objects. Inferred shapes and corridor
+segments connect coordinates with straight lines; they are not map-matched
+paths.
+
+```{r}
+stops <- get_stops_sf(gtfs$stops)
+shapes <- get_shapes_sf(gtfs$shapes)
+nrow(stops)
+nrow(shapes)
+```
+
+Hubs summarize stops by their scheduled trip and route connections. Corridors
+join frequently served consecutive stop pairs and report length in meters.
+
+```{r}
+head(get_hubs(gtfs))
+get_corridor(gtfs, i = 0.2, min_length = 100)
+```
+
+Use `plot_hubs()` and `plot_corridor()` for the corresponding network views.
+The `i` argument is a share threshold, not an absolute number of trips.
+
+## Choosing a plot
+
+- `plot_calendar()` shows active dates, trip counts, or service patterns.
+- `plot_frequency()` and `plot_headways()` show system service by hour.
+- `plot_routefrequency()` compares routes with a readable `top_n` limit.
+- `plot_servicespan()` shows first departure and final arrival.
+- `plot_serviceheatmap()` compares scheduled departures by weekday and hour.
+- `plot_routeduration()` compares trip-duration distributions.
+- `plot_servicesupply()` compares scheduled vehicle-hours.
+
+All plotting functions return `ggplot` objects, so labels and themes can be
+extended with `ggplot2` when needed.

@@ -9,4 +9,6 @@
 ^CRAN-SUBMISSION$
 ^figs$
 ^_config\.yml$
+^_pkgdown\.yml$
+^docs$
 ^revdep$

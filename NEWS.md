@@ -1,5 +1,9 @@
 # GTFSwizard 1.2.1
 
+* Organized the package website by workflow, added task-based function
+  reference sections, and added vignettes for getting started, service
+  analysis, filtering and editing, and the interactive dashboard.
+
 * Standardized public method values with underscores: `by_trip`, `by_route`,
   `by_hour`, `by_stop`, and `by_shape`. Legacy dotted values remain accepted.
 

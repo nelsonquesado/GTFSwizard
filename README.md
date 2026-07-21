@@ -1,4 +1,4 @@
-<img align="right" src="figs/GTFSwizard_logo.png?raw=true" alt="logo" height="180">
+<img align="right" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/GTFSwizard_logo.png" alt="GTFSwizard logo" height="180">
 ##### Development version 1.2.1 (2026-06-21)
 ##### CRAN version 1.2.0 (2026-06-16)
 
@@ -28,6 +28,17 @@ install.packages('remotes') # if not already installed
 remotes::install_github('OPATP/GTFSwizard@main')
 library(GTFSwizard)
 ```
+
+## Documentation
+
+The package website organizes the documentation by workflow:
+
+- [Getting started](https://opatp.github.io/GTFSwizard/articles/getting-started.html): create, read, inspect, and export a feed.
+- [Service analysis](https://opatp.github.io/GTFSwizard/articles/service-analysis.html): service patterns, observational units, indicators, plots, corridors, and hubs.
+- [Filtering and editing](https://opatp.github.io/GTFSwizard/articles/filtering-editing.html): build reproducible service scenarios while preserving the source feed.
+- [Interactive dashboard](https://opatp.github.io/GTFSwizard/articles/explore-dashboard.html): filter, inspect, edit, and export a feed with `explore_gtfs()`.
+- [Function reference](https://opatp.github.io/GTFSwizard/reference/index.html): help pages grouped by task.
+
 ## Basics
 Use `read_gtfs()` to read an existing feed, `as_wizardgtfs()` to convert a GTFS list, and `create_gtfs()` to build and validate a feed from data frames. Each function returns a `wizardgtfs` object.
 
@@ -84,7 +95,7 @@ GTFSwizard::explore_gtfs(for_bus_gtfs)
 GTFSwizard::explore_gtfs()
 ```
 
-<img align="middle" src="figs/exploregtfs.png" width="700"/>
+<img align="middle" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/exploregtfs.png" alt="GTFSwizard interactive dashboard showing the transit network" width="700"/>
 
 ## Service Patterns
 The concept of a `service_pattern` in GTFSwizard helps to address a common limitation of GTFS: its lack of a standardized way to distinguish distinct service patterns within the same route. GTFS files can have multiple `service_ids` for trips within the same route on the same day, such as regular and extra services. However, GTFS does not inherently identify unique service patterns, _i.e._ unique set of `service_id`s.
@@ -125,14 +136,14 @@ GTFSwizard::get_frequency(for_bus_gtfs, method = "by_route")
 GTFSwizard::plot_routefrequency(for_bus_gtfs, route = for_bus_gtfs$routes$route_id[3])
 ```
 
-<img align="center" src="figs/get_routefrequency.png" width="700"/>
+<img align="center" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/get_routefrequency.png" alt="Scheduled route frequency by service pattern" width="700"/>
 
 You can use `plot_calendar()` to check the number of trips along the calendar and get a better sense of the `service_pattern` rationale. Dates without active service appear as `0` trips in trip-count mode and as `"No service"` in service-pattern mode.
 ``` r
 GTFSwizard::plot_calendar(for_bus_gtfs, facet_by_year = TRUE)
 ```
 
-<img align="center" src="figs/plot_calendar.png" width="700"/>
+<img align="center" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/plot_calendar.png" alt="GTFS service calendar faceted by year" width="700"/>
 
 ## Exploring
 
@@ -179,7 +190,7 @@ GTFSwizard::get_corridor(for_bus_gtfs, i = .01, min_length = 1500)
 
 GTFSwizard::plot_corridor(for_bus_gtfs)
 ```
-<img align="center" src="figs/plot_corridor.png" width="700"/>
+<img align="center" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/plot_corridor.png" alt="Map of high-frequency transit corridors" width="700"/>
 
 - Hubs: the `get_hubs()` and `plot_hubs()` functions retrieves and visualizes high-density transit stops.
 
@@ -200,7 +211,7 @@ GTFSwizard::get_hubs(for_bus_gtfs)
 
 GTFSwizard::plot_hubs(for_bus_gtfs)
 ```
-<img align="center" src="figs/plot_hubs.png" width="700"/>
+<img align="center" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/plot_hubs.png" alt="Map of transit hubs sized by route connectivity" width="700"/>
 
 ## Filtering
 Filtering tools allows customization of GTFS data by service patterns, specific dates, service IDs, route IDs, trip IDs, stop IDs, and time ranges. These `filter_` functions help retain only the relevant data, making analysis easier and more focused.
@@ -268,19 +279,19 @@ GTFSwizard provides consistent static plots for network supply and scheduled ope
 ``` r
 GTFSwizard::plot_frequency(for_bus_gtfs)
 ```
-<img align="center" src="figs/plot_frequency.png" width="700"/>
+<img align="center" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/plot_frequency.png" alt="Scheduled system frequency by hour" width="700"/>
 
 - Route Frequency by Hour: `plot_routefrequency()` displays a tile plot where fill is the number of scheduled trips by route, hour, and service pattern. Use `top_n` to keep large feeds readable.
 ``` r
 GTFSwizard::plot_routefrequency(for_bus_gtfs, route = for_bus_gtfs$routes$route_id[4:5])
 ```
-<img align="center" src="figs/plot_routefrequency.png" width="700"/>
+<img align="center" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/plot_routefrequency.png" alt="Scheduled route frequency tile plot" width="700"/>
 
 - System Average Headway by Hour: `plot_headways()` shows average time between trips, highlighting hourly and overall headways to visualize service intervals.
 ``` r
 GTFSwizard::plot_headways(for_bus_gtfs)
 ```
-<img align="center" src="figs/plot_headway.png" width="700"/>
+<img align="center" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/plot_headway.png" alt="Scheduled system headway by hour" width="700"/>
 
 - Planning views: `plot_servicespan()` shows the first departure and final arrival for each route-service pattern, `plot_serviceheatmap()` summarizes departures by weekday and hour, `plot_routeduration()` shows scheduled trip-duration distributions, and `plot_servicesupply()` reports scheduled vehicle-hours.
 
@@ -291,9 +302,9 @@ GTFSwizard::plot_routeduration(for_bus_gtfs)
 GTFSwizard::plot_servicesupply(for_bus_gtfs)
 ```
 
-<img align="center" src="figs/plot_serviceheatmap.png" width="700"/>
+<img align="center" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/plot_serviceheatmap.png" alt="Scheduled departures by weekday and hour" width="700"/>
 
-<img align="center" src="figs/plot_servicespan.png" width="700"/>
+<img align="center" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/plot_servicespan.png" alt="Scheduled service span by route" width="700"/>
 
 ## Editing
 GTFSwizard provides functions to edit GTFS data directly.
@@ -376,7 +387,7 @@ gtfs <- GTFSwizard::for_bus_gtfs
 
 plot(gtfs)
 ```
-<img src="figs/plot.for_bus_gtfs.png" alt="plot.for_bus_gtfs" width="700"/>
+<img src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/plot.for_bus_gtfs.png" alt="Fortaleza bus GTFS network plot" width="700"/>
 
 ## Applications
 The functions described facilitate the analysis, simulation, and evaluation of public
@@ -441,5 +452,5 @@ A BibTeX entry for LaTeX users is
 QUESADO FILHO, N. O.; GUIMARAES, C. G. C. ; OLIVEIRA NETO, F. M. . How to use GTFSwizard R Package to Assess Transit Projects: Fortaleza's BR-116 Bus Rapid Transit System Proposal. In: 39º Congresso de Pesquisa e Ensino em Transportes, 2025, Goiânia. Anais do 39º Congresso de Pesquisa e Ensino em Transportes, 2025.
 
 
-## Acknowledgement <img align="right" src="figs/logo_ufc.png?raw=true" alt="logo" height="120"> <a href="https://det.ufc.br/petran"><img align="right" src="figs/opatp.png" alt="OPA-TP" width="120" /></a>
+## Acknowledgement <img align="right" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/logo_ufc.png" alt="Universidade Federal do Ceara logo" height="120"> <a href="https://det.ufc.br/petran"><img align="right" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/opatp.png" alt="OPA-TP research group logo" width="120" /></a>
 **GTFSwizard** is developed by [Nelson Quesado](https://github.com/nelsonquesado/), [Caio Guimarães](https://github.com/cgmobility) and [Fco. Moraes](https://github.com/orgs/OPATP/people/OliveiraNetoFM) at OPA-TP research group, Universidade Federal do Ceará.
