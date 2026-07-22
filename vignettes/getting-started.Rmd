@@ -39,12 +39,13 @@ head(gtfs$stops)
 ## Read an existing feed
 
 `read_gtfs()` reads a GTFS zip archive and validates its required tables,
-fields, identifiers, sequences, dates, and times. With no path in an
-interactive R session, it opens a file browser.
+fields, identifiers, sequences, dates, and times. Supply the archive path
+explicitly. To choose a file interactively, call `explore_gtfs()` without a
+feed in an interactive R session.
 
 ```{r, eval=FALSE}
 gtfs <- read_gtfs("path/to/feed.zip")
-gtfs <- read_gtfs() # choose a zip file interactively
+explore_gtfs() # choose a zip file and open the dashboard
 ```
 
 Use `as_wizardgtfs()` when the GTFS tables are already available as a named

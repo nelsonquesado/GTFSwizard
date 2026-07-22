@@ -45,8 +45,10 @@ stop_ids <- gtfs$stops$stop_id[1:5]
 partial_feed <- filter_stop(gtfs, stop_ids)
 ```
 
-Service patterns describe sets of active services. With no explicit pattern,
-`filter_servicepattern()` uses the most frequent active pattern.
+Service patterns describe exact sets of services active on calendar dates.
+Filtering a pattern retains precisely its represented dates and services. With
+no explicit pattern, `filter_servicepattern()` uses the most frequent active
+pattern.
 
 ```{r}
 typical_feed <- filter_servicepattern(gtfs)

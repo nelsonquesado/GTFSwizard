@@ -13,8 +13,14 @@ get_frequency(gtfs, method = "by_trip")
 or `"detailed"`. Legacy dotted values remain accepted.}
 }
 \value{
-A tibble containing the selected identifiers, frequency, service
-  pattern, and number of dates represented by the pattern.
+A tibble whose observational unit depends on `method`:
+  \describe{
+    \item{`"by_trip"`}{`route_id`, `trip_id`, optional `direction_id`, `service_pattern`, `pattern_frequency`, and `daily.frequency`.}
+    \item{`"by_route"`}{`route_id`, optional `direction_id`, `service_pattern`, `pattern_frequency`, and `daily.frequency`.}
+    \item{`"by_shape"`}{`shape_id`, optional `direction_id`, `service_pattern`, `pattern_frequency`, and `daily.frequency`.}
+    \item{`"by_stop"`}{`stop_id`, optional `direction_id`, `service_pattern`, `pattern_frequency`, and `daily.frequency`.}
+    \item{`"detailed"`}{`route_id`, optional `direction_id`, departure `hour`, `service_pattern`, `pattern_frequency`, and `frequency`.}
+  }
 }
 \description{
 Counts trip departures by route, shape, stop, or hour. Trips referenced by

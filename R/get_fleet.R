@@ -7,10 +7,15 @@
 #' @param method One of `"by_route"`, `"by_hour"`, `"peak"`, or `"detailed"`.
 #'   Legacy dotted values remain accepted.
 #'
-#' @return A tibble containing fleet estimates by the selected grouping and
-#' service pattern. GTFS times beyond 24 hours remain in the following service
-#' day rather than being wrapped. Route outputs include `direction_id` when
-#' available.
+#' @return A tibble whose observational unit depends on `method`:
+#'   \describe{
+#'     \item{`"by_route"`}{`route_id`, optional `direction_id`, `service_pattern`, `pattern_frequency`, and maximum simultaneous `fleet`.}
+#'     \item{`"by_hour"`}{`service_pattern`, `pattern_frequency`, `hour`, and maximum simultaneous `fleet`.}
+#'     \item{`"peak"`}{The three highest hourly fleet estimates per service pattern, with the same columns as `"by_hour"`.}
+#'     \item{`"detailed"`}{`route_id`, optional `direction_id`, vehicle-change event `net.fleet`, cumulative `fleet`, event `time` in seconds, `service_pattern`, and `pattern_frequency`.}
+#'   }
+#'   GTFS times beyond 24 hours remain in the following service day rather than
+#'   being wrapped.
 #'
 #' @examples
 #' get_fleet(for_rail_gtfs, "by_route")
@@ -83,7 +88,10 @@ fleet_event_table <- function(gtfs, by_route = FALSE){
     ) |>
     dplyr::mutate(starts = start_seconds, ends = start_seconds + .duration) |>
     dplyr::left_join(gtfs$trips, by = "trip_id") |>
-    dplyr::left_join(get_servicepattern(gtfs), by = "service_id")
+    dplyr::left_join(
+      get_servicepattern(gtfs), by = "service_id",
+      relationship = "many-to-many"
+    )
   group_cols <- c(
     if(by_route) "route_id",
     if(by_route) direction_field(intervals),

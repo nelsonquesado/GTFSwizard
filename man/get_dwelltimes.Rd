@@ -25,9 +25,9 @@ get_dwelltimes(gtfs, max_dwelltime = 90, method = "by_trip", ...)
 A data frame containing dwell times based on the specified method:
   \describe{
     \item{If `method = "by_hour"`}{Returns a data frame with columns: `hour`, `trips`, `average.dwelltime`, `service_pattern`, and `pattern_frequency`.}
-    \item{If `method = "by_route"`}{Returns average dwell time by route, direction, and service pattern.}
-    \item{If `method = "by_trip"`}{Returns average dwell time by trip, retaining direction when available.}
-    \item{If `method = "detailed"`}{Returns a data frame with columns: `route_id`, `trip_id`, `stop_id`, `hour`, `dwell_time`, `service_pattern`, and `pattern_frequency`.}
+    \item{If `method = "by_route"`}{Returns `route_id`, optional `direction_id`, `trips`, `average.dwelltime`, `service_pattern`, and `pattern_frequency`.}
+    \item{If `method = "by_trip"`}{Returns `route_id`, `trip_id`, optional `direction_id`, `average.dwelltime`, `service_pattern`, and `pattern_frequency`.}
+    \item{If `method = "detailed"`}{Returns `route_id`, `trip_id`, optional `direction_id`, `stop_id`, `hour`, `dwell_time`, `service_pattern`, and `pattern_frequency`.}
   }
 }
 \description{

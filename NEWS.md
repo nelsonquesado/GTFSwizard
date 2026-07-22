@@ -62,11 +62,11 @@
 
 # GTFSwizard 1.1.0
 
-* Now featuring travel time matrices, trip speed and dweel time edition, corridors, hubs, and more!
+* Now featuring travel time matrices, trip speed and dwell-time editing, corridors, hubs, and more!
 
 * New functions
   - tidy_raptor() estimates travel time matrices from gtfs feeds;
-  - edit_speeds() Adjust Travel Speed in a GTFS Dataset
+  - edit_speed() adjusts travel speed in a GTFS dataset;
   - edit_dwelltime() modifies the dwell time of trips;
   - set_dwelltime() overwrites the dwell time of trips;
   - get_hubs() estimates high integration potential stops;
@@ -84,7 +84,7 @@
   - Minor bug fixed on filter_date() and get_shapes_sf();
   - get_headways() output fixed;
   - split_trip() can now be used after filter_time();
-  - get_speed(), get_durations() and get_distances() now accepts 'trips = ' argument.
+  - get_speeds(), get_durations() and get_distances() now accept the `trips` argument.
 
 # GTFSwizard 1.0.0
 

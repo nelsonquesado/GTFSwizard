@@ -1,16 +1,18 @@
 #' Explore GTFS Data in an Interactive Shiny Dashboard
 #'
 #' Opens a lightweight Shiny dashboard for exploring a GTFS feed. The dashboard
-#' shows summary cards, route and stop maps, service calendar, and key
-#' operational charts. Route, service, service-pattern, stop, date, and time
-#' filters update the dashboard without changing the original object.
+#' shows summary cards, route and stop maps, planning indicators, service
+#' calendars, operational charts, and corridor and hub views. Route, service,
+#' service-pattern, stop, date, and time filters update the dashboard without
+#' changing the original object. Edits and exports operate on an in-memory copy.
 #'
 #' @param gtfs A GTFS object, preferably of class `wizardgtfs`. When omitted
 #'   or `NULL` in an interactive session, a file-selection window opens so the
 #'   user can choose a GTFS `.zip` archive.
-#' @param plotly Logical. If `TRUE`, dashboard ggplot panels are rendered with
-#'   interactive plotly widgets. `plotly` is optional and only required when
-#'   this argument is `TRUE`.
+#' @param plotly Logical. If `TRUE`, eligible dashboard charts are rendered as
+#'   interactive plotly widgets. The calendar and trip-duration boxplot remain
+#'   static because conversion reduces their readability. `plotly` is optional
+#'   and only required when this argument is `TRUE`.
 #'
 #' @return A Shiny app object.
 #'
@@ -78,7 +80,9 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
 
   all_routes <- sort(unique(as.character(gtfs$routes$route_id)))
   patterns_table <- GTFSwizard::get_servicepattern(gtfs)
-  all_patterns <- as.character(patterns_table$service_pattern)
+  all_patterns <- unique(as.character(
+    patterns_table$service_pattern[!is.na(patterns_table$service_id)]
+  ))
   all_services <- sort(unique(as.character(gtfs$trips$service_id)))
   stop_labels <- if("stop_name" %in% names(gtfs$stops)){
     paste(gtfs$stops$stop_id, "-", gtfs$stops$stop_name)
@@ -688,6 +692,13 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
 
     filtered_gtfs <- shiny::reactive({
       g <- gtfs
+      patterns <- input$selected_patterns
+      if(is.null(patterns) || !length(patterns)){
+        patterns <- all_patterns
+      }
+      if(length(patterns) < length(all_patterns)){
+        g <- GTFSwizard::filter_servicepattern(g, patterns)
+      }
       routes <- input$selected_routes
       if(!is.null(routes) && length(routes)){
         g <- GTFSwizard::filter_route(g, routes)
@@ -696,15 +707,7 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
       if(is.null(services) || !length(services)){
         services <- all_services
       }
-      patterns <- input$selected_patterns
-      if(is.null(patterns) || !length(patterns)){
-        patterns <- all_patterns
-      }
-      pattern_services <- patterns_table$service_id[
-        patterns_table$service_pattern %in% patterns
-      ]
-      selected_services <- intersect(services, pattern_services)
-      available_services <- intersect(selected_services, unique(g$trips$service_id))
+      available_services <- intersect(services, unique(g$trips$service_id))
       if(length(available_services)){
         g <- GTFSwizard::filter_service(g, available_services)
       } else {
@@ -927,15 +930,13 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
       top_n <- as.integer(value_or(input$plot_pattern_top_n, 12L))
       patterns <- GTFSwizard::get_servicepattern(g)
       pattern_order <- patterns |>
+        dplyr::filter(!is.na(.data$service_id)) |>
         dplyr::arrange(dplyr::desc(.data$pattern_frequency), .data$service_pattern) |>
         dplyr::pull(.data$service_pattern) |>
         unique()
       selected_patterns <- utils::head(pattern_order, top_n)
-      selected_services <- patterns$service_id[
-        patterns$service_pattern %in% selected_patterns
-      ]
-      if(length(selected_services) && length(selected_patterns) < length(unique(patterns$service_pattern))){
-        g <- GTFSwizard::filter_service(g, selected_services)
+      if(length(selected_patterns) < length(pattern_order)){
+        g <- GTFSwizard::filter_servicepattern(g, selected_patterns)
       }
       g
     }
@@ -1388,7 +1389,9 @@ planning_system_indicators <- function(gtfs, route_indicators = NULL){
     dplyr::left_join(
       gtfs$trips[, c("trip_id", "service_id")], by = "trip_id"
     ) |>
-    dplyr::left_join(patterns, by = "service_id") |>
+    dplyr::left_join(
+      patterns, by = "service_id", relationship = "many-to-many"
+    ) |>
     dplyr::group_by(service_pattern) |>
     dplyr::summarise(
       vehicle_hours = sum(duration, na.rm = TRUE) / 3600,
@@ -1398,7 +1401,9 @@ planning_system_indicators <- function(gtfs, route_indicators = NULL){
     dplyr::left_join(
       gtfs$trips[, c("trip_id", "service_id")], by = "trip_id"
     ) |>
-    dplyr::left_join(patterns, by = "service_id") |>
+    dplyr::left_join(
+      patterns, by = "service_id", relationship = "many-to-many"
+    ) |>
     dplyr::mutate(end = .data$.base_start + .data$duration) |>
     dplyr::group_by(service_pattern) |>
     dplyr::summarise(
@@ -1476,7 +1481,9 @@ planning_route_indicators <- function(gtfs, top_n = 30L){
   trip_schedule <- planning_trip_schedule(gtfs)
   trip_instances <- planning_trip_instances(gtfs, trip_schedule) |>
     dplyr::left_join(gtfs$trips, by = "trip_id") |>
-    dplyr::left_join(patterns, by = "service_id")
+    dplyr::left_join(
+      patterns, by = "service_id", relationship = "many-to-many"
+    )
 
   frequency <- trip_instances |>
     dplyr::group_by(dplyr::across(dplyr::all_of(join_fields))) |>
@@ -1491,7 +1498,9 @@ planning_route_indicators <- function(gtfs, top_n = 30L){
     )
   trip_metrics <- trip_schedule |>
     dplyr::left_join(gtfs$trips, by = "trip_id") |>
-    dplyr::left_join(patterns, by = "service_id")
+    dplyr::left_join(
+      patterns, by = "service_id", relationship = "many-to-many"
+    )
   durations <- trip_metrics |>
     dplyr::group_by(dplyr::across(dplyr::all_of(join_fields))) |>
     dplyr::summarise(

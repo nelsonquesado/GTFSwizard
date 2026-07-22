@@ -13,7 +13,7 @@ get_durations(gtfs, method = "by_trip", trips = "all")
 \describe{
   \item{"by_route"}{Calculates the average duration for each route.}
   \item{"by_trip"}{Calculates the total duration for each trip.}
-  \item{"detailed"`}{Calculates detailed durations for each stop-to-stop segment within a trip.}
+  \item{"detailed"}{Calculates detailed durations for each stop-to-stop segment within a trip.}
 }}
 
 \item{trips}{A character vector of trip IDs to consider. When set to `all`, includes all trips.}
@@ -21,9 +21,9 @@ get_durations(gtfs, method = "by_trip", trips = "all")
 \value{
 A data frame containing trip durations based on the specified method:
   \describe{
-    \item{If `method = "by_route"`}{Includes dwell from first departure to final arrival and groups by direction when available.}
-    \item{If `method = "by_trip"`}{Includes dwell from first departure to final arrival and retains direction when available.}
-    \item{If `method = "detailed"`}{It does not include dwell times. Returns a data frame with columns: `route_id`, `trip_id`, `hour`, `from_stop_id`, `to_stop_id`, `duration`, `service_pattern`, and `pattern_frequency`.}
+    \item{If `method = "by_route"`}{Columns `route_id`, optional `direction_id`, `service_pattern`, `pattern_frequency`, `average.duration`, and `trips`.}
+    \item{If `method = "by_trip"`}{Columns `route_id`, `trip_id`, optional `direction_id`, `duration`, `service_pattern`, and `pattern_frequency`.}
+    \item{If `method = "detailed"`}{Excludes dwell time and returns `route_id`, `trip_id`, optional `direction_id`, next `arrival_time`, departure `hour`, `from_stop_id`, `to_stop_id`, `duration`, `service_pattern`, and `pattern_frequency`.}
   }
 }
 \description{

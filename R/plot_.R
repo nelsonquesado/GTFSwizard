@@ -206,6 +206,9 @@ plot_headways <- function(gtfs){
 #' @param ... Supports the legacy argument `min.length`.
 #' @return A `ggplot` map.
 #'
+#' @examples
+#' plot_corridor(for_rail_gtfs, i = 0.2, min_length = 100)
+#'
 #' @seealso [GTFSwizard::get_corridor()]
 #' @export
 plot_corridor <- function(gtfs, i = 0.01, min_length = 1500, ...){
@@ -220,7 +223,6 @@ plot_corridor <- function(gtfs, i = 0.01, min_length = 1500, ...){
   corridors <- get_corridor(gtfs, i = i, min_length = min_length)
   base_plot <- ggplot2::ggplot() +
     ggplot2::geom_sf(data = shapes, linewidth = 0.45, color = colors[["light"]]) +
-    ggplot2::coord_sf(datum = NA) +
     theme_gtfswizard_map()
   if(!nrow(corridors)){
     return(
@@ -258,6 +260,9 @@ plot_corridor <- function(gtfs, i = 0.01, min_length = 1500, ...){
 #' @details To keep dense networks readable, at most 40 of the highest-ranked
 #'   stops are drawn. Ranking uses distinct route count and then trip count.
 #'
+#' @examples
+#' plot_hubs(for_rail_gtfs, i = 0.1)
+#'
 #' @seealso [GTFSwizard::get_hubs()]
 #' @export
 plot_hubs <- function(gtfs, i = 0.05){
@@ -285,7 +290,6 @@ plot_hubs <- function(gtfs, i = 0.05){
     ) +
     ggplot2::scale_size(range = c(2.2, 7.5)) +
     ggplot2::guides(size = "none") +
-    ggplot2::coord_sf(datum = NA) +
     ggplot2::labs(
       title = "Transit Hubs",
       subtitle = paste(

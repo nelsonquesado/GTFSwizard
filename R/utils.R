@@ -311,31 +311,22 @@ service_pattern_date_table <- function(gtfs){
 }
 
 service_patterns_for_services <- function(gtfs, include_no_service = FALSE){
-  service_dates <- tidyr::unnest(gtfs$dates_services, cols = "service_id") |>
-    dplyr::arrange(.data$service_id, .data$date) |>
-    dplyr::group_by(.data$service_id) |>
-    dplyr::summarise(
-      .signature = paste(as.character(.data$date), collapse = "|"),
-      pattern_frequency = dplyr::n(),
-      .groups = "drop"
-    )
-  patterns <- service_dates |>
-    dplyr::distinct(.data$.signature, .data$pattern_frequency) |>
-    dplyr::arrange(dplyr::desc(.data$pattern_frequency), .data$.signature) |>
-    dplyr::mutate(
-      service_pattern = paste0("servicepattern-", dplyr::row_number())
-    )
-  service_patterns <- service_dates |>
-    dplyr::left_join(patterns, by = c(".signature", "pattern_frequency")) |>
-    dplyr::arrange(.data$service_pattern, .data$service_id) |>
-    dplyr::select("service_id", "service_pattern", "pattern_frequency")
+  date_patterns <- service_pattern_date_table(gtfs)
+  service_patterns <- date_patterns |>
+    dplyr::filter(.data$service_pattern != "No service") |>
+    tidyr::unnest(cols = "service_ids") |>
+    dplyr::transmute(
+      service_id = as.character(.data$service_ids),
+      .data$service_pattern,
+      .data$pattern_frequency
+    ) |>
+    dplyr::distinct() |>
+    dplyr::arrange(.data$service_pattern, .data$service_id)
   if(!include_no_service){
     return(service_patterns)
   }
 
-  no_service_frequency <- sum(
-    service_pattern_date_table(gtfs)$service_pattern == "No service"
-  )
+  no_service_frequency <- sum(date_patterns$service_pattern == "No service")
   if(no_service_frequency > 0L){
     service_patterns <- dplyr::bind_rows(
       service_patterns,

@@ -21,6 +21,10 @@ Plot Transit Hubs
 To keep dense networks readable, at most 40 of the highest-ranked
   stops are drawn. Ranking uses distinct route count and then trip count.
 }
+\examples{
+plot_hubs(for_rail_gtfs, i = 0.1)
+
+}
 \seealso{
 [GTFSwizard::get_hubs()]
 }

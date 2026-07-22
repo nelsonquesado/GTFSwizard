@@ -20,15 +20,16 @@ function's aggregation method because it defines the observational unit.
 ## Service patterns
 
 A GTFS `service_id` identifies one service calendar. Several IDs can operate
-on the same date, and large feeds can contain many IDs that represent the same
-set of active dates. GTFSwizard groups identical active-date sets into
-`service_pattern` values.
+on the same date. GTFSwizard assigns the same `service_pattern` to dates that
+have the exact same set of active services. Consequently, one `service_id` can
+belong to several patterns when the services operating alongside it change.
 
 ```{r}
 get_servicepattern(gtfs)
 ```
 
-`pattern_frequency` is the number of dates represented by a pattern. The most
+`pattern_frequency` is the number of dates represented by that exact active
+service set. The most
 frequent active pattern is therefore a useful default typical day, but it is
 not necessarily a weekday and should be interpreted from the feed calendar.
 

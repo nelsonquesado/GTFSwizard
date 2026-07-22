@@ -1,0 +1,91 @@
+# Calculate Trip Durations in GTFS Data
+
+Calculates scheduled trip and segment durations in seconds.
+
+## Usage
+
+``` r
+get_durations(gtfs, method = "by_trip", trips = "all")
+```
+
+## Arguments
+
+- gtfs:
+
+  A GTFS object, ideally of class \`wizardgtfs\`. If not, it will be
+  converted.
+
+- method:
+
+  A character string specifying the calculation method. Options include:
+
+  "by_route"
+
+  : Calculates the average duration for each route.
+
+  "by_trip"
+
+  : Calculates the total duration for each trip.
+
+  "detailed"
+
+  : Calculates detailed durations for each stop-to-stop segment within a
+    trip.
+
+- trips:
+
+  A character vector of trip IDs to consider. When set to \`all\`,
+  includes all trips.
+
+## Value
+
+A data frame containing trip durations based on the specified method:
+
+- If \`method = "by_route"\`:
+
+  Columns \`route_id\`, optional \`direction_id\`, \`service_pattern\`,
+  \`pattern_frequency\`, \`average.duration\`, and \`trips\`.
+
+- If \`method = "by_trip"\`:
+
+  Columns \`route_id\`, \`trip_id\`, optional \`direction_id\`,
+  \`duration\`, \`service_pattern\`, and \`pattern_frequency\`.
+
+- If \`method = "detailed"\`:
+
+  Excludes dwell time and returns \`route_id\`, \`trip_id\`, optional
+  \`direction_id\`, next \`arrival_time\`, departure \`hour\`,
+  \`from_stop_id\`, \`to_stop_id\`, \`duration\`, \`service_pattern\`,
+  and \`pattern_frequency\`.
+
+## Details
+
+This function calls specific sub-functions based on the selected method:
+
+\- "by_route": Calculates average durations for each route.
+
+\- "by_trip": Calculates the total duration of each trip.
+
+\- "detailed": Calculates detailed durations between consecutive stops
+within each trip, excluding dwell times.
+
+Legacy dotted values remain accepted. If an invalid \`method\` is
+specified, the function defaults to \`"by_trip"\` and provides a
+warning.
+
+## See also
+
+\[GTFSwizard::as_wizardgtfs()\], \[GTFSwizard::get_servicepattern()\]
+
+## Examples
+
+``` r
+# Calculate average route durations
+durations_by_route <- get_durations(gtfs = for_rail_gtfs, method = "by_route", trips = 'all')
+
+# Calculate trip durations
+durations_by_trip <- get_durations(gtfs = for_rail_gtfs, method = "by_trip", trips = 'all')
+
+# Calculate detailed durations between stops
+detailed_durations <- get_durations(gtfs = for_rail_gtfs, method = "detailed", trips = 'all')
+```

@@ -211,6 +211,46 @@ test_that("merge and split update identifiers and references", {
   )
 })
 
+test_that("service patterns represent exact daily service sets", {
+  tables <- unclass(minimal_feed())
+  tables$dates_services <- NULL
+  tables$trips$service_id <- "A"
+  extra_trip <- tables$trips[1, , drop = FALSE]
+  extra_trip$trip_id <- "TB"
+  extra_trip$service_id <- "B"
+  tables$trips <- dplyr::bind_rows(tables$trips, extra_trip)
+  extra_calls <- tables$stop_times[
+    tables$stop_times$trip_id == "T1", , drop = FALSE
+  ]
+  extra_calls$trip_id <- "TB"
+  tables$stop_times <- dplyr::bind_rows(tables$stop_times, extra_calls)
+  tables$calendar$service_id <- "A"
+  second_calendar <- tables$calendar
+  second_calendar$service_id <- "B"
+  tables$calendar <- dplyr::bind_rows(tables$calendar, second_calendar)
+  tables$calendar_dates <- data.frame(
+    service_id = "B", date = "20260102", exception_type = 2L
+  )
+  feed <- as_wizardgtfs(tables)
+
+  patterns <- get_servicepattern(feed)
+  expect_equal(sum(patterns$service_id == "A", na.rm = TRUE), 2L)
+  expect_equal(sum(patterns$service_id == "B", na.rm = TRUE), 1L)
+  expect_no_warning(get_frequency(feed, "by_route"))
+  expect_no_warning(get_headways(feed, "by_route"))
+  expect_no_warning(get_fleet(feed, "by_route"))
+
+  pattern_dates <- GTFSwizard:::service_pattern_date_table(feed)
+  combined_pattern <- pattern_dates$service_pattern[
+    lengths(pattern_dates$service_ids) == 2L
+  ][1]
+  filtered <- filter_servicepattern(feed, combined_pattern)
+
+  expect_equal(nrow(filtered$dates_services), 6L)
+  expect_setequal(unique(filtered$trips$service_id), c("A", "B"))
+  expect_false(as.Date("2026-01-02") %in% filtered$dates_services$date)
+})
+
 test_that("frequency rows are expanded with an exclusive end time", {
   feed <- minimal_feed()
   feed$frequencies <- data.frame(

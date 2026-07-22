@@ -108,7 +108,6 @@ plot.wizardgtfs <- function(x, ...){
   }
   title <- paste(x$agency$agency_name, collapse = ", ")
   plot +
-    ggplot2::coord_sf(datum = NA) +
     ggplot2::labs(title = title, subtitle = "GTFS routes and stops") +
     theme_gtfswizard_map()
 }

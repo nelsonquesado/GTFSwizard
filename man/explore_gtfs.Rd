@@ -11,18 +11,20 @@ explore_gtfs(gtfs = NULL, plotly = FALSE)
 or `NULL` in an interactive session, a file-selection window opens so the
 user can choose a GTFS `.zip` archive.}
 
-\item{plotly}{Logical. If `TRUE`, dashboard ggplot panels are rendered with
-interactive plotly widgets. `plotly` is optional and only required when
-this argument is `TRUE`.}
+\item{plotly}{Logical. If `TRUE`, eligible dashboard charts are rendered as
+interactive plotly widgets. The calendar and trip-duration boxplot remain
+static because conversion reduces their readability. `plotly` is optional
+and only required when this argument is `TRUE`.}
 }
 \value{
 A Shiny app object.
 }
 \description{
 Opens a lightweight Shiny dashboard for exploring a GTFS feed. The dashboard
-shows summary cards, route and stop maps, service calendar, and key
-operational charts. Route, service, service-pattern, stop, date, and time
-filters update the dashboard without changing the original object.
+shows summary cards, route and stop maps, planning indicators, service
+calendars, operational charts, and corridor and hub views. Route, service,
+service-pattern, stop, date, and time filters update the dashboard without
+changing the original object. Edits and exports operate on an in-memory copy.
 }
 \examples{
 if (interactive()) {

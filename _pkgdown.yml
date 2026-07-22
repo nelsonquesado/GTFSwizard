@@ -43,6 +43,10 @@ articles:
   - explore-dashboard
 
 reference:
+- title: Package overview
+  contents:
+  - GTFSwizard-package
+
 - title: Create, read, and export feeds
   desc: Build the GTFSwizard object used throughout the package.
   contents:

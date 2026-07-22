@@ -63,10 +63,10 @@ filter_stop(gtfs, stop_choice)
 filter_date(gtfs, as.Date(&quot;2021-12-31&quot;))
 filter_time(gtfs, from = &quot;06:00:00&quot;, to = &quot;09:00:00&quot;)
 </code></pre>
-<p><code>selection()</code> is useful when combining filters. The <code>filter_*()</code> functions are
-explicit one-step tools. Use <code>filter_servicepattern()</code> with active service
-patterns; <code>&quot;No service&quot;</code> describes trip-free calendar days and is not a trip
-filter.</p>
+<p><code>selection()</code> stores grouping or subset metadata without removing feed rows.
+The <code>filter_*()</code> functions change the returned feed. Use
+<code>filter_servicepattern()</code> with active service patterns; <code>&quot;No service&quot;</code>
+describes trip-free calendar days and is not a trip filter.</p>
 <h2>4. Analyze Operations</h2>
 <pre><code class="language-r">get_frequency(gtfs)
 get_headways(gtfs, method = &quot;by_hour&quot;)
@@ -99,8 +99,8 @@ plot_corridor(gtfs, i = 0.01, min_length = 1500)
 get_hubs(gtfs)
 plot_hubs(gtfs, i = 0.05)
 </code></pre>
-<p>Increase <code>i</code> to show fewer, stronger corridors or hubs. Decrease it to show
-more candidates.</p>
+<p>Increase <code>i</code> to retain more corridor or hub candidates. Decrease it to focus
+on a smaller highest-ranked share.</p>
 <h2>7. Edit A Feed</h2>
 <pre><code class="language-r">edit_speed(
   gtfs,

@@ -8,8 +8,14 @@
 #' @param method One of `"by_trip"`, `"by_route"`, `"by_shape"`, `"by_stop"`,
 #'   or `"detailed"`. Legacy dotted values remain accepted.
 #'
-#' @return A tibble containing the selected identifiers, frequency, service
-#'   pattern, and number of dates represented by the pattern.
+#' @return A tibble whose observational unit depends on `method`:
+#'   \describe{
+#'     \item{`"by_trip"`}{`route_id`, `trip_id`, optional `direction_id`, `service_pattern`, `pattern_frequency`, and `daily.frequency`.}
+#'     \item{`"by_route"`}{`route_id`, optional `direction_id`, `service_pattern`, `pattern_frequency`, and `daily.frequency`.}
+#'     \item{`"by_shape"`}{`shape_id`, optional `direction_id`, `service_pattern`, `pattern_frequency`, and `daily.frequency`.}
+#'     \item{`"by_stop"`}{`stop_id`, optional `direction_id`, `service_pattern`, `pattern_frequency`, and `daily.frequency`.}
+#'     \item{`"detailed"`}{`route_id`, optional `direction_id`, departure `hour`, `service_pattern`, `pattern_frequency`, and `frequency`.}
+#'   }
 #'
 #' @examples
 #' get_frequency(for_rail_gtfs, "by_route")
@@ -25,7 +31,10 @@ get_frequency <- function(gtfs, method = "by_trip"){
   gtfs <- ensure_wizardgtfs(gtfs)
   instances <- trip_instance_starts(gtfs) |>
     dplyr::left_join(gtfs$trips, by = "trip_id") |>
-    dplyr::left_join(get_servicepattern(gtfs), by = "service_id")
+    dplyr::left_join(
+      get_servicepattern(gtfs), by = "service_id",
+      relationship = "many-to-many"
+    )
   direction <- direction_field(instances)
 
   if(method == "by_stop"){

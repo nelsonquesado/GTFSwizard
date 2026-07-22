@@ -26,7 +26,10 @@ plot_servicespan <- function(gtfs, top_n = 30L){
     dplyr::select(route_id, trip_id, service_id) |>
     dplyr::left_join(starts[, c("trip_id", "start_hour")], by = "trip_id") |>
     dplyr::left_join(durations, by = "trip_id") |>
-    dplyr::left_join(get_servicepattern(gtfs), by = "service_id") |>
+    dplyr::left_join(
+      get_servicepattern(gtfs), by = "service_id",
+      relationship = "many-to-many"
+    ) |>
     dplyr::mutate(end_hour = .data$start_hour + .data$duration / 3600) |>
     dplyr::filter(is.finite(.data$start_hour), is.finite(.data$end_hour)) |>
     dplyr::group_by(.data$route_id, .data$service_pattern) |>
@@ -179,7 +182,10 @@ plot_routeduration <- function(gtfs, top_n = 20L){
       gtfs$trips[, c("trip_id", "route_id", "service_id")],
       by = "trip_id"
     ) |>
-    dplyr::left_join(get_servicepattern(gtfs), by = "service_id") |>
+    dplyr::left_join(
+      get_servicepattern(gtfs), by = "service_id",
+      relationship = "many-to-many"
+    ) |>
     dplyr::mutate(duration_minutes = .data$duration / 60) |>
     dplyr::filter(
       is.finite(.data$duration_minutes), .data$duration_minutes >= 0
@@ -239,7 +245,10 @@ plot_servicesupply <- function(gtfs, top_n = 20L){
       gtfs$trips[, c("trip_id", "route_id", "service_id")],
       by = "trip_id"
     ) |>
-    dplyr::left_join(get_servicepattern(gtfs), by = "service_id") |>
+    dplyr::left_join(
+      get_servicepattern(gtfs), by = "service_id",
+      relationship = "many-to-many"
+    ) |>
     dplyr::filter(is.finite(.data$duration), .data$duration >= 0) |>
     dplyr::group_by(.data$route_id, .data$service_pattern) |>
     dplyr::summarise(

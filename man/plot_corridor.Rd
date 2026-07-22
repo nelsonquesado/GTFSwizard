@@ -21,6 +21,10 @@ A `ggplot` map.
 \description{
 Plot High-Frequency Corridors
 }
+\examples{
+plot_corridor(for_rail_gtfs, i = 0.2, min_length = 100)
+
+}
 \seealso{
 [GTFSwizard::get_corridor()]
 }

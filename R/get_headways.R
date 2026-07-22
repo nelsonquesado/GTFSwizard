@@ -35,7 +35,9 @@ get_headways <- function(gtfs, method = "by_trip"){
   if(method %in% c("by_stop", "detailed")){
     data <- stop_call_instances(gtfs) |>
       dplyr::left_join(trips, by = "trip_id") |>
-      dplyr::left_join(patterns, by = "service_id")
+      dplyr::left_join(
+        patterns, by = "service_id", relationship = "many-to-many"
+      )
     grouping <- c(
       "route_id", direction, "stop_id", "service_pattern", "pattern_frequency"
     )
@@ -60,7 +62,9 @@ get_headways <- function(gtfs, method = "by_trip"){
 
   data <- trip_instance_starts(gtfs) |>
     dplyr::left_join(trips, by = "trip_id") |>
-    dplyr::left_join(patterns, by = "service_id")
+    dplyr::left_join(
+      patterns, by = "service_id", relationship = "many-to-many"
+    )
   grouping <- c(
     "route_id", direction, "service_pattern", "pattern_frequency"
   )

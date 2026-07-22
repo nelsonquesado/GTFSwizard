@@ -13,7 +13,7 @@
 
 GTFSwizard is a set of tools for creating, exploring, and manipulating [General Transit Feed Specification (GTFS)](https://gtfs.org/) files in R.
 
-Its main purpose is to provide researchers and practitioners with a seamless and easy way to visually explore and simulate changes within GTFS files, which represent public transportation schedules and geographic data. The package allows users to filter data by routes, trips, stops, and time, generate spatial visualizations, and perform detailed analyses of transit networks, including headway, dwell times, route frequencies, travel times, corridors and hubs. Editing functions to delay, speed change, and split trips, and to merge distinct GTFS are available. This is an ongoing work and new features are planned to be implemented soon.
+Its main purpose is to give researchers and practitioners a straightforward way to explore and simulate changes within GTFS files, which represent public transportation schedules and geographic data. The package lets users filter data by routes, trips, stops, and time, generate spatial visualizations, and analyze transit networks, including headways, dwell times, route frequencies, travel times, corridors, and hubs. Functions are also available to delay, change the speed of, split, and merge trips and feeds. This is ongoing work, with new features planned.
 
 ## Installation
 The development version is **1.2.1**. The CRAN version is **1.2.0**.
@@ -98,11 +98,11 @@ GTFSwizard::explore_gtfs()
 <img align="middle" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/exploregtfs.png" alt="GTFSwizard interactive dashboard showing the transit network" width="700"/>
 
 ## Service Patterns
-The concept of a `service_pattern` in GTFSwizard helps to address a common limitation of GTFS: its lack of a standardized way to distinguish distinct service patterns within the same route. GTFS files can have multiple `service_ids` for trips within the same route on the same day, such as regular and extra services. However, GTFS does not inherently identify unique service patterns, _i.e._ unique set of `service_id`s.
+The concept of a `service_pattern` in GTFSwizard helps address a common limitation of GTFS: it does not identify recurring combinations of services active on a date. A pattern is the exact set of `service_id` values operating on a calendar date, independent of route.
 
 In `wizardgtfs` objects, the `dates_services` table is an extended feature that consolidates dates and associated `service_id`s into a single, organized table. This table is not standard in typical GTFS files but is added specifically in `wizardgtfs` objects. The `dates_services` table is structured so that each date is associated with a `list` of `service_id`s representing the transit services operating on that specific day. Essentially, each unique `list` of `service_id`s observed across dates defines a distinct `service pattern`. It is common to observe at least 3 service patterns: weekdays, saturdays and sundays. Dates inside the feed calendar range with no active services are treated as an explicit empty service set: trip counts are `0`, and the calendar-level pattern is labeled `"No service"`.
 
-- Structure of `dates_services`: Each date in the `dates_service`s table has an associated `list` of `service_id`s, capturing the set of services active on that particular day.
+- Structure of `dates_services`: Each date in the `dates_services` table has an associated `list` of `service_id`s, capturing the set of services active on that particular day.
 - Defining Service Patterns: A unique `service_pattern` is identified by a unique combination of `service_id`s operating on a given date. For instance, if two dates share the exact same `service_id`s, they are considered part of the same `service_pattern`.
 - No-service dates: A date with no active `service_id`s is represented as the `"No service"` pattern in calendar-level outputs and by `get_servicepattern()` with `service_id = NA`. It is not a trip-bearing pattern and cannot be used with `filter_servicepattern()`.
 
@@ -118,7 +118,7 @@ GTFSwizard::get_servicepattern(for_bus_gtfs)
 #3 S          servicepattern-3               116
 ```
 
-Most of the functions will account for service_patterns, _e.g._ `get_frequency()` and `plot_routefrequency()`. The former arrange service_pattern from most frequent (typical day) to less frequent (rarer day), while the latter highlights the most frequent service pattern.
+Most analytical functions account for service patterns, including `get_frequency()` and `plot_routefrequency()`. Patterns are ordered from most frequent (a useful typical-day default) to less frequent, and route-frequency plots compare the represented patterns.
 ```r
 GTFSwizard::get_frequency(for_bus_gtfs, method = "by_route")
 ## A tibble: 1,763 × 5
@@ -172,7 +172,7 @@ GTFSwizard::get_1stdeparture(for_bus_gtfs)
 ```
 Corridors and hubs are simplified representations of critical links and nodes on transit networks.
 
-- Corridors: the `get_corridor()` and `plot_corridor()` functions retrieves and visualizes high-density transit sections.
+- Corridors: `get_corridor()` retrieves and `plot_corridor()` visualizes high-density transit sections.
 
 ``` r
 GTFSwizard::get_corridor(for_bus_gtfs, i = .01, min_length = 1500)
@@ -192,7 +192,7 @@ GTFSwizard::plot_corridor(for_bus_gtfs)
 ```
 <img align="center" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/plot_corridor.png" alt="Map of high-frequency transit corridors" width="700"/>
 
-- Hubs: the `get_hubs()` and `plot_hubs()` functions retrieves and visualizes high-density transit stops.
+- Hubs: `get_hubs()` retrieves and `plot_hubs()` visualizes high-connectivity transit stops.
 
 ``` r
 GTFSwizard::get_hubs(for_bus_gtfs)
@@ -214,7 +214,7 @@ GTFSwizard::plot_hubs(for_bus_gtfs)
 <img align="center" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/plot_hubs.png" alt="Map of transit hubs sized by route connectivity" width="700"/>
 
 ## Filtering
-Filtering tools allows customization of GTFS data by service patterns, specific dates, service IDs, route IDs, trip IDs, stop IDs, and time ranges. These `filter_` functions help retain only the relevant data, making analysis easier and more focused.
+Filtering tools allow GTFS data to be restricted by service patterns, dates, service IDs, route IDs, trip IDs, stop IDs, and time ranges. These `filter_` functions retain the relevant records and their GTFS relationships.
 
 - `filter_servicepattern()`: Filter by specified active service patterns. Defaults to the most frequent active pattern (typical day) if none is provided. The `"No service"` pattern describes calendar days without trips and is not accepted by this filter.
 - `filter_date()`: Filter data by specific dates, returning only services active on those dates.
@@ -229,7 +229,7 @@ Filtering tools allows customization of GTFS data by service patterns, specific 
 filtered_gtfs <- GTFSwizard::filter_servicepattern(for_bus_gtfs, "servicepattern-2")
 
 # Filter by specific date
-filtered_gtfs <- GTFSwizard::filter_date(for_bus_gtfs, "2023-01-01")
+filtered_gtfs <- GTFSwizard::filter_date(for_bus_gtfs, "2021-02-10")
 
 # Filter by route ID, retaining only specified routes
 filtered_gtfs <- GTFSwizard::filter_route(for_bus_gtfs, for_bus_gtfs$routes$route_id[1:2])
@@ -311,7 +311,7 @@ GTFSwizard provides functions to edit GTFS data directly.
 The `delay_trip()` function allows users to apply a delay to specific trips.
 The `split_trip()` function divides a trip into valid consecutive parts. Trips can be split into `split + 1` approximately equal parts, or at selected internal stop IDs using the `stops` argument. This can be useful for analyzing partial routes or for simulating route adjustments.
 The `edit_speed()` function adjusts the travel speeds between stops in a GTFS dataset by modifying trip durations based on a specified speed multiplier. It allows selective adjustments for specific trips and stops or applies changes globally.
-The `set_dwelltime()` function overwrites dwell times preserving start time and end time of trips. The `edit_dwelltime()` function edit dwell times adjusting the total duration of trips.
+The `set_dwelltime()` function overwrites selected dwell times while retaining arrival at each edited stop and shifting downstream times. The trip end time may therefore change. The `edit_dwelltime()` function scales selected dwell times and applies the same downstream propagation.
 The `merge_gtfs()` function combines two GTFS files, allowing for the integration of distinct GTFS datasets into a single dataset.
 
 ```r
@@ -344,7 +344,7 @@ gtfs <- edit_dwelltime(gtfs,
 get_dwelltimes(gtfs, method = 'detailed')
 ```
 
-Feeds are, then, exported using the `write_gtfs()` function. It saves a standard GTFS `.zip` file, located as declared.
+Export a resulting feed with `write_gtfs()`, which writes a standard GTFS `.zip` archive to the requested path.
 ``` r
 GTFSwizard::write_gtfs(for_bus_gtfs, 'path-to-file.zip')
 ```

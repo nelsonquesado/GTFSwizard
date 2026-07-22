@@ -13,10 +13,15 @@ get_fleet(gtfs, method = "by_route")
 Legacy dotted values remain accepted.}
 }
 \value{
-A tibble containing fleet estimates by the selected grouping and
-service pattern. GTFS times beyond 24 hours remain in the following service
-day rather than being wrapped. Route outputs include `direction_id` when
-available.
+A tibble whose observational unit depends on `method`:
+  \describe{
+    \item{`"by_route"`}{`route_id`, optional `direction_id`, `service_pattern`, `pattern_frequency`, and maximum simultaneous `fleet`.}
+    \item{`"by_hour"`}{`service_pattern`, `pattern_frequency`, `hour`, and maximum simultaneous `fleet`.}
+    \item{`"peak"`}{The three highest hourly fleet estimates per service pattern, with the same columns as `"by_hour"`.}
+    \item{`"detailed"`}{`route_id`, optional `direction_id`, vehicle-change event `net.fleet`, cumulative `fleet`, event `time` in seconds, `service_pattern`, and `pattern_frequency`.}
+  }
+  GTFS times beyond 24 hours remain in the following service day rather than
+  being wrapped.
 }
 \description{
 Estimates the number of active trip instances from their first departure to

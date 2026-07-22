@@ -82,8 +82,9 @@ The dashboard is useful for discovery. For a reproducible project, translate
 the final choices into explicit function calls:
 
 ```{r, eval=FALSE}
+route_ids <- for_rail_gtfs$routes$route_id[1:2]
 scenario <- for_rail_gtfs |>
-  filter_route(c("route-a", "route-b")) |>
+  filter_route(route_ids) |>
   filter_time("06:00:00", "10:00:00") |>
   edit_speed(factor = 1.1)
 
