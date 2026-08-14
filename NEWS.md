@@ -1,5 +1,11 @@
 # GTFSwizard 1.2.1
 
+* Refreshed the README figures and package website from the current plotting
+  code, and added a reproducible figure-generation script for maintainers.
+
+* Improved the year-faceted service calendar for dense feeds and retained the
+  supplied object name in the `explore_gtfs()` dashboard.
+
 * Organized the package website by workflow, added task-based function
   reference sections, and added vignettes for getting started, service
   analysis, filtering and editing, and the interactive dashboard.

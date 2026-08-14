@@ -99,6 +99,19 @@ test_that("calendar service-pattern legends are discrete in both layouts", {
   expect_s3_class(faceted$scales$get_scales("fill"), "ScaleDiscrete")
 })
 
+test_that("year-faceted calendars keep dense month panels readable", {
+  wrapped <- plot_calendar(minimal_feed())
+  faceted <- plot_calendar(minimal_feed(), facet_by_year = TRUE)
+  is_text_layer <- function(layer) inherits(layer$geom, "GeomText")
+
+  expect_true(any(vapply(wrapped$layers, is_text_layer, logical(1))))
+  expect_false(any(vapply(faceted$layers, is_text_layer, logical(1))))
+  expect_equal(
+    faceted$scales$get_scales("x")$labels,
+    c("S", "M", "T", "W", "T", "F", "S")
+  )
+})
+
 test_that("calendar shows no-service days as zero trips", {
   trip_data <- ggplot2::ggplot_build(
     plot_calendar(for_rail_gtfs, facet_by_year = TRUE)
@@ -183,6 +196,19 @@ test_that("explorer accepts optional plotly rendering", {
   if(requireNamespace("plotly", quietly = TRUE)){
     expect_s3_class(explore_gtfs(minimal_feed(), plotly = TRUE), "shiny.appobj")
   }
+})
+
+test_that("explorer retains the supplied object name", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("leaflet")
+  named_feed <- minimal_feed()
+  app <- explore_gtfs(named_feed)
+  server <- app$serverFuncSource()
+
+  expect_equal(
+    get("feed_name", envir = environment(server), inherits = TRUE),
+    "named_feed"
+  )
 })
 
 test_that("explorer keeps static plots for calendar and trip duration", {

@@ -62,7 +62,14 @@ explore_gtfs <- function(gtfs = NULL, plotly = FALSE){
 
 #' @exportS3Method GTFSwizard::explore_gtfs list
 explore_gtfs.list <- function(gtfs, plotly = FALSE){
+  feed_name <- attr(gtfs, "gw_source_name", exact = TRUE)
+  if(is.null(feed_name)){
+    feed_name <- paste(deparse(substitute(gtfs)), collapse = "")
+  }
   gtfs <- ensure_wizardgtfs(gtfs)
+  if(!identical(feed_name, "gtfs") && nzchar(feed_name)){
+    attr(gtfs, "gw_source_name") <- feed_name
+  }
   explore_gtfs.wizardgtfs(gtfs, plotly = plotly)
 }
 
@@ -72,8 +79,14 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
   if(isTRUE(plotly)){
     require_pkg("plotly", "`explore_gtfs(plotly = TRUE)`")
   }
-  gtfs <- ensure_shapes(ensure_wizardgtfs(gtfs))
   feed_name <- attr(gtfs, "gw_source_name", exact = TRUE)
+  if(is.null(feed_name)){
+    candidate <- paste(deparse(substitute(gtfs)), collapse = "")
+    if(!identical(candidate, "gtfs") && nzchar(candidate)){
+      feed_name <- candidate
+    }
+  }
+  gtfs <- ensure_shapes(ensure_wizardgtfs(gtfs))
   if(is.null(feed_name) || !nzchar(feed_name)){
     feed_name <- "GTFS object"
   }

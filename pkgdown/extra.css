@@ -1,0 +1,36 @@
+.template-home .page-header {
+  margin-bottom: 1.5rem;
+}
+
+.template-home main > p:first-of-type {
+  max-width: 46rem;
+  color: #425466;
+  font-size: 1.12rem;
+  line-height: 1.65;
+}
+
+.gw-home-logo {
+  margin: 0 0 1rem 2rem;
+}
+
+.gw-home-dashboard {
+  display: block;
+  width: 100%;
+  max-width: 760px;
+  margin: 1.25rem 0 0;
+  border: 1px solid #d9e1ea;
+  border-radius: 6px;
+}
+
+.template-home main h2 {
+  margin-top: 2.5rem;
+}
+
+@media (max-width: 576px) {
+  .gw-home-logo {
+    float: none;
+    display: block;
+    width: 112px;
+    margin: 0 auto 1.25rem;
+  }
+}

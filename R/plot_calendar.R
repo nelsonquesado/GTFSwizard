@@ -85,10 +85,22 @@ plot_calendar <- function(gtfs, ncol = 4, facet_by_year = FALSE,
       )
   }
   plot <- plot +
-    ggplot2::geom_text(
+    ggplot2::scale_x_discrete(
+      labels = if(facet_by_year){
+        c("S", "M", "T", "W", "T", "F", "S")
+      } else {
+        c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+      },
+      drop = FALSE
+    )
+  if(!facet_by_year){
+    plot <- plot + ggplot2::geom_text(
       ggplot2::aes(label = day_of_month),
-      size = 3.1, color = colors[["ink"]]
-    ) +
+      size = 3.1,
+      color = colors[["ink"]]
+    )
+  }
+  plot <- plot +
     ggplot2::labs(
       title = "Scheduled Service Calendar",
       subtitle = if(fill == "trips"){
@@ -102,11 +114,16 @@ plot_calendar <- function(gtfs, ncol = 4, facet_by_year = FALSE,
     theme_gtfswizard() +
     ggplot2::theme(
       axis.text.y = ggplot2::element_blank(),
-      axis.text.x = ggplot2::element_text(size = 9),
+      axis.text.x = ggplot2::element_text(
+        size = if(facet_by_year) 7 else 9
+      ),
       axis.ticks = ggplot2::element_blank(),
       panel.grid = ggplot2::element_blank(),
-      panel.spacing = grid::unit(10, "pt"),
-      strip.text = ggplot2::element_text(size = 9, face = "bold")
+      panel.spacing = grid::unit(if(facet_by_year) 4 else 10, "pt"),
+      strip.text = ggplot2::element_text(
+        size = if(facet_by_year) 8 else 9,
+        face = "bold"
+      )
     )
   if(facet_by_year){
     plot + ggplot2::facet_grid(year ~ month)

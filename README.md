@@ -1,5 +1,5 @@
 <img align="right" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/GTFSwizard_logo.png" alt="GTFSwizard logo" height="180">
-##### Development version 1.2.1 (2026-06-21)
+##### Development version 1.2.1 (2026-08-14)
 ##### CRAN version 1.2.0 (2026-06-16)
 
 [![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
