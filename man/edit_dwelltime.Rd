@@ -20,6 +20,9 @@ A modified `wizardgtfs` object.
 Multiplies dwell time at selected trip-stop calls and propagates each change
 to all later times in the same trip. Arrival at the edited stop is retained;
 departure and subsequent calls move by the dwell-time difference.
+Edited times that would move two or more days after midnight are wrapped back
+to the equivalent time on the next service day while keeping stop times
+non-decreasing within each trip.
 }
 \examples{
 edited <- edit_dwelltime(

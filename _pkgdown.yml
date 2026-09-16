@@ -2,15 +2,17 @@ url: https://opatp.github.io/GTFSwizard/
 
 template:
   bootstrap: 5
-  light-switch: true
   bslib:
     primary: "#006D77"
     link-color: "#006D77"
+    body-bg: "#FFFFFF"
+    body-color: "#222222"
+    navbar-bg: "#FFFFFF"
 
 navbar:
   structure:
     left: [intro, reference, articles, news]
-    right: [search, github, lightswitch]
+    right: [search, github]
   components:
     articles:
       text: Guides

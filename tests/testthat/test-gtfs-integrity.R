@@ -165,6 +165,43 @@ test_that("time edits propagate without wrapping at midnight", {
   expect_equal(t1$arrival_time[3], "24:21:00")
 })
 
+test_that("speed edits wrap extreme times to the next service day", {
+  feed <- minimal_feed()
+  edited <- edit_speed(feed, trips = "T1", stops = "all", factor = 0.001)
+  times <- gtfs_time_to_seconds(c(
+    edited$stop_times$arrival_time,
+    edited$stop_times$departure_time
+  ))
+
+  expect_true(all(times < 48 * 60 * 60, na.rm = TRUE))
+  expect_true(any(times >= 24 * 60 * 60, na.rm = TRUE))
+
+  t1 <- edited$stop_times[edited$stop_times$trip_id == "T1", ]
+  expect_true(all(diff(gtfs_time_to_seconds(t1$arrival_time)) >= 0))
+  expect_true(all(gtfs_time_to_seconds(t1$departure_time) >=
+                    gtfs_time_to_seconds(t1$arrival_time)))
+})
+
+test_that("dwell and delay edits wrap extreme times to the next service day", {
+  feed <- minimal_feed()
+  edits <- list(
+    edit_dwelltime(feed, trips = "T1", stops = "S2", factor = 100000),
+    set_dwelltime(feed, duration = 100000000, trips = "T1", stops = "S2"),
+    delay_trip(feed, trip = "T1", duration = 100000000)
+  )
+
+  for(edited in edits){
+    t1 <- edited$stop_times[edited$stop_times$trip_id == "T1", ]
+    arrival <- gtfs_time_to_seconds(t1$arrival_time)
+    departure <- gtfs_time_to_seconds(t1$departure_time)
+
+    expect_true(all(arrival < 48 * 60 * 60, na.rm = TRUE))
+    expect_true(all(departure < 48 * 60 * 60, na.rm = TRUE))
+    expect_true(all(diff(arrival) >= 0))
+    expect_true(all(departure >= arrival))
+  }
+})
+
 test_that("merge and split update identifiers and references", {
   feed <- minimal_feed()
   merged <- merge_gtfs(feed, feed)

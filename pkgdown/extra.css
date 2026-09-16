@@ -1,16 +1,64 @@
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background: #ffffff;
+  color: #222222;
+}
+
+body {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+a {
+  color: #006d77;
+}
+
+a:hover,
+a:focus {
+  color: #004f57;
+}
+
+.navbar,
+.navbar.bg-primary,
+.pkgdown-navbar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e7e7e7;
+  box-shadow: none;
+}
+
+.navbar .navbar-brand,
+.navbar .navbar-nav .nav-link,
+.navbar .navbar-toggler {
+  color: #222222 !important;
+}
+
+.navbar .navbar-nav .nav-link:hover,
+.navbar .navbar-nav .nav-link:focus,
+.navbar .navbar-brand:hover,
+.navbar .navbar-brand:focus {
+  color: #006d77 !important;
+}
+
 .template-home .page-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.35rem;
 }
 
 .template-home main > p:first-of-type {
-  max-width: 46rem;
-  color: #425466;
-  font-size: 1.12rem;
+  max-width: 48rem;
+  color: #333333;
+  font-size: 1.05rem;
   line-height: 1.65;
 }
 
 .gw-home-logo {
-  margin: 0 0 1rem 2rem;
+  float: right;
+  width: 110px;
+  height: auto;
+  margin: 0 0 0.85rem 1.5rem;
 }
 
 .gw-home-dashboard {
@@ -18,19 +66,41 @@
   width: 100%;
   max-width: 760px;
   margin: 1.25rem 0 0;
-  border: 1px solid #d9e1ea;
-  border-radius: 6px;
+  border: 1px solid #dddddd;
+}
+
+.template-home main h1,
+.template-home main h2,
+.template-home main h3 {
+  color: #222222;
 }
 
 .template-home main h2 {
-  margin-top: 2.5rem;
+  margin-top: 2.25rem;
+}
+
+pre,
+code {
+  background-color: #f7f7f7;
+}
+
+pre {
+  border: 1px solid #e6e6e6;
+  border-radius: 4px;
+}
+
+.page-header,
+footer {
+  background: #ffffff;
+}
+
+footer {
+  border-top: 1px solid #e7e7e7;
 }
 
 @media (max-width: 576px) {
   .gw-home-logo {
-    float: none;
-    display: block;
-    width: 112px;
-    margin: 0 auto 1.25rem;
+    width: 88px;
+    margin-left: 1rem;
   }
 }

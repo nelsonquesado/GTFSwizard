@@ -19,7 +19,9 @@ A modified `wizardgtfs` object.
 }
 \description{
 Adds a number of seconds to every non-empty arrival and departure time for
-selected trips. GTFS times above 24 hours are preserved.
+selected trips. Edited times that would move two or more days after midnight
+are wrapped back to the equivalent time on the next service day while keeping
+stop times non-decreasing within each trip.
 }
 \examples{
 delayed <- delay_trip(

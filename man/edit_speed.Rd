@@ -23,6 +23,9 @@ A modified `wizardgtfs` object.
 \description{
 Changes travel time between consecutive stops by dividing it by a speed
 multiplier. Dwell times are preserved and all downstream times are shifted.
+Edited times that would move two or more days after midnight are wrapped back
+to the equivalent time on the next service day while keeping stop times
+non-decreasing within each trip.
 }
 \examples{
 edited <- edit_speed(

@@ -2,7 +2,7 @@
 title: GTFSwizard
 ---
 
-<img class="gw-home-logo" align="right" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/GTFSwizard_logo.png" alt="GTFSwizard logo" width="150">
+<img class="gw-home-logo" align="right" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/GTFSwizard_logo.png" alt="GTFSwizard logo" width="110">
 
 # GTFSwizard
 

@@ -2,6 +2,9 @@
 #'
 #' Sets dwell time at selected trip-stop calls and propagates each change to
 #' all later times in the same trip. Arrival at the edited stop is retained.
+#' Edited times that would move two or more days after midnight are wrapped back
+#' to the equivalent time on the next service day while keeping stop times
+#' non-decreasing within each trip.
 #'
 #' @param gtfs A GTFS object.
 #' @param duration One non-negative dwell time in seconds.
@@ -48,11 +51,20 @@ update_dwell_times <- function(gtfs, trips, stops, transform){
   delta <- rep(0, nrow(stop_times))
   delta[editable] <- transform(dwell[editable]) - dwell[editable]
   groups <- split(seq_len(nrow(stop_times)), stop_times$trip_id)
+  edited_groups <- list()
   for(index in groups){
+    if(any(delta[index] != 0)){
+      edited_groups[[length(edited_groups) + 1L]] <- index
+    }
     cumulative <- cumsum(delta[index])
     before <- c(0, utils::head(cumulative, -1L))
     arrival[index] <- arrival[index] + before
     departure[index] <- departure[index] + cumulative
+  }
+  for(index in edited_groups){
+    wrapped <- wrap_trip_to_next_service_day(arrival[index], departure[index])
+    arrival[index] <- wrapped$arrival
+    departure[index] <- wrapped$departure
   }
   valid_arrival <- !is.na(arrival)
   valid_departure <- !is.na(departure)
