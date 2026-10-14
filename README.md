@@ -3,10 +3,10 @@
 ##### CRAN version 1.2.0 (2026-06-16)
 
 [![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
-[![Development version: 1.2.1](https://img.shields.io/badge/dev%20version-1.2.1-0073B7.svg)](https://github.com/OPATP/GTFSwizard)
+[![Development version: 1.2.1](https://img.shields.io/badge/dev%20version-1.2.1-0073B7.svg)](https://github.com/nelsonquesado/GTFSwizard)
 [![CRAN version](https://www.r-pkg.org/badges/version/GTFSwizard)](https://CRAN.R-project.org/package=GTFSwizard)
-[![R CMD check](https://img.shields.io/github/actions/workflow/status/OPATP/GTFSwizard/R-CMD-check.yaml?branch=main&label=R%20CMD%20check)](https://github.com/OPATP/GTFSwizard/actions/workflows/R-CMD-check.yaml)
-[![Coverage](https://codecov.io/gh/OPATP/GTFSwizard/branch/main/graph/badge.svg)](https://app.codecov.io/gh/OPATP/GTFSwizard)
+[![R CMD check](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml)
+[![Coverage](https://codecov.io/gh/nelsonquesado/GTFSwizard/branch/main/graph/badge.svg)](https://app.codecov.io/gh/nelsonquesado/GTFSwizard)
 [![License: GPL-3](https://img.shields.io/cran/l/GTFSwizard.svg)](https://CRAN.R-project.org/package=GTFSwizard)
 [![Dependencies](https://tinyverse.netlify.app/badge/GTFSwizard)](https://CRAN.R-project.org/package=GTFSwizard)
 [![CRAN/METACRAN Total downloads](https://cranlogs.r-pkg.org/badges/grand-total/GTFSwizard?color=blue)](https://CRAN.R-project.org/package=GTFSwizard)

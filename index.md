@@ -2,17 +2,28 @@
 title: GTFSwizard
 ---
 
-<img class="gw-home-logo" align="right" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/GTFSwizard_logo.png" alt="GTFSwizard logo" width="110">
+<img class="gw-home-logo" align="right" src="https://raw.githubusercontent.com/nelsonquesado/GTFSwizard/main/figs/GTFSwizard_logo.png" alt="GTFSwizard logo" width="110">
 
 # GTFSwizard
 
-Create, explore, analyze, edit, and export General Transit Feed Specification
-(GTFS) Schedule feeds in R.
+##### Development version 1.2.1 (2026-08-14)
+##### CRAN version 1.2.0 (2026-06-16)
 
+[![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+[![Development version: 1.2.1](https://img.shields.io/badge/dev%20version-1.2.1-0073B7.svg)](https://github.com/nelsonquesado/GTFSwizard)
 [![CRAN version](https://www.r-pkg.org/badges/version/GTFSwizard)](https://CRAN.R-project.org/package=GTFSwizard)
+[![R CMD check](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml)
+[![Coverage](https://codecov.io/gh/nelsonquesado/GTFSwizard/branch/main/graph/badge.svg)](https://app.codecov.io/gh/nelsonquesado/GTFSwizard)
 [![License: GPL-3](https://img.shields.io/cran/l/GTFSwizard.svg)](https://CRAN.R-project.org/package=GTFSwizard)
+[![Dependencies](https://tinyverse.netlify.app/badge/GTFSwizard)](https://CRAN.R-project.org/package=GTFSwizard)
+[![CRAN/METACRAN Total downloads](https://cranlogs.r-pkg.org/badges/grand-total/GTFSwizard?color=blue)](https://CRAN.R-project.org/package=GTFSwizard)
 
-**Development 1.2.1** · **CRAN 1.2.0**
+GTFSwizard is a set of tools for creating, exploring, and manipulating
+[General Transit Feed Specification (GTFS)](https://gtfs.org/) files in R.
+
+Its main purpose is to give researchers and practitioners a straightforward
+way to explore and simulate changes within GTFS files, which represent public
+transportation schedules and geographic data.
 
 ## Install
 
@@ -22,7 +33,7 @@ install.packages("GTFSwizard")
 
 # Development version
 remotes::install_github(
-  "OPATP/GTFSwizard@main"
+  "nelsonquesado/GTFSwizard@main"
 )
 ```
 
@@ -61,7 +72,7 @@ explore_gtfs(for_rail_gtfs)
 # explore_gtfs()
 ```
 
-<img class="gw-home-dashboard" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/exploregtfs.png" alt="GTFSwizard dashboard showing a transit network">
+<img class="gw-home-dashboard" src="https://raw.githubusercontent.com/nelsonquesado/GTFSwizard/main/figs/exploregtfs.png" alt="GTFSwizard dashboard showing a transit network">
 
 ## Guides
 
@@ -70,10 +81,10 @@ explore_gtfs(for_rail_gtfs)
 - [Filtering, selecting, and editing](articles/filtering-editing.html)
 - [Interactive dashboard](articles/explore-dashboard.html)
 - [Complete function reference](reference/index.html)
-- [Cheat sheet](https://github.com/OPATP/GTFSwizard/blob/main/inst/cheatsheet/GTFSwizard-cheatsheet.html)
+- [Cheat sheet](https://github.com/nelsonquesado/GTFSwizard/blob/main/inst/cheatsheet/GTFSwizard-cheatsheet.html)
 
 ## Citation
 
 Use `citation("GTFSwizard")` to obtain the current package citation. Related
 publications and project details are listed in the
-[repository README](https://github.com/OPATP/GTFSwizard#readme).
+[repository README](https://github.com/nelsonquesado/GTFSwizard#readme).

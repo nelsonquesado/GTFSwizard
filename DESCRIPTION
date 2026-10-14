@@ -11,9 +11,9 @@ Author: Nelson de Oliveira Quesado Filho [aut, cre],
   Francisco Moraes de Oliveira Neto [aut]
 Maintainer: Nelson de Oliveira Quesado Filho <nquesado@gmail.com>
 Date: 2026-08-14
-URL: https://github.com/OPATP/GTFSwizard,
+URL: https://github.com/nelsonquesado/GTFSwizard,
     https://opatp.github.io/GTFSwizard/
-BugReports: https://github.com/OPATP/GTFSwizard/issues
+BugReports: https://github.com/nelsonquesado/GTFSwizard/issues
 Description: Creating, exploring, analyzing, and manipulating General Transit
     Feed Specification (GTFS) files, which represent public transportation
     schedules and geographic data. The package allows users to filter data by
