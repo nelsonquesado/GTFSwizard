@@ -149,16 +149,16 @@ convert_gtfs_utf16 <- function(path, encoding){
         if(length(bytes) >= 2L && identical(bytes[1:2], bom)) bytes <- bytes[-(1:2)]
       }
       if(length(bytes) %% 2L){
-        pending <- tail(bytes, 1L)
-        bytes <- head(bytes, -1L)
+        pending <- utils::tail(bytes, 1L)
+        bytes <- utils::head(bytes, -1L)
       }
       if(length(bytes) >= 2L){
-        last <- as.integer(tail(bytes, 2L))
+        last <- as.integer(utils::tail(bytes, 2L))
         code <- if(encoding == "UTF-16LE") last[1] + 256L * last[2] else
           256L * last[1] + last[2]
         if(code >= 0xd800 && code <= 0xdbff){
-          pending <- c(tail(bytes, 2L), pending)
-          bytes <- head(bytes, -2L)
+          pending <- c(utils::tail(bytes, 2L), pending)
+          bytes <- utils::head(bytes, -2L)
         }
       }
       if(length(bytes)){

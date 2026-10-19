@@ -116,7 +116,7 @@ validate_gtfs <- function(gtfs, validator_jar = NULL, output_dir = NULL,
   system_path <- file.path(output_dir, "system_errors.json")
   if(!file.exists(report_path) || !file.exists(system_path)){
     gw_stop("validator did not produce both JSON reports (exit status ",
-            process$status, "). Output: ", paste(tail(process$output, 5L), collapse = " "))
+            process$status, "). Output: ", paste(utils::tail(process$output, 5L), collapse = " "))
   }
   report <- read_gtfs_validation_json(report_path)
   system_errors <- read_gtfs_validation_json(system_path)
@@ -125,7 +125,7 @@ validate_gtfs <- function(gtfs, validator_jar = NULL, output_dir = NULL,
   if(process$status != 0L && !nrow(system_notices)){
     gw_stop("validator exited with status ", process$status,
             if(save_reports) paste0("; inspect reports in `", output_dir, "`.")
-            else paste0(". Output: ", paste(tail(process$output, 5L), collapse = " ")))
+            else paste0(". Output: ", paste(utils::tail(process$output, 5L), collapse = " ")))
   }
   unknown_severity <- any(!notices$severity %in% c("ERROR", "WARNING", "INFO"))
   has_errors <- if(nrow(system_notices) || unknown_severity) NA else {
