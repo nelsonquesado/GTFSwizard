@@ -8,7 +8,7 @@
 </head>
 <body>
 <h1>GTFSwizard Cheat Sheet</h1>
-<p>Compact workflow reference for GTFSwizard 1.2.1.</p>
+<p>Compact workflow reference for GTFSwizard 1.2.2 (development).</p>
 <h2>1. Load Or Create A Feed</h2>
 <pre><code class="language-r">library(GTFSwizard)
 
@@ -32,6 +32,16 @@ created_gtfs &lt;- create_gtfs(
 <p>The examples below use the embedded <code>for_rail_gtfs</code> and <code>for_bus_gtfs</code>
 objects, so they can be run without downloading an external feed. <code>read_gtfs()</code>,
 <code>as_wizardgtfs()</code>, and <code>create_gtfs()</code> return a <code>wizardgtfs</code> object.</p>
+<h2>Validate An Original Feed</h2>
+<pre><code class="language-r"># Requires Java 17+, jsonlite, openssl and internet on the first run:
+# result &lt;- validate_gtfs("path/to/feed.zip", download_validator = TRUE)
+# result$notices
+# result &lt;- validate_gtfs("path/to/feed.zip", download_validator = TRUE,
+#                         output_dir = "validation-report")
+# Or use validator_jar = "path/to/validator.jar" with a local JAR.
+</code></pre>
+<p>The official validator is optional and external. No reports are saved unless
+<code>output_dir</code> is specified. Validate the original ZIP to check it before import.</p>
 <h2>2. Inspect The Feed</h2>
 <pre><code class="language-r">summary(gtfs)
 plot(gtfs)
@@ -125,10 +135,16 @@ set_dwelltime(
 
 delay_trip(gtfs, trip = gtfs$trips$trip_id[1], duration = 300)
 split_trip(gtfs, trip = gtfs$trips$trip_id[1], split = 1)
+trip_times &lt;- gtfs$stop_times[gtfs$stop_times$trip_id == gtfs$trips$trip_id[1], ]
+trip_times &lt;- trip_times[order(trip_times$stop_sequence), ]
+split_trip(gtfs, trip = gtfs$trips$trip_id[1], stops = trip_times$stop_id[2])
 merge_gtfs(gtfs, gtfs, suffix = TRUE)
 </code></pre>
 <p>Editing functions keep the GTFS structure consistent while preserving partial
 trips when they are useful for experimentation.</p>
+<p>Choose either <code>split</code> or <code>stops</code>; the boundary stop is retained in both
+adjacent parts. Inspect extreme time edits before exporting because wrapped times
+may be clamped to keep trip times non-decreasing.</p>
 <h2>8. Explore Interactively</h2>
 <pre><code class="language-r">if (interactive()) {
   explore_gtfs(gtfs)

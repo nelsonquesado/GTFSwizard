@@ -1,7 +1,7 @@
 Package: GTFSwizard
 Type: Package
 Title: Creating, Exploring, and Manipulating GTFS Files
-Version: 1.2.1
+Version: 1.2.2
 Authors@R: c(
     person(given="Nelson de Oliveira",family="Quesado Filho",email="nquesado@gmail.com",role=c("aut","cre")),
     person(given="Caio Gustavo Coelho", family="Guimarães", email="caiogcg.mobilidade@gmail.com",role=c("aut")),
@@ -10,8 +10,9 @@ Author: Nelson de Oliveira Quesado Filho [aut, cre],
   Caio Gustavo Coelho Guimarães [aut],
   Francisco Moraes de Oliveira Neto [aut]
 Maintainer: Nelson de Oliveira Quesado Filho <nquesado@gmail.com>
-Date: 2026-08-14
+Date: 2026-10-19
 URL: https://github.com/nelsonquesado/GTFSwizard,
+    https://nelsonquesado.github.io/GTFSwizard/,
     https://opatp.github.io/GTFSwizard/
 BugReports: https://github.com/nelsonquesado/GTFSwizard/issues
 Description: Creating, exploring, analyzing, and manipulating General Transit
@@ -26,8 +27,8 @@ Description: Creating, exploring, analyzing, and manipulating General Transit
     (2007, ISBN:978-0-471-75823-5), Cascetta (2009)
     <doi:10.1007/978-0-387-75857-2>, and Gentile and Noekel (2016)
     <doi:10.1007/978-3-319-25082-3>.
-Imports: sf, tidyr, dplyr, ggplot2, gtfsio, rlang, tibble
-Suggests: data.table, gtfstools, hms, knitr, leaflet, plotly, rmarkdown,
+Imports: sf, tidyr, dplyr, ggplot2, gtfsio, rlang, tibble, zip
+Suggests: data.table, gtfstools, hms, jsonlite, knitr, leaflet, openssl, plotly, rmarkdown,
     rstudioapi, shiny, testthat, tidytransit
 Depends: R (>= 4.1.0)
 License: GPL-3

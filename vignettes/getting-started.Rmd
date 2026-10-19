@@ -39,7 +39,8 @@ head(gtfs$stops)
 ## Read an existing feed
 
 `read_gtfs()` reads a GTFS zip archive and validates its required tables,
-fields, identifiers, sequences, dates, and times. Supply the archive path
+fields, identifiers, sequences, dates, and times according to package rules.
+This is not a complete official GTFS specification validation. Supply the archive path
 explicitly. To choose a file interactively, call `explore_gtfs()` without a
 feed in an interactive R session.
 
@@ -47,6 +48,10 @@ feed in an interactive R session.
 gtfs <- read_gtfs("path/to/feed.zip")
 explore_gtfs() # choose a zip file and open the dashboard
 ```
+
+UTF-16LE and UTF-16BE text files are converted to UTF-8 in a temporary copy;
+the original archive is unchanged. Set `quiet = FALSE` to show a warning
+identifying converted files.
 
 Use `as_wizardgtfs()` when the GTFS tables are already available as a named
 list. If `shapes.txt` is absent, the default behavior infers straight lines
@@ -56,6 +61,10 @@ from ordered stop coordinates for analysis and visualization.
 converted <- as_wizardgtfs(unclass(for_rail_gtfs))
 inherits(converted, "wizardgtfs")
 ```
+
+For an independent specification and best-practice report, use
+[`validate_gtfs()`](validation.html). Validate the original ZIP before import
+when you need to inspect source-file issues that import may repair.
 
 ## Create a feed from tables
 
@@ -124,4 +133,5 @@ unlink(output)
 ```
 
 Continue with [service analysis](service-analysis.html), or learn how to
-[filter and edit feeds](filtering-editing.html).
+[filter and edit feeds](filtering-editing.html) and
+[validate feeds](validation.html).

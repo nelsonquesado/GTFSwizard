@@ -10,6 +10,8 @@
 #' service, the `filter_*()` and edit functions to construct scenarios, and
 #' [explore_gtfs()] for an interactive dashboard. Use [write_gtfs()] to export
 #' a standard GTFS zip archive.
+#' [validate_gtfs()] can run the external MobilityData Canonical GTFS Schedule
+#' Validator, either on an original archive or on an exported feed object.
 #'
 #' @section Example feeds:
 #' [for_rail_gtfs] is a compact feed suitable for examples. [for_bus_gtfs]

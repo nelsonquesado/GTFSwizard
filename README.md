@@ -1,9 +1,9 @@
 <img align="right" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/GTFSwizard_logo.png" alt="GTFSwizard logo" height="180">
-##### Development version 1.2.1 (2026-08-14)
-##### CRAN version 1.2.0 (2026-06-16)
+##### Development version 1.2.2 (snapshot: 2026-10-19)
+##### CRAN version 1.2.1 (published: 2026-08-21)
 
 [![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
-[![Development version: 1.2.1](https://img.shields.io/badge/dev%20version-1.2.1-0073B7.svg)](https://github.com/nelsonquesado/GTFSwizard)
+[![Development version: 1.2.2](https://img.shields.io/badge/dev%20version-1.2.2-0073B7.svg)](https://github.com/nelsonquesado/GTFSwizard)
 [![CRAN version](https://www.r-pkg.org/badges/version/GTFSwizard)](https://CRAN.R-project.org/package=GTFSwizard)
 [![R CMD check](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml)
 [![Coverage](https://codecov.io/gh/nelsonquesado/GTFSwizard/branch/main/graph/badge.svg)](https://app.codecov.io/gh/nelsonquesado/GTFSwizard)
@@ -16,7 +16,7 @@ GTFSwizard is a set of tools for creating, exploring, and manipulating [General 
 Its main purpose is to give researchers and practitioners a straightforward way to explore and simulate changes within GTFS files, which represent public transportation schedules and geographic data. The package lets users filter data by routes, trips, stops, and time, generate spatial visualizations, and analyze transit networks, including headways, dwell times, route frequencies, travel times, corridors, and hubs. Functions are also available to delay, change the speed of, split, and merge trips and feeds. This is ongoing work, with new features planned.
 
 ## Installation
-The development version is **1.2.1**. The CRAN version is **1.2.0**.
+The development version is **1.2.2**. The CRAN version is **1.2.1**.
 
 ``` r
 # CRAN version:
@@ -33,14 +33,44 @@ library(GTFSwizard)
 
 The package website organizes the documentation by workflow:
 
-- [Getting started](https://opatp.github.io/GTFSwizard/articles/getting-started.html): create, read, inspect, and export a feed.
-- [Service analysis](https://opatp.github.io/GTFSwizard/articles/service-analysis.html): service patterns, observational units, indicators, plots, corridors, and hubs.
-- [Filtering and editing](https://opatp.github.io/GTFSwizard/articles/filtering-editing.html): build reproducible service scenarios while preserving the source feed.
-- [Interactive dashboard](https://opatp.github.io/GTFSwizard/articles/explore-dashboard.html): filter, inspect, edit, and export a feed with `explore_gtfs()`.
-- [Function reference](https://opatp.github.io/GTFSwizard/reference/index.html): help pages grouped by task.
+- [Getting started](https://nelsonquesado.github.io/GTFSwizard/articles/getting-started.html): create, read, inspect, and export a feed.
+- [Service analysis](https://nelsonquesado.github.io/GTFSwizard/articles/service-analysis.html): service patterns, observational units, indicators, plots, corridors, and hubs.
+- [Filtering and editing](https://nelsonquesado.github.io/GTFSwizard/articles/filtering-editing.html): build reproducible service scenarios while preserving the source feed.
+- [Interactive dashboard](https://nelsonquesado.github.io/GTFSwizard/articles/explore-dashboard.html): filter, inspect, edit, and export a feed with `explore_gtfs()`.
+- [Feed validation](https://nelsonquesado.github.io/GTFSwizard/articles/validation.html): run the official validator and interpret its reports.
+- [Function reference](https://nelsonquesado.github.io/GTFSwizard/reference/index.html): help pages grouped by task.
 
 ## Basics
 Use `read_gtfs()` to read an existing feed, `as_wizardgtfs()` to convert a GTFS list, and `create_gtfs()` to build and validate a feed from data frames. Each function returns a `wizardgtfs` object.
+
+`read_gtfs()` also accepts UTF-16LE and UTF-16BE text files, converting them
+to UTF-8 in a temporary copy without changing the original archive. Set
+`quiet = FALSE` to see a warning listing the converted files.
+
+For a specification and best-practice report, `validate_gtfs()` runs the
+[MobilityData Canonical GTFS Schedule Validator](https://github.com/MobilityData/gtfs-validator).
+Install Java 17 or newer and `jsonlite`. Set `download_validator = TRUE` to
+download and cache the [validator CLI JAR](https://github.com/MobilityData/gtfs-validator/releases)
+(also requires `openssl`), or supply an existing JAR path. No download occurs
+without this explicit option. The cached JAR is checked against the published
+SHA-256 before use. Pass the original
+ZIP to audit it before import; an object is exported before
+validation, so earlier repairs are not visible in its report.
+
+```r
+result <- validate_gtfs("path-to-gtfs.zip", download_validator = TRUE)
+result$notices
+
+# Save the full HTML and JSON reports only when needed:
+result <- validate_gtfs("path-to-gtfs.zip", download_validator = TRUE,
+                        output_dir = "gtfs-validation-report")
+result$html_path
+```
+
+An existing JAR can instead be supplied via `validator_jar`, or the
+`GTFS_VALIDATOR_JAR` environment variable. Validation of an imported feed
+checks its exported representation; it is not a certification of the original
+archive. Java 17 or newer and `jsonlite` are required in either mode.
 
 ``` r
 library(GTFSwizard)
@@ -309,7 +339,7 @@ GTFSwizard::plot_servicesupply(for_bus_gtfs)
 ## Editing
 GTFSwizard provides functions to edit GTFS data directly.
 The `delay_trip()` function allows users to apply a delay to specific trips.
-The `split_trip()` function divides a trip into valid consecutive parts. Trips can be split into `split + 1` approximately equal parts, or at selected internal stop IDs using the `stops` argument. This can be useful for analyzing partial routes or for simulating route adjustments.
+The `split_trip()` function divides a trip into valid consecutive parts. Trips can be split into `split + 1` approximately equal parts, or at selected internal stop IDs using the `stops` argument. Each boundary stop is retained in both adjacent parts; supply either `split` or `stops`, not both. This can be useful for analyzing partial routes or for simulating route adjustments.
 The `edit_speed()` function adjusts the travel speeds between stops in a GTFS dataset by modifying trip durations based on a specified speed multiplier. It allows selective adjustments for specific trips and stops or applies changes globally.
 The `set_dwelltime()` function overwrites selected dwell times while retaining arrival at each edited stop and shifting downstream times. The trip end time may therefore change. The `edit_dwelltime()` function scales selected dwell times and applies the same downstream propagation.
 The `merge_gtfs()` function combines two GTFS files, allowing for the integration of distinct GTFS datasets into a single dataset.
@@ -322,7 +352,10 @@ delayed_gtfs <- GTFSwizard::delay_trip(for_bus_gtfs, trip = for_bus_gtfs$trips$t
 split_gtfs <- GTFSwizard::split_trip(for_bus_gtfs, trip = for_bus_gtfs$trips$trip_id[1:2], split = 2)
 
 # Split a trip at selected stop IDs
-split_at_stop_gtfs <- GTFSwizard::split_trip(for_bus_gtfs, trip = for_bus_gtfs$trips$trip_id[1], stops = for_bus_gtfs$stop_times$stop_id[2])
+trip_id <- for_bus_gtfs$trips$trip_id[1]
+trip_times <- for_bus_gtfs$stop_times[for_bus_gtfs$stop_times$trip_id == trip_id, ]
+trip_times <- trip_times[order(trip_times$stop_sequence), ]
+split_at_stop_gtfs <- GTFSwizard::split_trip(for_bus_gtfs, trip = trip_id, stops = trip_times$stop_id[2])
 
 # Merge two GTFS files into one
 merged_gtfs <- GTFSwizard::merge_gtfs(for_bus_gtfs, for_rail_gtfs)
@@ -428,10 +461,11 @@ creating or reading feeds, selecting services, plotting operations, editing GTFS
 Contributions are welcome! To report a bug, suggest a feature, or contribute code, please use the repository’s [Issues](https://github.com/OPATP/GTFSwizard/issues).
 
 ## Related Packages
-GTFSwizard mainly uses [dplyr](https://CRAN.R-project.org/package=dplyr) for data handling, [sf](https://CRAN.R-project.org/package=sf) for spatial operations, and [ggplot2](https://CRAN.R-project.org/package=ggplot2) for static visualization. [shiny](https://CRAN.R-project.org/package=shiny) and [leaflet](https://CRAN.R-project.org/package=leaflet) are optional dependencies for `explore_gtfs()`. [tidytransit](https://CRAN.R-project.org/package=tidytransit), [data.table](https://CRAN.R-project.org/package=data.table), and [hms](https://CRAN.R-project.org/package=hms) are optional dependencies used only by `tidy_raptor()`.
+GTFSwizard mainly uses [dplyr](https://CRAN.R-project.org/package=dplyr) for data handling, [sf](https://CRAN.R-project.org/package=sf) for spatial operations, and [ggplot2](https://CRAN.R-project.org/package=ggplot2) for static visualization. [shiny](https://CRAN.R-project.org/package=shiny) and [leaflet](https://CRAN.R-project.org/package=leaflet) are optional dependencies for `explore_gtfs()`. [tidytransit](https://CRAN.R-project.org/package=tidytransit), [data.table](https://CRAN.R-project.org/package=data.table), and [hms](https://CRAN.R-project.org/package=hms) are optional dependencies used only by `tidy_raptor()`. [jsonlite](https://CRAN.R-project.org/package=jsonlite) supports `validate_gtfs()`; [openssl](https://CRAN.R-project.org/package=openssl) verifies its optional validator download.
 
 ## Citation
-To cite package ‘GTFSwizard’ in publications use:
+The following citation refers to the CRAN release. Use `citation("GTFSwizard")`
+to obtain the citation for the installed version, including a development version.
 
 - Quesado Filho, N. O.; Guimaraes, C. G. C.; de Oliveira Neto, F. M. (2026). _GTFSwizard: Creating, Exploring and Manipulating GTFS Files._ R package version 1.2.1. [doi:10.32614/CRAN.package.GTFSwizard](https://cran.r-project.org/package=GTFSwizard).
 

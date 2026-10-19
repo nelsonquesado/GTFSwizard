@@ -1,0 +1,84 @@
+---
+title: "Validating GTFS feeds"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Validating GTFS feeds}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+`read_gtfs()`, `as_wizardgtfs()`, and `create_gtfs()` check package
+requirements when constructing a feed. For a broader, independent report
+against the GTFS Schedule specification and best practices, `validate_gtfs()`
+runs the [MobilityData Canonical GTFS Schedule Validator](https://gtfs.org/getting-started/validate/).
+The validator is external to GTFSwizard; its results depend on its version
+and implemented rules. No reported errors is not a certification.
+
+## Set up the validator
+
+Install Java 17 or newer and the optional R package `jsonlite`. To let
+GTFSwizard download the official version 8.0.1 CLI JAR, also install `openssl`
+and request the download explicitly. The first download is about 38 MB and
+requires internet access. The JAR is stored in the user cache, outside the R
+package, and its SHA-256 is checked before each use. Subsequent calls with
+`download_validator = TRUE` reuse the verified cached file.
+
+```{r, eval=FALSE}
+install.packages(c("jsonlite", "openssl"))
+library(GTFSwizard)
+result <- validate_gtfs("path/to/feed.zip", download_validator = TRUE)
+```
+
+Alternatively, supply an existing compatible validator CLI JAR. A JAR path
+supplied explicitly or in `GTFS_VALIDATOR_JAR` takes precedence over the
+download option. The JAR must support `--skip_validator_update`.
+
+```{r, eval=FALSE}
+result <- validate_gtfs("path/to/feed.zip", validator_jar = "path/to/validator.jar")
+# Or configure the path once per session:
+Sys.setenv(GTFS_VALIDATOR_JAR = "path/to/validator.jar")
+result <- validate_gtfs("path/to/feed.zip")
+```
+
+## Interpret and save results
+
+The function prints a summary even when the result is assigned. `notices`
+contains codes, severities, counts, and samples; `system_notices` describes
+validator execution problems. `has_errors` is `TRUE` if GTFS errors are found,
+`FALSE` if validation completes without errors, and `NA` when execution is
+incomplete or the result cannot be interpreted reliably. `quiet = TRUE`
+suppresses the printed summary.
+
+```{r, eval=FALSE}
+result$has_errors
+result$notices
+result$system_notices
+```
+
+By default, reports are temporary and removed after the result is read into R.
+To keep the full HTML and JSON reports, supply an empty or new directory:
+
+```{r, eval=FALSE}
+result <- validate_gtfs("path/to/feed.zip", download_validator = TRUE,
+                        output_dir = "validation-report")
+result$html_path
+result$report_path
+```
+
+## Validate the source or an edited scenario
+
+Pass an original ZIP to inspect it before package import or repair. A named
+feed object can also be supplied, but it is first exported to a temporary ZIP;
+the report then describes the exported representation, not the original file.
+This is useful for checking a scenario before publication. No feed is uploaded
+by GTFSwizard.
+
+```{r, eval=FALSE}
+scenario <- delay_trip(for_rail_gtfs, trip = for_rail_gtfs$trips$trip_id[1],
+                       duration = 60)
+result <- validate_gtfs(scenario, download_validator = TRUE)
+```

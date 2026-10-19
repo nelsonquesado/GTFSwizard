@@ -7,20 +7,26 @@
 read_gtfs(file_path = NULL, files = NULL, quiet = TRUE, ...)
 }
 \arguments{
-\item{file_path}{Path to a GTFS `.zip` archive.}
+\item{file_path}{Path to a GTFS \code{.zip} archive.}
 
-\item{files}{Optional character vector of table names without `.txt`.}
+\item{files}{Optional character vector of table names without \code{.txt}.}
 
-\item{quiet}{Logical. Suppress importer messages.}
+\item{quiet}{Logical. Suppress importer messages and UTF-16 conversion warnings.}
 
-\item{...}{Additional arguments passed to [gtfsio::import_gtfs()], including
-the legacy argument `file.path`.}
+\item{...}{Additional arguments passed to \code{\link[gtfsio:import_gtfs]{gtfsio::import_gtfs()}}, including
+the legacy argument \code{file.path}.}
 }
 \value{
-A validated `wizardgtfs` object.
+A validated \code{wizardgtfs} object.
 }
 \description{
-Imports a GTFS zip archive and converts it to `wizardgtfs`.
+Imports a GTFS zip archive and converts it to \code{wizardgtfs}.
+}
+\details{
+UTF-16LE and UTF-16BE GTFS text files are converted to UTF-8 in a
+temporary copy before import. The original ZIP is not modified. When
+\code{quiet = FALSE}, a warning identifies the converted files. Other import
+arguments, including \code{fields}, \code{extra_spec}, and \code{skip}, are preserved.
 }
 \examples{
 path <- tempfile(fileext = ".zip")
@@ -29,5 +35,5 @@ gtfs <- read_gtfs(path)
 
 }
 \seealso{
-[GTFSwizard::write_gtfs()], [GTFSwizard::as_wizardgtfs()]
+\code{\link[=write_gtfs]{write_gtfs()}}, \code{\link[=as_wizardgtfs]{as_wizardgtfs()}}
 }

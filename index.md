@@ -6,11 +6,11 @@ title: GTFSwizard
 
 # GTFSwizard
 
-##### Development version 1.2.1 (2026-08-14)
-##### CRAN version 1.2.0 (2026-06-16)
+##### Development version 1.2.2 (snapshot: 2026-10-19)
+##### CRAN version 1.2.1 (published: 2026-08-21)
 
 [![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
-[![Development version: 1.2.1](https://img.shields.io/badge/dev%20version-1.2.1-0073B7.svg)](https://github.com/nelsonquesado/GTFSwizard)
+[![Development version: 1.2.2](https://img.shields.io/badge/dev%20version-1.2.2-0073B7.svg)](https://github.com/nelsonquesado/GTFSwizard)
 [![CRAN version](https://www.r-pkg.org/badges/version/GTFSwizard)](https://CRAN.R-project.org/package=GTFSwizard)
 [![R CMD check](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml)
 [![Coverage](https://codecov.io/gh/nelsonquesado/GTFSwizard/branch/main/graph/badge.svg)](https://app.codecov.io/gh/nelsonquesado/GTFSwizard)
@@ -41,7 +41,8 @@ remotes::install_github(
 
 - **Create and validate:** build feeds from data frames with
   [`create_gtfs()`](reference/create_gtfs.html), or import an existing archive
-  with [`read_gtfs()`](reference/read_gtfs.html).
+  with [`read_gtfs()`](reference/read_gtfs.html). Check the original archive
+  against the GTFS specification with [`validate_gtfs()`](reference/validate_gtfs.html).
 - **Analyze service:** calculate frequency, headways, dwell time, duration,
   speed, fleet requirements, service span, corridors, and hubs.
 - **Build scenarios:** filter routes, services, dates, stops, and time windows;
@@ -77,6 +78,7 @@ explore_gtfs(for_rail_gtfs)
 ## Guides
 
 - [Getting started](articles/getting-started.html)
+- [Validating a feed](articles/validation.html)
 - [Service analysis and visualization](articles/service-analysis.html)
 - [Filtering, selecting, and editing](articles/filtering-editing.html)
 - [Interactive dashboard](articles/explore-dashboard.html)

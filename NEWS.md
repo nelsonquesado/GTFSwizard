@@ -1,4 +1,21 @@
+# GTFSwizard 1.2.2 (development)
+
+* `read_gtfs()` converts UTF-16LE and UTF-16BE files to UTF-8 in a temporary
+  copy, preserving importer options and leaving the source archive unchanged.
+  A conversion warning is shown when `quiet = FALSE`.
+
+* Added `validate_gtfs()` using the MobilityData Canonical GTFS Schedule
+  Validator, with an optional SHA-256-verified download cached outside the
+  package. It prints a summary, returns findings, and optionally saves HTML and
+  JSON reports for a ZIP archive or exported feed object.
+
+* Time editing functions wrap extreme edited times into the next service-day
+  range while keeping stop times non-decreasing.
+
 # GTFSwizard 1.2.1
+
+* `split_trip()` accepts stop IDs as an alternative to an equal-part split;
+  boundary stops are included in both adjacent parts.
 
 * Refreshed the README figures and package website from the current plotting
   code, and added a reproducible figure-generation script for maintainers.

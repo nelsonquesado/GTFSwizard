@@ -248,6 +248,56 @@ test_that("merge and split update identifiers and references", {
   )
 })
 
+test_that("split_trip keeps selected boundary stops in adjacent parts", {
+  feed <- minimal_feed()
+  extra_stops <- data.frame(
+    stop_id = c("S4", "S5"), stop_name = c("Four", "Five"),
+    stop_lat = c(-3.733, -3.734), stop_lon = c(-38.523, -38.524)
+  )
+  extra_times <- data.frame(
+    trip_id = "T1",
+    arrival_time = c("24:35:00", "24:50:00"),
+    departure_time = c("24:35:00", "24:50:00"),
+    stop_id = c("S4", "S5"), stop_sequence = c(4L, 5L)
+  )
+  feed$stops <- rbind(feed$stops, extra_stops)
+  feed$stop_times <- rbind(feed$stop_times, extra_times)
+
+  equal_split <- split_trip(feed, "T1", split = 1L)
+  expect_equal(
+    equal_split$stop_times$stop_id[
+      equal_split$stop_times$trip_id == "T1.part1"
+    ],
+    c("S1", "S2", "S3")
+  )
+  expect_equal(
+    equal_split$stop_times$stop_id[
+      equal_split$stop_times$trip_id == "T1.part2"
+    ],
+    c("S3", "S4", "S5")
+  )
+
+  selected_split <- split_trip(feed, "T1", stops = c("S4", "S2"))
+  expect_equal(
+    selected_split$stop_times$stop_id[
+      selected_split$stop_times$trip_id == "T1.part1"
+    ],
+    c("S1", "S2")
+  )
+  expect_equal(
+    selected_split$stop_times$stop_id[
+      selected_split$stop_times$trip_id == "T1.part2"
+    ],
+    c("S2", "S3", "S4")
+  )
+  expect_equal(
+    selected_split$stop_times$stop_id[
+      selected_split$stop_times$trip_id == "T1.part3"
+    ],
+    c("S4", "S5")
+  )
+})
+
 test_that("service patterns represent exact daily service sets", {
   tables <- unclass(minimal_feed())
   tables$dates_services <- NULL

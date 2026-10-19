@@ -1,6 +1,6 @@
 # GTFSwizard Cheat Sheet
 
-Compact workflow reference for GTFSwizard 1.2.1.
+Compact workflow reference for GTFSwizard 1.2.2 (development).
 
 ## 1. Load Or Create A Feed
 

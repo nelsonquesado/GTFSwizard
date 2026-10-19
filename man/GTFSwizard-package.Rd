@@ -16,6 +16,8 @@ Use \code{\link[=create_gtfs]{create_gtfs()}} or \code{\link[=read_gtfs]{read_gt
 service, the \verb{filter_*()} and edit functions to construct scenarios, and
 \code{\link[=explore_gtfs]{explore_gtfs()}} for an interactive dashboard. Use \code{\link[=write_gtfs]{write_gtfs()}} to export
 a standard GTFS zip archive.
+\code{\link[=validate_gtfs]{validate_gtfs()}} can run the external MobilityData Canonical GTFS Schedule
+Validator, either on an original archive or on an exported feed object.
 }
 
 \section{Example feeds}{

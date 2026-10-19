@@ -4,11 +4,16 @@
 #'
 #' @param file_path Path to a GTFS `.zip` archive.
 #' @param files Optional character vector of table names without `.txt`.
-#' @param quiet Logical. Suppress importer messages.
+#' @param quiet Logical. Suppress importer messages and UTF-16 conversion warnings.
 #' @param ... Additional arguments passed to [gtfsio::import_gtfs()], including
 #'   the legacy argument `file.path`.
 #'
 #' @return A validated `wizardgtfs` object.
+#'
+#' @details UTF-16LE and UTF-16BE GTFS text files are converted to UTF-8 in a
+#' temporary copy before import. The original ZIP is not modified. When
+#' `quiet = FALSE`, a warning identifies the converted files. Other import
+#' arguments, including `fields`, `extra_spec`, and `skip`, are preserved.
 #'
 #' @examples
 #' path <- tempfile(fileext = ".zip")
@@ -16,6 +21,7 @@
 #' gtfs <- read_gtfs(path)
 #'
 #' @seealso [GTFSwizard::write_gtfs()], [GTFSwizard::as_wizardgtfs()]
+#' @md
 #' @export
 read_gtfs <- function(file_path = NULL, files = NULL, quiet = TRUE, ...){
   resolved <- resolve_legacy_argument(
@@ -29,10 +35,7 @@ read_gtfs <- function(file_path = NULL, files = NULL, quiet = TRUE, ...){
   }
   gw_assert_flag(quiet, "quiet")
   object <- if(gtfs_zip_uses_utf16(file_path, files = files, skip = dots$skip)){
-    if(!quiet){
-      gw_warn("GTFS text files are encoded in UTF-16. Recoding to UTF-8 before import.")
-    }
-    import_utf16_gtfs(file_path, files = files, skip = dots$skip)
+    import_utf16_gtfs(file_path, files = files, quiet = quiet, dots = dots)
   } else tryCatch(
     do.call(
       gtfsio::import_gtfs,
@@ -45,10 +48,7 @@ read_gtfs <- function(file_path = NULL, files = NULL, quiet = TRUE, ...){
       if(!unsupported_utf16){
         stop(error)
       }
-      if(!quiet){
-        gw_warn("GTFS text files are encoded in UTF-16. Recoding to UTF-8 before import.")
-      }
-      import_utf16_gtfs(file_path, files = files, skip = dots$skip)
+      import_utf16_gtfs(file_path, files = files, quiet = quiet, dots = dots)
     }
   )
   as_wizardgtfs(object)
@@ -60,53 +60,41 @@ gtfs_zip_uses_utf16 <- function(file_path, files = NULL, skip = NULL){
     return(FALSE)
   }
   filenames <- listed$Name
-  filenames <- filenames[grepl("\\.txt$", filenames, ignore.case = TRUE)]
+  filenames <- filenames[grepl("\\.(txt|geojson)$", filenames, ignore.case = TRUE)]
   if(!is.null(files)){
     filenames <- intersect(append_file_ext_local(files), filenames)
   } else if(!is.null(skip)){
     filenames <- setdiff(filenames, append_file_ext_local(skip))
   }
-  priority <- c(
-    "agency.txt", "routes.txt", "trips.txt", "stops.txt",
-    "stop_times.txt", "calendar.txt", "calendar_dates.txt"
-  )
-  candidate <- priority[priority %in% basename(filenames)]
-  if(length(candidate)){
-    filenames <- filenames[match(candidate[1], basename(filenames))]
-  } else {
-    filenames <- filenames[1]
-  }
-  if(!length(filenames) || is.na(filenames)){
-    return(FALSE)
-  }
-  tmpdir <- tempfile("gtfswizard-encoding-")
-  dir.create(tmpdir)
-  on.exit(unlink(tmpdir, recursive = TRUE), add = TRUE)
-  path <- tryCatch({
-    utils::unzip(file_path, files = filenames, exdir = tmpdir)
-    file.path(tmpdir, filenames)
-  }, error = function(error) NA_character_)
-  if(is.na(path) || !file.exists(path)){
-    return(FALSE)
-  }
-  nzchar(detect_text_encoding(path))
+  any(vapply(filenames, function(filename){
+    tryCatch({
+      con <- unz(file_path, filename, open = "rb")
+      on.exit(close(con))
+      nzchar(detect_utf16_bytes(readBin(con, "raw", n = 1024L)))
+    }, error = function(error) FALSE)
+  }, logical(1)))
 }
 
-import_utf16_gtfs <- function(file_path, files = NULL, skip = NULL){
+import_utf16_gtfs <- function(file_path, files = NULL, quiet = TRUE, dots = list()){
+  skip <- dots$skip
   if(!is.null(files) && !is.null(skip)){
     gw_stop("supply only one of `files` or `skip`.")
   }
   listed <- utils::unzip(file_path, list = TRUE)
   filenames <- listed$Name
-  filenames <- filenames[grepl("\\.(txt|geojson)$", filenames, ignore.case = TRUE)]
+  filenames <- filenames[!grepl("/$", filenames)]
+  if(any(grepl("(^/|^[A-Za-z]:|(^|/)\\.\\.(/|$)|\\\\)", filenames))){
+    gw_stop("the GTFS archive contains unsafe file paths.")
+  }
+  importable <- filenames[grepl("\\.(txt|geojson)$", filenames, ignore.case = TRUE)]
   if(!is.null(files)){
     requested <- append_file_ext_local(files)
   } else if(!is.null(skip)){
-    requested <- setdiff(filenames, append_file_ext_local(skip))
+    requested <- setdiff(importable, append_file_ext_local(skip))
   } else {
-    requested <- filenames
+    requested <- importable
   }
-  missing <- setdiff(requested, filenames)
+  missing <- setdiff(requested, importable)
   if(length(missing)){
     gw_stop("missing GTFS file(s): ", paste(missing, collapse = ", "), ".")
   }
@@ -114,72 +102,75 @@ import_utf16_gtfs <- function(file_path, files = NULL, skip = NULL){
   tmpdir <- tempfile("gtfswizard-read-")
   dir.create(tmpdir)
   on.exit(unlink(tmpdir, recursive = TRUE), add = TRUE)
-  utils::unzip(file_path, files = requested, exdir = tmpdir)
-
-  tables <- lapply(requested, function(filename){
+  utils::unzip(file_path, files = filenames, exdir = tmpdir)
+  converted <- character()
+  for(filename in requested){
     path <- file.path(tmpdir, filename)
-    if(grepl("\\.geojson$", filename, ignore.case = TRUE)){
-      return(paste(readLines(path, warn = FALSE), collapse = "\n"))
+    encoding <- detect_text_encoding(path)
+    if(nzchar(encoding)){
+      convert_gtfs_utf16(path, encoding)
+      converted <- c(converted, filename)
     }
-    utils::read.csv(
-      path,
-      stringsAsFactors = FALSE,
-      check.names = FALSE,
-      na.strings = "",
-      colClasses = "character",
-      fileEncoding = detect_text_encoding(path)
-    )
-  })
-  names(tables) <- tools::file_path_sans_ext(basename(requested))
-  tables <- coerce_gtfs_import_types(tables)
-  class(tables) <- c("gtfs", "list")
-  tables
+  }
+  if(!length(converted)){
+    gw_stop("the importer reported UTF-16, but no UTF-16 GTFS files were found.")
+  }
+  if(!quiet){
+    gw_warn("GTFS text files are encoded in UTF-16. Recoding to UTF-8 before import: ",
+            paste(converted, collapse = ", "), ".")
+  }
+  archive <- tempfile("gtfswizard-utf8-", fileext = ".zip")
+  on.exit(unlink(archive), add = TRUE)
+  zip::zipr(archive, files = filenames, root = tmpdir, mode = "mirror",
+            include_directories = FALSE)
+  do.call(gtfsio::import_gtfs,
+          c(list(path = archive, files = files, quiet = quiet), dots))
 }
 
-coerce_gtfs_import_types <- function(tables){
-  integer_fields <- list(
-    routes = "route_type",
-    trips = c("direction_id", "wheelchair_accessible", "bikes_allowed"),
-    stop_times = c(
-      "stop_sequence", "pickup_type", "drop_off_type",
-      "continuous_pickup", "continuous_drop_off", "timepoint"
-    ),
-    stops = c("location_type", "wheelchair_boarding"),
-    calendar = c(
-      "monday", "tuesday", "wednesday", "thursday",
-      "friday", "saturday", "sunday"
-    ),
-    calendar_dates = "exception_type",
-    shapes = "shape_pt_sequence",
-    frequencies = c("headway_secs", "exact_times"),
-    transfers = "transfer_type",
-    fare_attributes = c("payment_method", "transfers")
-  )
-  numeric_fields <- list(
-    stop_times = "shape_dist_traveled",
-    stops = c("stop_lat", "stop_lon"),
-    shapes = c("shape_pt_lat", "shape_pt_lon", "shape_dist_traveled"),
-    transfers = "min_transfer_time",
-    fare_attributes = c("price", "transfer_duration")
-  )
-  for(table_name in intersect(names(integer_fields), names(tables))){
-    tables[[table_name]] <- coerce_table_fields(
-      tables[[table_name]], integer_fields[[table_name]], as.integer
-    )
+convert_gtfs_utf16 <- function(path, encoding){
+  converted <- tempfile("gtfswizard-utf8-", tmpdir = dirname(path))
+  on.exit(unlink(converted), add = TRUE)
+  input <- file(path, open = "rb")
+  output <- file(converted, open = "wb")
+  tryCatch({
+    pending <- raw()
+    first <- TRUE
+    repeat {
+      bytes <- readBin(input, "raw", n = 65536L)
+      if(!length(bytes)){
+        if(length(pending)) gw_stop("incomplete UTF-16 sequence in `", basename(path), "`.")
+        break
+      }
+      bytes <- c(pending, bytes)
+      pending <- raw()
+      if(first){
+        first <- FALSE
+        bom <- if(encoding == "UTF-16LE") as.raw(c(255, 254)) else as.raw(c(254, 255))
+        if(length(bytes) >= 2L && identical(bytes[1:2], bom)) bytes <- bytes[-(1:2)]
+      }
+      if(length(bytes) %% 2L){
+        pending <- tail(bytes, 1L)
+        bytes <- head(bytes, -1L)
+      }
+      if(length(bytes) >= 2L){
+        last <- as.integer(tail(bytes, 2L))
+        code <- if(encoding == "UTF-16LE") last[1] + 256L * last[2] else
+          256L * last[1] + last[2]
+        if(code >= 0xd800 && code <= 0xdbff){
+          pending <- c(tail(bytes, 2L), pending)
+          bytes <- head(bytes, -2L)
+        }
+      }
+      if(length(bytes)){
+        text <- iconv(list(bytes), from = encoding, to = "UTF-8")
+        if(is.na(text)) gw_stop("invalid UTF-16 text in `", basename(path), "`.")
+        writeBin(charToRaw(text), output)
+      }
+    }
+  }, finally = { close(input); close(output) })
+  if(!file.copy(converted, path, overwrite = TRUE)){
+    gw_stop("could not write the converted GTFS file.")
   }
-  for(table_name in intersect(names(numeric_fields), names(tables))){
-    tables[[table_name]] <- coerce_table_fields(
-      tables[[table_name]], numeric_fields[[table_name]], as.numeric
-    )
-  }
-  tables
-}
-
-coerce_table_fields <- function(table, fields, fun){
-  for(field in intersect(fields, names(table))){
-    table[[field]] <- suppressWarnings(fun(table[[field]]))
-  }
-  table
 }
 
 append_file_ext_local <- function(x){
@@ -189,6 +180,10 @@ append_file_ext_local <- function(x){
 
 detect_text_encoding <- function(path){
   bytes <- readBin(path, "raw", n = min(1024L, file.info(path)$size))
+  detect_utf16_bytes(bytes)
+}
+
+detect_utf16_bytes <- function(bytes){
   if(length(bytes) >= 2L){
     if(identical(bytes[1:2], as.raw(c(0xff, 0xfe)))){
       return("UTF-16LE")

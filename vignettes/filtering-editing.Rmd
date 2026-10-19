@@ -106,6 +106,12 @@ scaled_dwell <- edit_dwelltime(
 multiplier: values above one increase the stated quantity and values between
 zero and one decrease it.
 
+Edited times at or beyond 48 hours are wrapped into the next service-day
+clock range. To preserve non-decreasing stop times, the package may clamp
+subsequent times when wrapping would otherwise reverse their order. Extremely
+large adjustments can therefore change the intended durations; inspect the
+resulting timetable before using or exporting the scenario.
+
 ## Split trips
 
 `split_trip()` can create `split + 1` approximately equal consecutive parts,
@@ -124,6 +130,9 @@ if (length(trip_stops) > 2) {
 
 The first and final stops are not valid split boundaries. When several trips
 are edited together, stop IDs are interpreted within each selected trip.
+Each split boundary stop appears in both adjacent parts. Supply either `split`
+or `stops`, not both; each selected trip must have a matching internal stop
+when using `stops`.
 
 ## Merge and export scenarios
 
