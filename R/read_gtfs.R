@@ -2,7 +2,8 @@
 #'
 #' Imports a GTFS zip archive and converts it to `wizardgtfs`.
 #'
-#' @param file_path Path to a GTFS `.zip` archive.
+#' @param file_path Optional path to a GTFS `.zip` archive. When omitted in an
+#'   interactive session, a file-selection window opens.
 #' @param files Optional character vector of table names without `.txt`.
 #' @param quiet Logical. Suppress importer messages and UTF-16 conversion warnings.
 #' @param ... Additional arguments passed to [gtfsio::import_gtfs()], including
@@ -29,8 +30,9 @@ read_gtfs <- function(file_path = NULL, files = NULL, quiet = TRUE, ...){
   )
   file_path <- resolved$value
   dots <- resolved$dots
+  if(is.null(file_path)) file_path <- choose_gtfs_path()
   if(!is.character(file_path) || length(file_path) != 1L ||
-     !file.exists(file_path)){
+     !file.exists(file_path) || dir.exists(file_path)){
     gw_stop("`file_path` must point to an existing GTFS zip archive.")
   }
   gw_assert_flag(quiet, "quiet")

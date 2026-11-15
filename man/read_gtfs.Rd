@@ -7,7 +7,8 @@
 read_gtfs(file_path = NULL, files = NULL, quiet = TRUE, ...)
 }
 \arguments{
-\item{file_path}{Path to a GTFS \code{.zip} archive.}
+\item{file_path}{Optional path to a GTFS \code{.zip} archive. When omitted in an
+interactive session, a file-selection window opens.}
 
 \item{files}{Optional character vector of table names without \code{.txt}.}
 

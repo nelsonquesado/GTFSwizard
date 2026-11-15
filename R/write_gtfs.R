@@ -5,7 +5,9 @@
 #' back to standard text-table columns.
 #'
 #' @param gtfs A GTFS object.
-#' @param zipfile Output `.zip` path.
+#' @param zipfile Optional output `.zip` path. When omitted in an interactive
+#'   session, a save-file window opens. The `.zip` extension is added when
+#'   needed.
 #' @param ... Additional arguments passed to the format-specific writer.
 #'
 #' @return The normalized output path, invisibly.
@@ -16,17 +18,20 @@
 #'
 #' @seealso [GTFSwizard::read_gtfs()]
 #' @export
-write_gtfs <- function(gtfs, zipfile, ...){
+write_gtfs <- function(gtfs, zipfile = NULL, ...){
+  if(is.null(zipfile)) zipfile <- choose_gtfs_path(save = TRUE)
   UseMethod("write_gtfs")
 }
 
 #' @exportS3Method GTFSwizard::write_gtfs wizardgtfs
-write_gtfs.wizardgtfs <- function(gtfs, zipfile, ...){
+write_gtfs.wizardgtfs <- function(gtfs, zipfile = NULL, ...){
+  if(is.null(zipfile)) zipfile <- choose_gtfs_path(save = TRUE)
   write_gtfs.list(gtfs, zipfile, ...)
 }
 
 #' @exportS3Method GTFSwizard::write_gtfs list
-write_gtfs.list <- function(gtfs, zipfile, ...){
+write_gtfs.list <- function(gtfs, zipfile = NULL, ...){
+  if(is.null(zipfile)) zipfile <- choose_gtfs_path(save = TRUE)
   if(!is.character(zipfile) || length(zipfile) != 1L || !nzchar(zipfile)){
     gw_stop("`zipfile` must be one non-empty path.")
   }
@@ -39,14 +44,16 @@ write_gtfs.list <- function(gtfs, zipfile, ...){
 }
 
 #' @exportS3Method GTFSwizard::write_gtfs tidygtfs
-write_gtfs.tidygtfs <- function(gtfs, zipfile, ...){
+write_gtfs.tidygtfs <- function(gtfs, zipfile = NULL, ...){
+  if(is.null(zipfile)) zipfile <- choose_gtfs_path(save = TRUE)
   require_pkg("tidytransit", "writing `tidygtfs` objects")
   tidytransit::write_gtfs(gtfs, zipfile, ...)
   invisible(normalizePath(zipfile, mustWork = FALSE))
 }
 
 #' @exportS3Method GTFSwizard::write_gtfs dt_gtfs
-write_gtfs.dt_gtfs <- function(gtfs, zipfile, ...){
+write_gtfs.dt_gtfs <- function(gtfs, zipfile = NULL, ...){
+  if(is.null(zipfile)) zipfile <- choose_gtfs_path(save = TRUE)
   require_pkg("gtfstools", "writing `dt_gtfs` objects")
   gtfstools::write_gtfs(gtfs, path = zipfile, ...)
   invisible(normalizePath(zipfile, mustWork = FALSE))

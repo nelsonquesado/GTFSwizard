@@ -1,5 +1,9 @@
 # GTFSwizard 1.2.2 (development)
 
+* `read_gtfs()` and `write_gtfs()` now open native file-selection windows when
+  their paths are omitted in interactive R sessions. Output filenames receive a
+  `.zip` extension when needed.
+
 * `read_gtfs()` converts UTF-16LE and UTF-16BE files to UTF-8 in a temporary
   copy, preserving importer options and leaving the source archive unchanged.
   A conversion warning is shown when `quiet = FALSE`.

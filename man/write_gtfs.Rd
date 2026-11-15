@@ -4,12 +4,14 @@
 \alias{write_gtfs}
 \title{Write a GTFS Feed}
 \usage{
-write_gtfs(gtfs, zipfile, ...)
+write_gtfs(gtfs, zipfile = NULL, ...)
 }
 \arguments{
 \item{gtfs}{A GTFS object.}
 
-\item{zipfile}{Output `.zip` path.}
+\item{zipfile}{Optional output `.zip` path. When omitted in an interactive
+session, a save-file window opens. The `.zip` extension is added when
+needed.}
 
 \item{...}{Additional arguments passed to the format-specific writer.}
 }

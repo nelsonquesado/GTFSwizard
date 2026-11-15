@@ -72,6 +72,36 @@ resolve_legacy_argument <- function(value, was_missing, dots, legacy, modern){
   list(value = value, dots = dots)
 }
 
+choose_gtfs_path <- function(save = FALSE){
+  if(!is_interactive_session()){
+    action <- if(save) "output path" else "GTFS file path"
+    gw_stop("`", action, "` is required in non-interactive sessions.")
+  }
+  path <- tryCatch(
+    select_gtfs_file(save),
+    error = function(error) character()
+  )
+  if(!is.character(path) || length(path) != 1L || is.na(path) || !nzchar(path)){
+    action <- if(save) "output location" else "GTFS file"
+    gw_stop("no ", action, " was selected.")
+  }
+  if(save){
+    if(dir.exists(path)) gw_stop("the selected output location must be a file.")
+    if(!grepl("\\.zip$", path, ignore.case = TRUE)) path <- paste0(path, ".zip")
+    return(normalizePath(path, mustWork = FALSE))
+  }
+  if(!file.exists(path) || dir.exists(path)) gw_stop("the selected GTFS file does not exist.")
+  normalizePath(path, mustWork = TRUE)
+}
+
+select_gtfs_file <- function(save){
+  file.choose(new = save)
+}
+
+is_interactive_session <- function(){
+  interactive()
+}
+
 gw_check_unused_dots <- function(dots){
   if(!length(dots)){
     return(invisible(TRUE))
