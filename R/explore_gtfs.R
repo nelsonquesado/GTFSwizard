@@ -1122,9 +1122,7 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
         }
       }
       map <- leaflet::leaflet() %>%
-        leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron, group = "Light") %>%
-        leaflet::addTiles(group = "OSM") %>%
-        leaflet::addLayersControl(baseGroups = c("Light", "OSM"))
+        leaflet::addTiles(urlTemplate = "https://tile.openstreetmap.org/{z}/{x}/{y}.png")
       if(!is.null(route_shapes)){
         routes <- sort(unique(route_shapes$route_id))
         route_colors <- if(length(routes) <= 20L){
@@ -1326,11 +1324,15 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
 
     output$corridor_plot <- render_plot({
       tryCatch(
-        GTFSwizard::plot_corridor(
+        withCallingHandlers(GTFSwizard::plot_corridor(
           dashboard_gtfs(),
           i = input$corridor_i,
           min_length = input$corridor_min_length
-        ),
+        ), warning = function(warning){
+          if(grepl("no corridors meet `min_length`", conditionMessage(warning), fixed = TRUE)){
+            invokeRestart("muffleWarning")
+          }
+        }),
         error = function(error){
           if(grepl("no consecutive stop pairs", conditionMessage(error), fixed = TRUE)){
             shiny::validate(shiny::need(FALSE, "No consecutive stop pairs match the selected filters."))
@@ -1395,34 +1397,26 @@ planning_system_indicators <- function(gtfs, route_indicators = NULL){
   trip_instances <- attr(route_indicators, "trip_instances")
   if(is.null(trip_schedule) || is.null(trip_instances)){
     trip_schedule <- planning_trip_schedule(gtfs)
-    trip_instances <- planning_trip_instances(gtfs, trip_schedule)
+    trip_instances <- planning_trip_instances(gtfs, trip_schedule) |>
+      dplyr::left_join(gtfs$trips[, c("trip_id", "service_id")], by = "trip_id") |>
+      dplyr::left_join(get_servicepattern(gtfs), by = "service_id",
+                       relationship = "many-to-many")
   }
-  patterns <- get_servicepattern(gtfs)
-  durations <- trip_schedule |>
-    dplyr::left_join(
-      gtfs$trips[, c("trip_id", "service_id")], by = "trip_id"
-    ) |>
-    dplyr::left_join(
-      patterns, by = "service_id", relationship = "many-to-many"
-    ) |>
+  intervals <- trip_instances |>
+    dplyr::left_join(trip_schedule[, c("trip_id", "duration")], by = "trip_id")
+  durations <- intervals |>
     dplyr::group_by(service_pattern) |>
     dplyr::summarise(
       vehicle_hours = sum(duration, na.rm = TRUE) / 3600,
       .groups = "drop"
     )
-  spans <- trip_schedule |>
-    dplyr::left_join(
-      gtfs$trips[, c("trip_id", "service_id")], by = "trip_id"
-    ) |>
-    dplyr::left_join(
-      patterns, by = "service_id", relationship = "many-to-many"
-    ) |>
-    dplyr::mutate(end = .data$.base_start + .data$duration) |>
+  spans <- intervals |>
+    dplyr::mutate(end = .data$start_seconds + .data$duration) |>
     dplyr::group_by(service_pattern) |>
     dplyr::summarise(
       span_hours = (
         max(.data$end, na.rm = TRUE) -
-          min(.data$.base_start, na.rm = TRUE)
+          min(.data$start_seconds, na.rm = TRUE)
       ) / 3600,
       .groups = "drop"
     )

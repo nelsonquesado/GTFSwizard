@@ -23,6 +23,8 @@ Pass an existing object when working from R.
 ```{r, eval=FALSE}
 library(GTFSwizard)
 explore_gtfs(for_rail_gtfs)
+# A larger historical TMB bus feed from Barcelona:
+explore_gtfs(bcn_bus_gtfs)
 ```
 
 In an interactive session, omitting the feed opens a file browser. This is the

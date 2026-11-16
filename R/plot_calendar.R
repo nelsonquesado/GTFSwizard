@@ -30,7 +30,8 @@ plot_calendar <- function(gtfs, ncol = 4, facet_by_year = FALSE,
   fill <- match.arg(fill)
   colors <- gtfswizard_colors()
 
-  trips_per_service <- gtfs$trips |>
+  trips_per_service <- trip_instance_starts(gtfs) |>
+    dplyr::left_join(gtfs$trips[, c("trip_id", "service_id")], by = "trip_id") |>
     dplyr::count(.data$service_id, name = "trips")
   trip_counts <- stats::setNames(trips_per_service$trips, trips_per_service$service_id)
   data <- service_pattern_date_table(gtfs)

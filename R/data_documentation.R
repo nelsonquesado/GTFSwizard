@@ -1,3 +1,28 @@
+#' GTFS Data for Barcelona (Bus System), Spain
+#'
+#' A historical TMB bus feed supplied with the package for transit analysis.
+#' It contains 114 routes, 54,554 trips, 3,425 stops, 1,274,618 stop-time
+#' records, and 97,331 shape points. It is a snapshot, not a current timetable.
+#'
+#' @format A `wizardgtfs` object containing `feed_info`, `agency`, `routes`,
+#'   `stops`, `transfers`, `shapes`, `trips`, `calendar_dates`, `calendar`,
+#'   `frequencies`, `stop_times`, and the internal `dates_services` lookup.
+#' @details Imported from the supplied `bcn_bus_gtfs.zip` using [read_gtfs()].
+#'   The publisher is TMB and the feed version is `220431122023002`.
+#'   Publisher metadata states service dates from 2023-12-31 to 2024-08-26;
+#'   the calendar lookup also includes 2024-08-27. Dates and identifiers are
+#'   retained from the imported feed.
+#' @source TMB, Barcelona. Publisher website: <https://www.tmb.cat>.
+#' @name bcn_bus_gtfs
+#' @docType data
+#' @examples
+#' data(bcn_bus_gtfs)
+#' head(bcn_bus_gtfs$routes)
+#' head(bcn_bus_gtfs$stops)
+#' @seealso [for_bus_gtfs], [for_rail_gtfs]
+#' @md
+NULL
+
 #' GTFS Data for Fortaleza (Bus System), Brazil.
 #'
 #' A dataset containing GTFS (General Transit Feed Specification) data for Fortaleza's transit system by bus. The data includes information on routes, trips, stops, stop times, and other elements necessary for transit planning and analysis.

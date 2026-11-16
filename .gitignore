@@ -3,3 +3,10 @@
 .RData
 .Ruserdata
 /docs/
+.DS_Store
+.Renviron
+*.tar.gz
+*.Rcheck/
+Rplots.pdf
+CRAN-SUBMISSION
+/data/*.zip

@@ -19,6 +19,7 @@ A `ggplot` object. Each horizontal line is one route and service
 Shows the first departure and final arrival for route and service-pattern
 combinations. The longest and most frequently operated route-pattern
 combinations are retained when the feed is large.
+Frequency-based trips contribute each departure at its headway interval.
 }
 \examples{
 plot_servicespan(for_rail_gtfs)

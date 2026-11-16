@@ -18,9 +18,18 @@ that connects calendar dates, services, and service patterns.
 
 ## Use an included feed
 
-The package includes two real, reduced examples from Fortaleza, Brazil.
+The package includes two real examples from Fortaleza, Brazil.
 `for_rail_gtfs` is small enough for learning and examples; `for_bus_gtfs` is
 useful for checking workflows on a larger bus network.
+
+`bcn_bus_gtfs` adds a historical Barcelona TMB bus snapshot from 2023-2024,
+with 114 routes, 54,554 trips, and 3,425 stops. All three are embedded
+`wizardgtfs` objects and can be used without downloading a feed.
+
+```{r}
+data(bcn_bus_gtfs, package = "GTFSwizard")
+head(bcn_bus_gtfs$routes)
+```
 
 ```{r}
 library(GTFSwizard)

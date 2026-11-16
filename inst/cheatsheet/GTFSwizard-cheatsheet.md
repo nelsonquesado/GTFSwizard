@@ -1,6 +1,6 @@
 # GTFSwizard Cheat Sheet
 
-Compact workflow reference for GTFSwizard 1.2.2 (development).
+Compact workflow reference for GTFSwizard 1.2.2.
 
 ## 1. Load Or Create A Feed
 
@@ -9,6 +9,7 @@ library(GTFSwizard)
 
 gtfs <- GTFSwizard::for_rail_gtfs
 bus_gtfs <- GTFSwizard::for_bus_gtfs
+barcelona_gtfs <- GTFSwizard::bcn_bus_gtfs
 
 # gtfs <- read_gtfs("path/to/feed.zip")
 # gtfs <- as_wizardgtfs(gtfs_list)

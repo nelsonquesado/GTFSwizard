@@ -8,12 +8,13 @@
 </head>
 <body>
 <h1>GTFSwizard Cheat Sheet</h1>
-<p>Compact workflow reference for GTFSwizard 1.2.2 (development).</p>
+<p>Compact workflow reference for GTFSwizard 1.2.2.</p>
 <h2>1. Load Or Create A Feed</h2>
 <pre><code class="language-r">library(GTFSwizard)
 
 gtfs &lt;- GTFSwizard::for_rail_gtfs
 bus_gtfs &lt;- GTFSwizard::for_bus_gtfs
+barcelona_gtfs &lt;- GTFSwizard::bcn_bus_gtfs
 
 # gtfs &lt;- read_gtfs(&quot;path/to/feed.zip&quot;)
 # gtfs &lt;- as_wizardgtfs(gtfs_list)

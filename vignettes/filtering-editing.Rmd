@@ -40,6 +40,11 @@ useful for corridor, express-service, and time-window experiments. The retained
 trip can therefore begin or end at a different stop than it did in the source
 feed.
 
+Referenced parent stations are retained. Time filtering expands frequency-based
+trips into departures at their headway intervals, with generated trip IDs, before
+retaining the stop calls in the chosen window. Each departure can therefore
+retain a different portion of the original stop sequence.
+
 ```{r}
 stop_ids <- gtfs$stops$stop_id[1:5]
 partial_feed <- filter_stop(gtfs, stop_ids)

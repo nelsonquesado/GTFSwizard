@@ -1,4 +1,16 @@
-# GTFSwizard 1.2.2 (development)
+# GTFSwizard 1.2.2
+
+* Barcelona regression tests exposed and fixed missing parent stations after
+  filtering, which prevented filtered feeds from being reimported or merged.
+* Frequency-based departures now contribute correctly to calendar counts,
+  service spans, vehicle-hours, planning indicators, and time filtering.
+  System frequency sums routes and directions before averaging over patterns;
+  weekday-hour averages include zero departures on active dates.
+* The explorer now uses OpenStreetMap tiles and keeps empty-corridor notices
+  in the plot rather than repeating warnings in the console.
+
+* Added the embedded `bcn_bus_gtfs` dataset: a historical Barcelona TMB bus
+  feed with 114 routes, 54,554 trips, and 3,425 stops, stored with xz compression.
 
 * `read_gtfs()` and `write_gtfs()` now open native file-selection windows when
   their paths are omitted in interactive R sessions. Output filenames receive a

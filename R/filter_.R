@@ -22,6 +22,12 @@
 #' or departure falls inside the inclusive time interval and may also return
 #' partial trips. This behavior is useful for network experiments. Route,
 #' trip, service, service-pattern, and date filters retain complete trips.
+#' Parent stations referenced by retained stops are preserved. Before applying
+#' a time filter, frequency-based trips are expanded at their headway intervals
+#' with generated trip IDs, so each retained departure can have its own partial
+#' stop sequence. The expanded trips replace their `frequencies` rows.
+#' For `exact_times = 0`, these are nominal departures for analysis rather than
+#' guaranteed timetable departures.
 #'
 #' `filter_date()` rewrites service availability as `calendar_dates` additions
 #' for exactly the selected dates. Other filters preserve the selected
@@ -174,6 +180,7 @@ filter_time <- function(gtfs, from = "00:00:00", to = "48:00:00"){
   if(bounds[1] > bounds[2]){
     gw_stop("`from` must be earlier than or equal to `to`.")
   }
+  gtfs <- expand_frequency_trips(gtfs)
 
   arrival <- gtfs_time_to_seconds(gtfs$stop_times$arrival_time)
   departure <- gtfs_time_to_seconds(gtfs$stop_times$departure_time)

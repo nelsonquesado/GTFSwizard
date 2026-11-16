@@ -19,6 +19,13 @@ plot_frequency <- function(gtfs){
   if(!nrow(data)){
     gw_stop("no frequency data are available to plot.")
   }
+  data <- data |>
+    dplyr::group_by(service_pattern, pattern_frequency, hour) |>
+    dplyr::summarise(frequency = sum(frequency), .groups = "drop") |>
+    tidyr::complete(
+      tidyr::nesting(service_pattern, pattern_frequency),
+      hour = seq(min(hour), max(hour)), fill = list(frequency = 0)
+    )
   hourly <- data |>
     dplyr::group_by(hour) |>
     dplyr::summarise(

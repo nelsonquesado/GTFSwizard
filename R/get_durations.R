@@ -149,7 +149,7 @@ trip_duration_table <- function(gtfs){
       departure_seconds = gtfs_time_to_seconds(departure_time)
     ) %>%
     dplyr::group_by(trip_id) %>%
-    dplyr::reframe(
+    dplyr::summarise(
       duration = arrival_seconds[dplyr::n()] - departure_seconds[1],
       .groups = "drop"
     )

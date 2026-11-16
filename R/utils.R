@@ -486,7 +486,8 @@ filter_gtfs_tables_by_trips <- function(tables, trip_ids){
   }
 
   tables$routes <- filter_table_key(tables$routes, "route_id", route_ids)
-  tables$stops <- filter_table_key(tables$stops, "stop_id", stop_ids)
+  tables$stops <- filter_stops_with_parents(tables$stops, stop_ids)
+  stop_ids <- tables$stops$stop_id
   tables[["calendar"]] <- filter_table_key(
     tables[["calendar"]], "service_id", service_ids
   )
@@ -836,6 +837,19 @@ filter_table_key <- function(table, field, values){
   table[table[[field]] %in% values, , drop = FALSE]
 }
 
+filter_stops_with_parents <- function(stops, stop_ids){
+  if("parent_station" %in% names(stops)){
+    repeat {
+      parents <- stops$parent_station[stops$stop_id %in% stop_ids]
+      parents <- parents[!is.na(parents) & nzchar(parents)]
+      added <- setdiff(parents, stop_ids)
+      if(!length(added)) break
+      stop_ids <- c(stop_ids, added)
+    }
+  }
+  filter_table_key(stops, "stop_id", stop_ids)
+}
+
 prune_gtfs <- function(gtfs, trip_ids, stop_times = NULL){
   trip_ids <- unique(as.character(trip_ids))
   gtfs$trips <- filter_table_key(gtfs$trips, "trip_id", trip_ids)
@@ -855,7 +869,8 @@ prune_gtfs <- function(gtfs, trip_ids, stop_times = NULL){
   }
 
   gtfs$routes <- filter_table_key(gtfs$routes, "route_id", route_ids)
-  gtfs$stops <- filter_table_key(gtfs$stops, "stop_id", stop_ids)
+  gtfs$stops <- filter_stops_with_parents(gtfs$stops, stop_ids)
+  stop_ids <- gtfs$stops$stop_id
   gtfs[["calendar"]] <- filter_table_key(
     gtfs[["calendar"]], "service_id", service_ids
   )
@@ -1000,6 +1015,50 @@ trip_instance_starts <- function(gtfs){
     }
   }
   dplyr::bind_rows(scheduled, generated)
+}
+
+expand_frequency_trips <- function(gtfs){
+  if(is.null(gtfs$frequencies) || !nrow(gtfs$frequencies)) return(gtfs)
+  ids <- unique(gtfs$frequencies$trip_id)
+  instances <- trip_instance_starts(gtfs)
+  instances <- instances[instances$trip_id %in% ids, , drop = FALSE]
+  instances$new_trip_id <- utils::tail(
+    make.unique(c(as.character(gtfs$trips$trip_id), instances$instance_id)),
+    nrow(instances)
+  )
+  instances$offset <- instances$start_seconds - instances$.base_start
+  mapping <- instances[, c("trip_id", "new_trip_id")]
+  trips <- dplyr::left_join(mapping, gtfs$trips, by = "trip_id", relationship = "many-to-one")
+  trips$trip_id <- trips$new_trip_id
+  trips$new_trip_id <- NULL
+  calls <- dplyr::left_join(
+    gtfs$stop_times[gtfs$stop_times$trip_id %in% ids, , drop = FALSE],
+    instances[, c("trip_id", "new_trip_id", "offset")],
+    by = "trip_id", relationship = "many-to-many"
+  )
+  for(field in c("arrival_time", "departure_time")){
+    calls[[field]] <- seconds_to_gtfs_time(gtfs_time_to_seconds(calls[[field]]) + calls$offset)
+  }
+  calls$trip_id <- calls$new_trip_id
+  calls$new_trip_id <- NULL
+  calls$offset <- NULL
+  calls <- calls[order(calls$trip_id, calls$stop_sequence), , drop = FALSE]
+  gtfs$trips <- dplyr::bind_rows(gtfs$trips[!gtfs$trips$trip_id %in% ids, ], trips)
+  gtfs$stop_times <- dplyr::bind_rows(gtfs$stop_times[!gtfs$stop_times$trip_id %in% ids, ], calls)
+  if(!is.null(gtfs$transfers)){
+    for(field in intersect(c("from_trip_id", "to_trip_id"), names(gtfs$transfers))){
+      dictionary <- mapping
+      names(dictionary)[1] <- field
+      transfers <- dplyr::left_join(gtfs$transfers, dictionary, by = field,
+                                    relationship = "many-to-many")
+      matched <- !is.na(transfers$new_trip_id)
+      transfers[[field]][matched] <- transfers$new_trip_id[matched]
+      transfers$new_trip_id <- NULL
+      gtfs$transfers <- transfers
+    }
+  }
+  gtfs$frequencies <- NULL
+  gtfs
 }
 
 stop_call_instances <- function(gtfs){

@@ -124,5 +124,6 @@ reference:
 
 - title: Example feeds
   contents:
+  - bcn_bus_gtfs
   - for_bus_gtfs
   - for_rail_gtfs

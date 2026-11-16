@@ -3,6 +3,7 @@
 #' Shows the first departure and final arrival for route and service-pattern
 #' combinations. The longest and most frequently operated route-pattern
 #' combinations are retained when the feed is large.
+#' Frequency-based trips contribute each departure at its headway interval.
 #'
 #' @param gtfs A GTFS object.
 #' @param top_n Maximum number of route-pattern combinations to display.
@@ -20,11 +21,12 @@ plot_servicespan <- function(gtfs, top_n = 30L){
   gw_assert_int(top_n, "top_n", lower = 1L)
   gtfs <- ensure_wizardgtfs(gtfs)
   durations <- trip_duration_table(gtfs)
-  starts <- get_1stdeparture(gtfs) |>
-    dplyr::mutate(start_hour = gtfs_time_to_seconds(.data$departure_time) / 3600)
+  starts <- trip_instance_starts(gtfs) |>
+    dplyr::mutate(start_hour = .data$start_seconds / 3600)
   data <- gtfs$trips |>
     dplyr::select(route_id, trip_id, service_id) |>
-    dplyr::left_join(starts[, c("trip_id", "start_hour")], by = "trip_id") |>
+    dplyr::left_join(starts[, c("trip_id", "start_hour")], by = "trip_id",
+                     relationship = "one-to-many") |>
     dplyr::left_join(durations, by = "trip_id") |>
     dplyr::left_join(
       get_servicepattern(gtfs), by = "service_id",
@@ -104,6 +106,7 @@ plot_serviceheatmap <- function(gtfs){
     dplyr::group_by(.data$service_pattern, .data$hour) |>
     dplyr::summarise(departures = sum(.data$frequency), .groups = "drop")
   pattern_dates <- service_pattern_date_table(gtfs) |>
+    dplyr::filter(.data$service_pattern != "No service") |>
     dplyr::distinct(.data$date, .data$service_pattern) |>
     dplyr::mutate(
       weekday = factor(
@@ -111,9 +114,10 @@ plot_serviceheatmap <- function(gtfs){
         levels = weekdays(as.Date("2026-01-05") + 0:6)
       )
     )
+  hours <- sort(unique(frequency$hour[is.finite(frequency$hour)]))
   data <- dplyr::left_join(
-    pattern_dates, frequency,
-    by = "service_pattern", relationship = "many-to-many"
+    tidyr::expand_grid(pattern_dates, hour = hours), frequency,
+    by = c("service_pattern", "hour"), relationship = "many-to-one"
   ) |>
     dplyr::group_by(.data$date, .data$weekday, .data$hour) |>
     dplyr::summarise(
@@ -224,6 +228,7 @@ plot_routeduration <- function(gtfs, top_n = 20L){
 #'
 #' Sums scheduled end-to-end trip durations for each route and service
 #' pattern.
+#' Frequency-based trips contribute all departures at their headway intervals.
 #'
 #' @param gtfs A GTFS object.
 #' @param top_n Maximum number of routes to display.
@@ -240,7 +245,10 @@ plot_routeduration <- function(gtfs, top_n = 20L){
 plot_servicesupply <- function(gtfs, top_n = 20L){
   gw_assert_int(top_n, "top_n", lower = 1L)
   gtfs <- ensure_wizardgtfs(gtfs)
+  instances <- trip_instance_starts(gtfs) |>
+    dplyr::count(.data$trip_id, name = "instances")
   data <- trip_duration_table(gtfs) |>
+    dplyr::left_join(instances, by = "trip_id") |>
     dplyr::left_join(
       gtfs$trips[, c("trip_id", "route_id", "service_id")],
       by = "trip_id"
@@ -252,8 +260,8 @@ plot_servicesupply <- function(gtfs, top_n = 20L){
     dplyr::filter(is.finite(.data$duration), .data$duration >= 0) |>
     dplyr::group_by(.data$route_id, .data$service_pattern) |>
     dplyr::summarise(
-      vehicle_hours = sum(.data$duration) / 3600,
-      scheduled_trips = dplyr::n(),
+      vehicle_hours = sum(.data$duration * .data$instances) / 3600,
+      scheduled_trips = sum(.data$instances),
       .groups = "drop"
     )
   route_order <- data |>

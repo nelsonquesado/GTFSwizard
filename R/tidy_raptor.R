@@ -122,7 +122,7 @@ tidy_raptor <- function(gtfs,
       filter_time(min_departure, max_arrival) %>%
       filter_date(dates)
   } else {
-    gtfs2 <- gtfs
+    gtfs2 <- expand_frequency_trips(gtfs)
   }
 
   stop_times <- gtfs2$stop_times |>

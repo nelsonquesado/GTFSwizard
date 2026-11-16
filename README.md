@@ -1,5 +1,5 @@
 <img align="right" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/GTFSwizard_logo.png" alt="GTFSwizard logo" height="180">
-##### Development version 1.2.2 (snapshot: 2026-10-19)
+##### Source version 1.2.2 (prepared: 2026-11-16)
 ##### CRAN version 1.2.1 (published: 2026-08-21)
 
 [![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
@@ -16,7 +16,8 @@ GTFSwizard is a set of tools for creating, exploring, and manipulating [General 
 Its main purpose is to give researchers and practitioners a straightforward way to explore and simulate changes within GTFS files, which represent public transportation schedules and geographic data. The package lets users filter data by routes, trips, stops, and time, generate spatial visualizations, and analyze transit networks, including headways, dwell times, route frequencies, travel times, corridors, and hubs. Functions are also available to delay, change the speed of, split, and merge trips and feeds. This is ongoing work, with new features planned.
 
 ## Installation
-The development version is **1.2.2**. The CRAN version is **1.2.1**.
+The source version is **1.2.2**, prepared for submission. The published CRAN
+version remains **1.2.1**.
 
 ``` r
 # CRAN version:
@@ -414,7 +415,17 @@ GTFSwizard::latlon2epsg(get_shapes_sf(for_bus_gtfs)$shapes)
 ```
 
 ## Objects
-GTFSwizard features two toy examples, a small `for_rail_gtfs` `wizardgtfs` object, and a rather bigger `for_bus_gtfs` `wizardgtfs` object. They are real GTFS samples, the first being the urban subway system, and the second one the regular bus system; both for the city of Fortaleza, Brazil, on the 2020's.
+GTFSwizard includes three historical `wizardgtfs` datasets: `for_rail_gtfs`
+(Fortaleza rail), `for_bus_gtfs` (Fortaleza bus), and `bcn_bus_gtfs` (Barcelona
+TMB bus). The Barcelona snapshot covers 2023-2024 and contains 114 routes,
+54,554 trips, and 3,425 stops. These datasets are examples, not current timetables.
+
+```r
+data(bcn_bus_gtfs)
+head(bcn_bus_gtfs$routes)
+# explore_gtfs(bcn_bus_gtfs)
+```
+
 ``` r
 gtfs <- GTFSwizard::for_bus_gtfs
 

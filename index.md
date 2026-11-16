@@ -6,7 +6,7 @@ title: GTFSwizard
 
 # GTFSwizard
 
-##### Development version 1.2.2 (snapshot: 2026-10-19)
+##### Source version 1.2.2 (prepared: 2026-11-16)
 ##### CRAN version 1.2.1 (published: 2026-08-21)
 
 [![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
@@ -52,8 +52,9 @@ remotes::install_github(
 
 ## Quick Start
 
-The package includes compact rail and larger bus feeds, so the main workflows
-can be tried without downloading external data.
+The package includes Fortaleza rail and bus feeds and `bcn_bus_gtfs`, a
+historical Barcelona TMB bus feed with 114 routes, 54,554 trips, and 3,425 stops.
+The main workflows can be tried without downloading external data.
 
 ```r
 library(GTFSwizard)

@@ -1,8 +1,11 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.github$
-^\.DS_Store$
+^(.*/)?\.DS_Store$
 ^\.Rhistory$
+^\.RData$
+^\.Renviron$
+^Rplots\.pdf$
 ^.*\.Rcheck$
 ^GTFSwizard_[0-9.]+\.tar\.gz$
 ^cran-comments\.md$
@@ -14,4 +17,5 @@
 ^index\.md$
 ^pkgdown$
 ^revdep$
-README.md
+^README\.md$
+^tools$

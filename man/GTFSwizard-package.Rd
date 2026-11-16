@@ -24,6 +24,7 @@ Validator, either on an original archive or on an exported feed object.
 
 \link{for_rail_gtfs} is a compact feed suitable for examples. \link{for_bus_gtfs}
 supports larger-network checks and demonstrations.
+\link{bcn_bus_gtfs} provides a historical TMB bus feed from Barcelona, Spain.
 }
 
 \seealso{
