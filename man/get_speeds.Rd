@@ -4,7 +4,12 @@
 \alias{get_speeds}
 \title{Calculate Scheduled Speeds}
 \usage{
-get_speeds(gtfs, method = "by_trip", trips = "all")
+get_speeds(
+  gtfs,
+  method = "by_trip",
+  trips = "all",
+  distance_method = c("shapes", "straight")
+)
 }
 \arguments{
 \item{gtfs}{A GTFS object.}
@@ -13,6 +18,8 @@ get_speeds(gtfs, method = "by_trip", trips = "all")
 Legacy dotted values remain accepted.}
 
 \item{trips}{Character trip IDs or `"all"`.}
+
+\item{distance_method}{Distance calculation passed to [get_distances()].}
 }
 \value{
 A tibble with `average.speed` for route and trip methods, or
@@ -24,9 +31,7 @@ Combines distance in meters and duration in seconds to calculate kilometers
 per hour.
 }
 \details{
-Detailed distances are straight-line geodesic distances between stops.
-Route and trip distances follow `shapes.txt`, or inferred straight-line
-shapes if the feed has none.
+Every summary uses the same segment geometry selected by `distance_method`.
 }
 \examples{
 get_speeds(for_rail_gtfs, "by_route")

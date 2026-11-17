@@ -2,59 +2,40 @@
 % Please edit documentation in R/get_distances.R
 \name{get_distances}
 \alias{get_distances}
-\title{Calculate Distances in GTFS Data}
+\title{Calculate Consistent Trip and Segment Distances}
 \usage{
-get_distances(gtfs, method = "by_trip", trips = "all")
+get_distances(
+  gtfs,
+  method = "by_trip",
+  trips = "all",
+  distance_method = c("shapes", "straight")
+)
 }
 \arguments{
-\item{gtfs}{A GTFS object, ideally of class `wizardgtfs`. If it is not of this class, it will be converted.}
+\item{gtfs}{A GTFS object.}
 
-\item{method}{A character string indicating the calculation method. Choices are:
-\describe{
-  \item{"by_route"}{Calculates average distances for each route.}
-  \item{"by_trip"}{Calculates distances for each trip, associating each trip ID with its total distance.}
-  \item{"detailed"}{Calculates detailed distances between each consecutive stop for all trips. This is the most computationally intensive option and may take several minutes to complete.}
-}}
+\item{method}{One of `"by_trip"`, `"by_route"`, or `"detailed"`.}
 
-\item{trips}{A character vector of trip IDs to consider. When set to `all`, includes all trips.}
+\item{trips}{Character trip IDs or `"all"`.}
+
+\item{distance_method}{Either `"shapes"` (default) or `"straight"`.}
 }
 \value{
-A data frame with calculated distances based on the specified method:
-  \describe{
-    \item{If `method = "by_route"`}{Returns a summary by route and direction with trip counts, average distance, service pattern, and pattern frequency.}
-    \item{If `method = "by_trip"`}{Returns trip distance with route, direction, service pattern, and pattern frequency.}
-    \item{If `method = "detailed"`}{Returns a data frame with columns: `shape_id`, `from_stop_id`, `to_stop_id`, and `distance`.}
-  }
+A tibble. Detailed rows identify trips and their originating
+  `stop_sequence`; trip and route summaries retain service patterns.
 }
 \description{
-The `get_distances` function calculates distances within a `wizardgtfs` object based on various methods.
-Depending on the `method` chosen, it can calculate average route distances, trip-specific distances, or detailed distances between stops.
+Calculate distances in metres using the same segments for every summary.
 }
 \details{
-The function calls specific sub-functions based on the selected method:
-
-- "by_route": Calculates average distances per route.
-
-- "by_trip": Calculate distances per trip.
-
-- "detailed": Calculates detailed stop-to-stop distances within each route. Note that this method may be slow for large datasets.
-
-Legacy dotted values remain accepted. If an invalid `method` is provided,
-the function defaults to `"by_trip"` and issues a warning.
+Shape distances use stop and shape `shape_dist_traveled` values
+  together when available, converting their common units to metres using
+  the shape geometry. Otherwise stops are projected onto shape segments in
+  sequence order. This is an approximation, especially on loops; supplied
+  distance measures are preferred. Missing shapes fall back to straight
+  geodesic segments with a warning. Trip lengths cover only served segments,
+  rather than the complete shared shape. Straight distances are geodesic.
 }
 \examples{
-# Calculate average route distances
-distances_by_route <- get_distances(gtfs = for_rail_gtfs, method = "by_route", trips = 'all')
-
-# Calculate distances by trip
-distances_by_trip <- get_distances(gtfs = for_rail_gtfs, method = "by_trip", trips = 'all')
-
-\donttest{
-# Calculate detailed distances between stops
-detailed_distances <- get_distances(gtfs = for_rail_gtfs, method = "detailed", trips = 'all')
-}
-
-}
-\seealso{
-[GTFSwizard::as_wizardgtfs()], [GTFSwizard::get_servicepattern()]
+get_distances(for_rail_gtfs, "by_trip")
 }

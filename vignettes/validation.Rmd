@@ -18,6 +18,22 @@ runs the [MobilityData Canonical GTFS Schedule Validator](https://gtfs.org/getti
 The validator is external to GTFSwizard; its results depend on its version
 and implemented rules. No reported errors is not a certification.
 
+## Inspect or repair the input
+
+`read_gtfs(path, repair = "none")` checks the input without legacy reference
+cleanup. The default records reference repairs in `repair_report()`. Use
+`repair_gtfs()` on the original tables to explicitly request time corrections.
+
+```{r}
+feed <- GTFSwizard::for_rail_gtfs
+fixed <- GTFSwizard::repair_gtfs(feed, repairs = "overnight")
+head(GTFSwizard::repair_report(fixed))
+```
+
+The report identifies the original row and the old and new values. Overnight
+repair corrects backward jumps greater than 12 hours. The optional `"stop_times"`
+repair interpolates intermediate calls between known times.
+
 ## Set up the validator
 
 Install Java 17 or newer and the optional R package `jsonlite`. To let

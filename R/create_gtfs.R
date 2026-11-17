@@ -13,6 +13,7 @@
 #' @param build_shapes Logical. If `TRUE`, infer straight-line shapes when
 #'   `shapes` is not supplied.
 #' @param zipfile Optional output path ending in `.zip`.
+#' @param repair Reference cleanup policy passed to [as_wizardgtfs()].
 #' @param ... Additional named GTFS tables, such as `pathways`, `levels`,
 #'   `feed_info`, or GTFS Fares v2 tables.
 #'
@@ -64,6 +65,7 @@ create_gtfs <- function(agency,
                         fare_rules = NULL,
                         build_shapes = TRUE,
                         zipfile = NULL,
+                        repair = c("legacy", "none"),
                         ...){
   additional <- list(...)
   if(length(additional) && (is.null(names(additional)) || any(!nzchar(names(additional))))){
@@ -80,7 +82,7 @@ create_gtfs <- function(agency,
     ), additional)
   )
 
-  gtfs <- GTFSwizard::as_wizardgtfs(tables, build_shapes = build_shapes)
+  gtfs <- GTFSwizard::as_wizardgtfs(tables, build_shapes = build_shapes, repair = match.arg(repair))
   if(!is.null(zipfile)){
     GTFSwizard::write_gtfs(gtfs, zipfile)
   }

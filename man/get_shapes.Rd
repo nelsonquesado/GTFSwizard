@@ -20,7 +20,8 @@ corresponding trips.
 \details{
 Consecutive stop coordinates are connected directly. The result is useful
 for visualization and approximate distance analysis, but it is not a
-map-matched representation of the vehicle path.
+map-matched representation of the vehicle path. Existing stop distance
+measures are recalculated in metres to agree with the inferred shapes.
 }
 \examples{
 gtfs_with_shapes <- get_shapes(for_rail_gtfs)

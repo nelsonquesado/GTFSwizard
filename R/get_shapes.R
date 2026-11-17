@@ -11,7 +11,8 @@
 #' @details
 #' Consecutive stop coordinates are connected directly. The result is useful
 #' for visualization and approximate distance analysis, but it is not a
-#' map-matched representation of the vehicle path.
+#' map-matched representation of the vehicle path. Existing stop distance
+#' measures are recalculated in metres to agree with the inferred shapes.
 #'
 #' @examples
 #' gtfs_with_shapes <- get_shapes(for_rail_gtfs)
@@ -72,6 +73,14 @@ get_shapes <- function(gtfs){
       shape_pt_sequence, shape_dist_traveled
     )
 
+  # Generated shape measures are metres. Align any existing stop measures
+  # to those same vertices, including trips that share a shape.
+  if("shape_dist_traveled" %in% names(gtfs$stop_times)){
+    rows <- order(gtfs$stop_times$trip_id, gtfs$stop_times$stop_sequence)
+    lengths_by_shape <- split(shape_points$shape_dist_traveled, shape_points$shape_id)
+    shape_order <- patterns$shape_id[match(unique(calls$trip_id), patterns$trip_id)]
+    gtfs$stop_times$shape_dist_traveled[rows] <- unlist(lengths_by_shape[shape_order], use.names = FALSE)
+  }
   gtfs$shapes <- shape_points
   gtfs$trips <- gtfs$trips |>
     dplyr::select(-dplyr::any_of("shape_id")) |>

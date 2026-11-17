@@ -1,5 +1,18 @@
 # GTFSwizard 1.2.2
 
+* `filter_area()` selects trips serving a polygon or bounding box. Crops check
+  endpoint times, shift frequency windows, and prune dependent records.
+* `compare_scenarios()` compares scheduled supply by route or network on one
+  service date, including vehicle-hours, vehicle-kilometres and active fleet.
+* Trip, route and segment speeds and distances use the same geometry. Detailed
+  distances identify each trip and originating stop sequence. Inferred shapes
+  and their stop measures use metres.
+* `repair_gtfs()` supports explicit overnight and stop-time repairs.
+  `repair_report()` identifies changed cells and original rows. Use
+  `repair = "none"` to disable reference cleanup during import.
+* `tidy_raptor()` prepares routing tables internally. Date and time filtering
+  limits frequency expansion before routing. Its public arguments are unchanged.
+
 * Barcelona regression tests exposed and fixed missing parent stations after
   filtering, which prevented filtered feeds from being reimported or merged.
 * Frequency-based departures now contribute correctly to calendar counts,

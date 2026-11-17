@@ -82,6 +82,28 @@ These are scheduled indicators. They do not estimate congestion, reliability,
 vehicle availability, layover policy, deadheading, or passenger loads unless
 those effects are already represented in the feed.
 
+## Compare scenarios and route journeys
+
+```{r}
+faster <- edit_speed(gtfs, factor = 1.1)
+compare_scenarios(gtfs, faster, dates = "2021-12-13", by = "network")
+```
+
+Vehicle-hours include intermediate dwell. Active fleet counts simultaneous trips.
+For a route comparison, both feeds should use the same route IDs. Use
+`distance_method = "straight"` for direct stop-to-stop distances in metres, or
+`"shapes"` for distance along the served portion of each shape. Inferred shapes
+connect consecutive stops and express their measures in metres.
+
+```{r, eval=requireNamespace("tidytransit", quietly=TRUE) && requireNamespace("hms", quietly=TRUE) && requireNamespace("data.table", quietly=TRUE)}
+head(tidy_raptor(gtfs, dates = "2021-12-13", stop_ids = "66",
+                 min_departure = "06:20:00", max_arrival = "09:40:00",
+                 keep = "shortest"))
+```
+
+Routing prepares the selected service date and time window internally. Frequency
+entries with `exact_times = 0` contribute nominal departures.
+
 ## Spatial structure
 
 The spatial helpers return standard `sf` objects. Inferred shapes and corridor

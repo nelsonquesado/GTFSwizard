@@ -4,7 +4,7 @@
 \alias{as_wizardgtfs}
 \title{Convert a GTFS Feed to `wizardgtfs`}
 \usage{
-as_wizardgtfs(gtfs_list, build_shapes = TRUE)
+as_wizardgtfs(gtfs_list, build_shapes = TRUE, repair = c("legacy", "none"))
 }
 \arguments{
 \item{gtfs_list}{A named list of GTFS tables or a `tidygtfs` object.}
@@ -12,6 +12,10 @@ as_wizardgtfs(gtfs_list, build_shapes = TRUE)
 \item{build_shapes}{Logical. If `TRUE`, infer `shapes` when the table is
 absent. Inferred shapes connect stops with straight line segments and are
 intended for analysis and visualization, not map-matched routing.}
+
+\item{repair}{`legacy` preserves historical reference cleanup, recording changes
+in [repair_report()]. Use `none` to validate without deleting or creating
+reference records. Use [repair_gtfs()] for explicit time repairs.}
 }
 \value{
 A `wizardgtfs` object.

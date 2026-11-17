@@ -19,6 +19,7 @@ create_gtfs(
   fare_rules = NULL,
   build_shapes = TRUE,
   zipfile = NULL,
+  repair = c("legacy", "none"),
   ...
 )
 }
@@ -36,6 +37,8 @@ tables.}
 `shapes` is not supplied.}
 
 \item{zipfile}{Optional output path ending in `.zip`.}
+
+\item{repair}{Reference cleanup policy passed to [as_wizardgtfs()].}
 
 \item{...}{Additional named GTFS tables, such as `pathways`, `levels`,
 `feed_info`, or GTFS Fares v2 tables.}

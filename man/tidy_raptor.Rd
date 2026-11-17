@@ -19,7 +19,7 @@ tidy_raptor(
 )
 }
 \arguments{
-\item{gtfs}{A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.}
+\item{gtfs}{A GTFS feed, optionally of class `wizardgtfs`.}
 
 \item{min_departure}{A string representing the earliest departure time, in "HH:MM:SS" format. Defaults to `"0:0:0"`.}
 
@@ -62,6 +62,12 @@ A tibble containing the RAPTOR algorithm results, including:
 \description{
 The `tidy_raptor` function calculates travel times from a set of origin stops to all reachable stops within a GTFS dataset.
 It uses the RAPTOR (Round-Based Public Transit Routing) algorithm from the `tidytransit` package and integrates it with the GTFSwizard framework.
+}
+\details{
+With `filter = TRUE`, the service date is selected before frequency
+trips are expanded. Stop calls are kept when their arrival or departure
+falls within the inclusive time bounds. With `filter = FALSE`, all services
+are combined. Departures are nominal when `exact_times = 0`.
 }
 \note{
 Ensure that the `stop_times` is present and correctly structured in the GTFS dataset.

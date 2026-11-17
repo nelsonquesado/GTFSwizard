@@ -383,8 +383,24 @@ Export a resulting feed with `write_gtfs()`, which writes a standard GTFS `.zip`
 GTFSwizard::write_gtfs(for_bus_gtfs, 'path-to-file.zip')
 ```
 
+## Compare planning scenarios
+
+Use the same service date and route IDs to compare a baseline with an edited timetable.
+
+```r
+baseline <- GTFSwizard::for_rail_gtfs
+scenario <- GTFSwizard::edit_speed(baseline, factor = 1.1)
+GTFSwizard::compare_scenarios(baseline, scenario, dates = "2021-12-13", by = "network")
+```
+
+`filter_area()` selects trips serving a polygon or bounding box. Set `full_trips = FALSE`
+to keep calls inside the area. For distance and speed, choose `distance_method = "shapes"`
+or `"straight"`; both use consecutive stops on the served portion of each trip.
+To inspect import cleanup, call `repair_report(feed)`. Use `repair_gtfs()` to
+request overnight correction or interpolation explicitly.
+
 ## Travel Time Matrix
-GTFSwizard implements the `tidytransit::raptor()` algorithm that estimates travel time matrices from a `wizardgtfs` object and a few other arguments.
+Pass the feed, service date, time window and origin stops directly to `tidy_raptor()`. It prepares the active stop calls internally and uses `tidytransit::raptor()` to calculate scheduled journeys.
 
 ``` r
 GTFSwizard::tidy_raptor(for_rail_gtfs, min_departure = '06:20:00', max_arrival = '09:40:00',

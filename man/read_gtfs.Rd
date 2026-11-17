@@ -4,7 +4,13 @@
 \alias{read_gtfs}
 \title{Read a GTFS Feed}
 \usage{
-read_gtfs(file_path = NULL, files = NULL, quiet = TRUE, ...)
+read_gtfs(
+  file_path = NULL,
+  files = NULL,
+  quiet = TRUE,
+  repair = c("legacy", "none"),
+  ...
+)
 }
 \arguments{
 \item{file_path}{Optional path to a GTFS \code{.zip} archive. When omitted in an
@@ -13,6 +19,8 @@ interactive session, a file-selection window opens.}
 \item{files}{Optional character vector of table names without \code{.txt}.}
 
 \item{quiet}{Logical. Suppress importer messages and UTF-16 conversion warnings.}
+
+\item{repair}{Reference cleanup policy passed to \code{\link[=as_wizardgtfs]{as_wizardgtfs()}}.}
 
 \item{...}{Additional arguments passed to \code{\link[gtfsio:import_gtfs]{gtfsio::import_gtfs()}}, including
 the legacy argument \code{file.path}.}

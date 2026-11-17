@@ -1,42 +1,58 @@
-## Update to version 1.2.2
+## GTFSwizard 1.2.2
 
-Prepared on 2026-11-16 as an update to CRAN version 1.2.1 (published 2026-08-21).
-The package license and maintainer are unchanged.
+This update adds spatial selection, auditable feed repairs, scenario comparisons,
+and consistent distance and speed calculations. Routing prepares service dates
+and frequency-based trips internally. The public routing entry point is
+`tidy_raptor()`. Other changes include optional MobilityData validation, UTF-16
+import, the AMB Barcelona example feed, and fixes for frequency and calendar
+handling. The license and maintainer are unchanged.
 
-This update adds an optional external GTFS validator, UTF-16 import support,
-interactive file selection, a historical AMB Barcelona feed, and fixes for parent
-stations and frequency-based service calculations. Validator downloads require
-an explicit opt-in; examples and tests do not download or run external Java code.
+## Latest maintainer check
 
-## Verification
+On 2026-11-17 the maintainer ran the following from R.app on macOS arm64
+with R 4.6.2, Pandoc 3.10 and HTML Tidy 5.8.0 configured:
 
-Verified on macOS arm64 with R 4.6.2 (2026-10-29), on 2026-11-17:
+```r
+Sys.setenv(RSTUDIO_PANDOC = "/opt/homebrew/bin",
+           R_TIDYCMD = "/opt/homebrew/bin/tidy")
+devtools::check(pkg = "path/to/GTFSwizard", args = "--as-cran",
+                run_dont_test = TRUE)
+```
 
-- R CMD build completed successfully, including all vignettes.
-- Installation of the built source tarball completed successfully.
-- Latest full source test suite: 395 passed, 0 failures, 0 warnings, 0 skips.
-- All 46 help files passed Rd validation; code references and dataset compression
-  were verified.
-- The pkgdown website and all vignettes were rebuilt successfully.
-- The AMB dataset retains its full calendar, 2017-01-27 through 2026-12-31.
-- The source archive excludes raw ZIP files and development artifacts.
-- Source tarball: 3,598,118 bytes; installed data: 5,514,243 bytes.
+The supplied console log reports successful vignette creation and a final
+result of **0 errors, 0 warnings and 0 notes**, in 3 minutes 13 seconds.
+This run used `NOT_CRAN=true`, disabled both CRAN incoming checks and set
+`_R_CHECK_FORCE_SUGGESTS_=FALSE`. Its console summary does not provide an
+assertion count. The count below belongs to the earlier independent check.
 
-The test suite does not require downloading the optional Java validator or
-opening a browser. Interactive file dialogs are exercised with mocks.
+## Earlier independent archive verification
 
-The maintainer ran `devtools::check(remote = TRUE, force_suggests = TRUE,
-run_dont_test = TRUE)` on macOS Tahoe 26.6.2 (aarch64-apple-darwin23), with
-R 4.6.2, on 2026-11-17. The supplied log reports `--run-donttest --no-manual
---as-cran`: 0 errors, 0 warnings, and 0 notes, including CRAN incoming
-feasibility, examples, tests, and vignette rebuilding. A subsequent
-`devtools::test()` reports 393 passes, 0 failures, 0 warnings, and 0 skips.
-No Windows or R-devel checks are claimed here.
+Verified on 2026-11-17 with R 4.6.2, macOS Tahoe 26.6.2, arm64.
 
-Since that check, the only code change wraps two simulated validation reports
-in `expect_output()` inside the tests. This prevents confusing console output
-and adds two assertions; no package functions were changed. The full source
-test suite was rerun successfully with 395 passes, and the source tarball was
-rebuilt including all vignettes. R CMD check was not rerun after this test-only
-adjustment, at the maintainer's request.
+- `R CMD build` completed with all five rendered vignettes.
+- The source archive passed `R CMD check --as-cran --run-donttest` with
+  0 errors, 0 warnings and 1 environment-related note.
+- Tests ran with `NOT_CRAN=true`: 425 passes, 0 failures, 0 warnings, 0 skips.
+- Static code analysis, S3 consistency, namespace loading, dataset checks,
+  Rd validation, examples, vignette rebuilding and the PDF manual passed.
+- The note reports that macOS HTML Tidy (2006) is too old for HTML-manual
+  validation. The check skipped that validation. This predates the maintainer installing HTML Tidy 5.8.0.
+- Network-dependent CRAN incoming checks and system-clock verification were
+  disabled for this local run. Dependencies were checked with all suggested
+  packages required. No Windows, Linux or R-devel result is claimed.
+- The pkgdown reference index passed. The site rebuilt successfully, with
+  73 HTML pages and no missing relative link targets.
+- Routing matched the previous implementation in 32 comparisons, covering
+  scheduled and frequency-based service, two dates, both routing directions,
+  and all four journey-retention modes.
+- Fresh source archive contents match the current R, man, vignettes and tests
+  files. The archive excludes raw feed ZIP files and development output.
 
+Earlier project decisions on service-pattern definitions, dataset documentation,
+licensing, citation and generated S3 exports were included in this verification.
+
+## Earlier verified archive
+
+`GTFSwizard_1.2.2.tar.gz`
+
+SHA-256: 4a4debda637044dacf3a558c338dc661f614463c45a2a39e39c9aa6b84642cb2

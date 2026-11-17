@@ -4,7 +4,7 @@
 #' The `tidy_raptor` function calculates travel times from a set of origin stops to all reachable stops within a GTFS dataset.
 #' It uses the RAPTOR (Round-Based Public Transit Routing) algorithm from the `tidytransit` package and integrates it with the GTFSwizard framework.
 #'
-#' @param gtfs A GTFS object, preferably of class `wizardgtfs`. If not, the function will attempt to convert it using `GTFSwizard::as_wizardgtfs()`.
+#' @param gtfs A GTFS feed, optionally of class `wizardgtfs`.
 #' @param min_departure A string representing the earliest departure time, in "HH:MM:SS" format. Defaults to `"0:0:0"`.
 #' @param max_arrival A string representing the latest arrival time, in "HH:MM:SS" format. Defaults to `"23:59:59"`.
 #' @param dates One service date. When `NULL`, the latest active service date
@@ -32,6 +32,11 @@
 #'   \item{travel_time}{Total travel time in seconds.}
 #'   \item{transfers}{Number of transfers in the journey.}
 #' }
+#'
+#' @details With `filter = TRUE`, the service date is selected before frequency
+#' trips are expanded. Stop calls are kept when their arrival or departure
+#' falls within the inclusive time bounds. With `filter = FALSE`, all services
+#' are combined. Departures are nominal when `exact_times = 0`.
 #'
 #' @note
 #' Ensure that the `stop_times` is present and correctly structured in the GTFS dataset.
@@ -66,12 +71,11 @@ tidy_raptor <- function(gtfs,
   require_pkg("tidytransit", "`tidy_raptor()`")
   require_pkg("data.table", "`tidy_raptor()`")
   require_pkg("hms", "`tidy_raptor()`")
-  gtfs <- ensure_wizardgtfs(gtfs)
 
   gw_assert_flag(filter, "filter")
   gw_assert_flag(arrival, "arrival")
   gw_assert_flag(separate_starts, "separate_starts")
-  assert_known_ids(stop_ids, gtfs$stops$stop_id, "stop", "`gtfs$stops`")
+
 
   limits <- gtfs_time_to_seconds(c(min_departure, max_arrival))
   if(anyNA(limits)){
@@ -110,43 +114,12 @@ tidy_raptor <- function(gtfs,
     time_range <- parsed_range
   }
 
-  if(filter) {
-    if(is.null(dates)){
-      dates <- max(as.Date(gtfs$dates_services$date))
-    }
-    dates <- parse_gtfs_date(dates)
-    if(length(dates) != 1L || is.na(dates)){
-      gw_stop("`dates` must contain exactly one valid service date.")
-    }
-    gtfs2 <- gtfs %>%
-      filter_time(min_departure, max_arrival) %>%
-      filter_date(dates)
-  } else {
-    gtfs2 <- expand_frequency_trips(gtfs)
-  }
-
-  stop_times <- gtfs2$stop_times |>
-    dplyr::mutate(
-      arrival_time_num = gtfs_time_to_seconds(arrival_time),
-      departure_time_num = gtfs_time_to_seconds(departure_time),
-      arrival_time = hms::as_hms(arrival_time_num),
-      departure_time = hms::as_hms(departure_time_num)
-    ) |>
-    data.table::data.table()
-
-  transfers <- gtfs2$transfers
-  if(is.null(transfers)){
-    transfers <- data.frame(
-      from_stop_id = character(),
-      to_stop_id = character(),
-      transfer_type = integer(),
-      min_transfer_time = integer()
-    )
-  }
+  prepared <- prepare_raptor(gtfs, min_departure, max_arrival, dates, filter)
+  assert_known_ids(stop_ids, prepared$stop_ids, "stop", "GTFS stops")
 
   raptor_results <- tidytransit::raptor(
-      stop_times = stop_times,
-      transfers = transfers,
+      stop_times = prepared$stop_times,
+      transfers = prepared$transfers,
       stop_ids = stop_ids,
       arrival = arrival,
       time_range = time_range,

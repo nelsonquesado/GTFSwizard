@@ -8,14 +8,13 @@
 #'   Legacy dotted values remain accepted.
 #' @param trips Character trip IDs or `"all"`.
 #'
+#' @param distance_method Distance calculation passed to [get_distances()].
 #' @return A tibble with `average.speed` for route and trip methods, or
 #'   segment-level `speed` for the detailed method. `direction_id` is retained
 #'   when available.
 #'
 #' @details
-#' Detailed distances are straight-line geodesic distances between stops.
-#' Route and trip distances follow `shapes.txt`, or inferred straight-line
-#' shapes if the feed has none.
+#' Every summary uses the same segment geometry selected by `distance_method`.
 #'
 #' @examples
 #' get_speeds(for_rail_gtfs, "by_route")
@@ -23,16 +22,18 @@
 #'
 #' @seealso [GTFSwizard::get_distances()], [GTFSwizard::get_durations()]
 #' @export
-get_speeds <- function(gtfs, method = "by_trip", trips = "all"){
+get_speeds <- function(gtfs, method = "by_trip", trips = "all",
+                       distance_method = c("shapes", "straight")){
+  distance_method <- match.arg(distance_method)
   choices <- c("by_route", "by_trip", "detailed")
   method <- normalize_method(method, choices, "by_trip")
   if(!(length(trips) == 1L && identical(trips, "all"))){
     gtfs <- filter_trip(gtfs, trips)
   }
-  gtfs <- ensure_shapes(ensure_wizardgtfs(gtfs))
+  gtfs <- ensure_wizardgtfs(gtfs)
   if(method == "by_route"){
     durations <- get_durations(gtfs, "by_route")
-    distances <- get_distances(gtfs, "by_route")
+    distances <- get_distances(gtfs, "by_route", distance_method = distance_method)
     result <- dplyr::left_join(
       durations, distances,
       by = c(
@@ -53,7 +54,7 @@ get_speeds <- function(gtfs, method = "by_trip", trips = "all"){
   }
   if(method == "by_trip"){
     durations <- get_durations(gtfs, "by_trip")
-    distances <- get_distances(gtfs, "by_trip")
+    distances <- get_distances(gtfs, "by_trip", distance_method = distance_method)
     result <- dplyr::left_join(
       durations, distances,
       by = c(
@@ -71,11 +72,9 @@ get_speeds <- function(gtfs, method = "by_trip", trips = "all"){
       ))))
   }
   durations <- get_durations(gtfs, "detailed")
-  distances <- get_distances(gtfs, "detailed") |>
-    dplyr::select(from_stop_id, to_stop_id, distance) |>
-    dplyr::distinct()
+  distances <- get_distances(gtfs, "detailed", distance_method = distance_method)
   dplyr::left_join(
-    durations, distances, by = c("from_stop_id", "to_stop_id")
+    durations, distances, by = c("trip_id", "stop_sequence", "from_stop_id", "to_stop_id")
   ) |>
     dplyr::mutate(speed = (distance / 1000) / (duration / 3600)) |>
     dplyr::select(

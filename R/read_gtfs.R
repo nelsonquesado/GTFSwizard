@@ -6,6 +6,7 @@
 #'   interactive session, a file-selection window opens.
 #' @param files Optional character vector of table names without `.txt`.
 #' @param quiet Logical. Suppress importer messages and UTF-16 conversion warnings.
+#' @param repair Reference cleanup policy passed to [as_wizardgtfs()].
 #' @param ... Additional arguments passed to [gtfsio::import_gtfs()], including
 #'   the legacy argument `file.path`.
 #'
@@ -24,7 +25,7 @@
 #' @seealso [GTFSwizard::write_gtfs()], [GTFSwizard::as_wizardgtfs()]
 #' @md
 #' @export
-read_gtfs <- function(file_path = NULL, files = NULL, quiet = TRUE, ...){
+read_gtfs <- function(file_path = NULL, files = NULL, quiet = TRUE, repair = c("legacy", "none"), ...){
   resolved <- resolve_legacy_argument(
     file_path, missing(file_path), list(...), "file.path", "file_path"
   )
@@ -53,7 +54,7 @@ read_gtfs <- function(file_path = NULL, files = NULL, quiet = TRUE, ...){
       import_utf16_gtfs(file_path, files = files, quiet = quiet, dots = dots)
     }
   )
-  as_wizardgtfs(object)
+  as_wizardgtfs(object, repair = match.arg(repair))
 }
 
 gtfs_zip_uses_utf16 <- function(file_path, files = NULL, skip = NULL){

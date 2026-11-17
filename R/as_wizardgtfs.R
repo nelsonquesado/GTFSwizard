@@ -9,6 +9,9 @@
 #'   absent. Inferred shapes connect stops with straight line segments and are
 #'   intended for analysis and visualization, not map-matched routing.
 #'
+#' @param repair `legacy` preserves historical reference cleanup, recording changes
+#'   in [repair_report()]. Use `none` to validate without deleting or creating
+#'   reference records. Use [repair_gtfs()] for explicit time repairs.
 #' @return A `wizardgtfs` object.
 #'
 #' @details
@@ -22,13 +25,14 @@
 #'
 #' @seealso [GTFSwizard::create_gtfs()], [GTFSwizard::get_shapes()]
 #' @export
-as_wizardgtfs <- function(gtfs_list, build_shapes = TRUE){
+as_wizardgtfs <- function(gtfs_list, build_shapes = TRUE, repair = c("legacy", "none")){
   UseMethod("as_wizardgtfs")
 }
 
 #' @exportS3Method GTFSwizard::as_wizardgtfs tidygtfs
-as_wizardgtfs.tidygtfs <- function(gtfs_list, build_shapes = TRUE){
+as_wizardgtfs.tidygtfs <- function(gtfs_list, build_shapes = TRUE, repair = c("legacy", "none")){
   gw_assert_flag(build_shapes, "build_shapes")
+  repair <- match.arg(repair)
 
   if(!is.null(gtfs_list$.) && !is.null(gtfs_list$.$dates_services)){
     dates_services <- gtfs_list$.$dates_services
@@ -41,20 +45,29 @@ as_wizardgtfs.tidygtfs <- function(gtfs_list, build_shapes = TRUE){
     gtfs_list <- gtfs_list[names(gtfs_list) != "."]
   }
 
-  as_wizardgtfs.list(gtfs_list, build_shapes = build_shapes)
+  as_wizardgtfs.list(gtfs_list, build_shapes = build_shapes, repair = repair)
 }
 
 #' @exportS3Method GTFSwizard::as_wizardgtfs list
-as_wizardgtfs.list <- function(gtfs_list, build_shapes = TRUE){
+as_wizardgtfs.list <- function(gtfs_list, build_shapes = TRUE, repair = c("legacy", "none")){
   gw_assert_flag(build_shapes, "build_shapes")
+  repair <- match.arg(repair)
   if(is.null(names(gtfs_list)) || any(!nzchar(names(gtfs_list)))){
     gw_stop("`gtfs_list` must be a named list of GTFS tables.")
   }
 
   gtfs_obj <- convert_to_tibble(gtfs_list)
   gtfs_obj$dates_services <- NULL
-  gtfs_obj <- drop_stop_times_missing_stops(gtfs_obj)
-  gtfs_obj <- drop_short_stop_time_trips(gtfs_obj)
+  report <- empty_repair_report()
+  if(repair == "legacy"){
+    before <- gtfs_obj
+    marker <- repair_row_field(before)
+    gtfs_obj <- mark_repair_rows(before, marker)
+    gtfs_obj <- drop_stop_times_missing_stops(gtfs_obj)
+    gtfs_obj <- drop_short_stop_time_trips(gtfs_obj)
+    report <- gtfs_repair_diff(before, gtfs_obj, marker)
+    gtfs_obj <- clear_repair_rows(gtfs_obj, marker)
+  }
   validate_gtfs_tables(gtfs_obj)
   gtfs_obj <- convert_times_and_dates(gtfs_obj)
   gtfs_obj <- create_dates_services_table(gtfs_obj)
@@ -63,6 +76,7 @@ as_wizardgtfs.list <- function(gtfs_list, build_shapes = TRUE){
   if(build_shapes && is.null(gtfs_obj$shapes)){
     gtfs_obj <- get_shapes(gtfs_obj)
   }
+  attr(gtfs_obj, "repair_report") <- report
   gtfs_obj
 }
 

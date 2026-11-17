@@ -69,6 +69,19 @@ active_date <- gtfs$dates_services$date[
 date_feed <- filter_date(gtfs, active_date)
 ```
 
+## Select service within an area
+
+```{r}
+area <- c(-39, -4, -38, -3) # xmin, ymin, xmax, ymax in WGS84
+area_feed <- filter_area(gtfs, area)
+nrow(area_feed$trips)
+```
+
+The default keeps complete trips with a stop inside the area. With
+`full_trips = FALSE`, a trip needs two retained calls and known arrival and
+departure times at its new endpoints. Frequency windows shift with the first
+retained stop. An area with separated sections can retain nonconsecutive calls.
+
 ## Select or group without filtering
 
 `selection()` resembles `dplyr::group_by()` but stores GTFS-specific selection

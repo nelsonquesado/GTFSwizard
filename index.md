@@ -77,6 +77,13 @@ explore_gtfs(for_rail_gtfs)
 
 <img class="gw-home-dashboard" src="https://raw.githubusercontent.com/nelsonquesado/GTFSwizard/main/figs/exploregtfs.png" alt="GTFSwizard dashboard showing a transit network">
 
+## Compare scheduled supply
+
+Use `filter_area()` to select trips serving a study area, then compare two timetables
+with `compare_scenarios()` on a common service date. Results include departures,
+vehicle-hours, vehicle-kilometres, service span, headway and peak concurrent trips.
+The [filtering and editing guide](articles/filtering-editing.html) shows the workflow.
+
 ## Guides
 
 - [Getting started](articles/getting-started.html)

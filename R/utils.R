@@ -542,6 +542,39 @@ filter_gtfs_tables_by_trips <- function(tables, trip_ids){
     }
     tables$transfers <- tables$transfers[keep, , drop = FALSE]
   }
+  # Optional child tables may reference stops, routes, agencies or trips.
+  references <- list(pathways = c(from_stop_id = "stops", to_stop_id = "stops"),
+    stop_areas = c(stop_id = "stops"), location_group_stops = c(stop_id = "stops"),
+    route_networks = c(route_id = "routes"), fare_attributes = c(agency_id = "agency"),
+    attributions = c(agency_id = "agency", route_id = "routes", trip_id = "trips"))
+  parent_fields <- c(stops = "stop_id", routes = "route_id", agency = "agency_id", trips = "trip_id")
+  for(name in intersect(names(references), names(tables))){
+    child <- tables[[name]]
+    for(field in intersect(names(references[[name]]), names(child))){
+      parent <- references[[name]][[field]]
+      values <- tables[[parent]][[parent_fields[[parent]]]]
+      id <- child[[field]]
+      child <- child[is.na(id) | id == "" | id %in% values, , drop = FALSE]
+    }
+    tables[[name]] <- child
+  }
+  # A record-specific translation follows the primary key of its target.
+  tr <- tables$translations
+  if(!is.null(tr) && all(c("table_name", "record_id") %in% names(tr))){
+    keys <- c(parent_fields, pathways = "pathway_id", stop_times = "trip_id",
+              attributions = "attribution_id")
+    keep <- rep(TRUE, nrow(tr))
+    for(name in intersect(names(keys), unique(tr$table_name))){
+      rows <- which(tr$table_name == name & !is.na(tr$record_id) & tr$record_id != "")
+      target <- tables[[name]]
+      keep[rows] <- tr$record_id[rows] %in% target[[keys[[name]]]]
+      if(name == "stop_times" && "record_sub_id" %in% names(tr)){
+        keep[rows] <- paste(tr$record_id[rows], tr$record_sub_id[rows]) %in%
+          paste(target$trip_id, target$stop_sequence)
+      }
+    }
+    tables$translations <- tr[keep, , drop = FALSE]
+  }
   tables
 }
 
@@ -667,7 +700,7 @@ validate_gtfs_tables <- function(tables){
     gw_stop("`stop_sequence` must be non-negative and strictly increase within each trip.")
   }
   trip_sizes <- lengths(split(ordered$stop_sequence, ordered$trip_id))
-  if(any(trip_sizes < 2L)){
+  if(any(trip_sizes < 2L) || any(!tables$trips$trip_id %in% ordered$trip_id)){
     gw_stop("every trip must contain at least two stop-time records.")
   }
   endpoints_ok <- vapply(
@@ -851,87 +884,11 @@ filter_stops_with_parents <- function(stops, stop_ids){
 }
 
 prune_gtfs <- function(gtfs, trip_ids, stop_times = NULL){
-  trip_ids <- unique(as.character(trip_ids))
-  gtfs$trips <- filter_table_key(gtfs$trips, "trip_id", trip_ids)
-  if(is.null(stop_times)){
-    gtfs$stop_times <- filter_table_key(gtfs$stop_times, "trip_id", trip_ids)
-  } else {
-    gtfs$stop_times <- filter_table_key(stop_times, "trip_id", trip_ids)
-  }
-
-  route_ids <- unique(gtfs$trips$route_id)
-  service_ids <- unique(gtfs$trips$service_id)
-  stop_ids <- unique(gtfs$stop_times$stop_id)
-  shape_ids <- if("shape_id" %in% names(gtfs$trips)){
-    unique(gtfs$trips$shape_id)
-  } else {
-    character()
-  }
-
-  gtfs$routes <- filter_table_key(gtfs$routes, "route_id", route_ids)
-  gtfs$stops <- filter_stops_with_parents(gtfs$stops, stop_ids)
-  stop_ids <- gtfs$stops$stop_id
-  gtfs[["calendar"]] <- filter_table_key(
-    gtfs[["calendar"]], "service_id", service_ids
-  )
-  gtfs[["calendar_dates"]] <- filter_table_key(
-    gtfs[["calendar_dates"]], "service_id", service_ids
-  )
-  if(!is.null(gtfs[["calendar_dates"]]) &&
-     !nrow(gtfs[["calendar_dates"]])){
+  if(!is.null(stop_times)) gtfs$stop_times <- stop_times
+  gtfs <- filter_gtfs_tables_by_trips(gtfs, trip_ids)
+  if(!is.null(gtfs[["calendar_dates"]]) && !nrow(gtfs[["calendar_dates"]])){
     gtfs[["calendar_dates"]] <- NULL
   }
-  gtfs$shapes <- filter_table_key(gtfs$shapes, "shape_id", shape_ids)
-  gtfs$frequencies <- filter_table_key(gtfs$frequencies, "trip_id", trip_ids)
-  gtfs$fare_rules <- filter_table_key(gtfs$fare_rules, "route_id", route_ids)
-  if(!is.null(gtfs$fare_attributes) && !is.null(gtfs$fare_rules) &&
-     "fare_id" %in% names(gtfs$fare_rules)){
-    gtfs$fare_attributes <- filter_table_key(
-      gtfs$fare_attributes, "fare_id", unique(gtfs$fare_rules$fare_id)
-    )
-  }
-
-  if(!is.null(gtfs$agency) && "agency_id" %in% names(gtfs$agency) &&
-     "agency_id" %in% names(gtfs$routes)){
-    gtfs$agency <- filter_table_key(
-      gtfs$agency, "agency_id", unique(gtfs$routes$agency_id)
-    )
-  }
-
-  if(!is.null(gtfs$transfers)){
-    keep <- gtfs$transfers$from_stop_id %in% stop_ids &
-      gtfs$transfers$to_stop_id %in% stop_ids
-    if("from_route_id" %in% names(gtfs$transfers)){
-      keep <- keep & (
-        is.na(gtfs$transfers$from_route_id) |
-          !nzchar(as.character(gtfs$transfers$from_route_id)) |
-          gtfs$transfers$from_route_id %in% route_ids
-      )
-    }
-    if("to_route_id" %in% names(gtfs$transfers)){
-      keep <- keep & (
-        is.na(gtfs$transfers$to_route_id) |
-          !nzchar(as.character(gtfs$transfers$to_route_id)) |
-          gtfs$transfers$to_route_id %in% route_ids
-      )
-    }
-    if("from_trip_id" %in% names(gtfs$transfers)){
-      keep <- keep & (
-        is.na(gtfs$transfers$from_trip_id) |
-          !nzchar(as.character(gtfs$transfers$from_trip_id)) |
-          gtfs$transfers$from_trip_id %in% trip_ids
-      )
-    }
-    if("to_trip_id" %in% names(gtfs$transfers)){
-      keep <- keep & (
-        is.na(gtfs$transfers$to_trip_id) |
-          !nzchar(as.character(gtfs$transfers$to_trip_id)) |
-          gtfs$transfers$to_trip_id %in% trip_ids
-      )
-    }
-    gtfs$transfers <- gtfs$transfers[keep, , drop = FALSE]
-  }
-
   gtfs$dates_services <- NULL
   gtfs <- create_dates_services_table(gtfs)
   class(gtfs) <- c("wizardgtfs", "gtfs", "list")

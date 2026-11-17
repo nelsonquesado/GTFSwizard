@@ -110,7 +110,6 @@ get_durations_detailed <- function(gtfs){
 
   gtfs$stop_times %>%
     dplyr::arrange(trip_id, stop_sequence) %>%
-    dplyr::filter(!arrival_time == '', !departure_time == '') %>%
     dplyr::mutate(
       arrival_seconds = gtfs_time_to_seconds(arrival_time),
       departure_seconds = gtfs_time_to_seconds(departure_time),
@@ -125,7 +124,7 @@ get_durations_detailed <- function(gtfs){
     ) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(arrival_time = seconds_to_gtfs_time(lead_arrival_time)) %>%
-    dplyr::select(trip_id, arrival_time, hour, from_stop_id, to_stop_id, duration) %>%
+    dplyr::select(trip_id, stop_sequence, arrival_time, hour, from_stop_id, to_stop_id, duration) %>%
     dplyr::left_join(
       gtfs$trips[, c("trip_id", "route_id", "service_id", direction_field(gtfs$trips)), drop = FALSE],
       by = 'trip_id'
@@ -138,7 +137,7 @@ get_durations_detailed <- function(gtfs){
     ) %>%
     dplyr::select(dplyr::all_of(c(
       "route_id", "trip_id", direction_field(gtfs$trips),
-      "arrival_time", "hour", "from_stop_id", "to_stop_id",
+      "stop_sequence", "arrival_time", "hour", "from_stop_id", "to_stop_id",
       "duration", "service_pattern", "pattern_frequency"
     )))
 
