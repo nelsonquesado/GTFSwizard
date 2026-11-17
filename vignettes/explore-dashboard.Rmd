@@ -23,7 +23,7 @@ Pass an existing object when working from R.
 ```{r, eval=FALSE}
 library(GTFSwizard)
 explore_gtfs(for_rail_gtfs)
-# A larger historical TMB bus feed from Barcelona:
+# A multi-agency historical AMB Mobilitat bus feed from Barcelona:
 explore_gtfs(bcn_bus_gtfs)
 ```
 
@@ -53,6 +53,11 @@ Filters affect the maps, planning indicators, and service or performance plots.
 Large route and service-pattern sets are summarized or limited in plots where
 showing every class would make labels and legends unreadable. Plot-specific
 `top_n` controls can expand those views when required.
+
+The full AMB example retains every calendar year from 2017 through 2026.
+In the calendar's service-pattern fill mode, the pattern-count control limits
+individually colored patterns; remaining patterns share an "Other service
+patterns" color. All dates and their original pattern IDs remain in the feed.
 
 ## Interpret the planning indicators
 

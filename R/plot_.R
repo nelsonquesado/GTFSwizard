@@ -15,7 +15,8 @@ plot_frequency <- function(gtfs){
   colors <- gtfswizard_colors()
   data <- GTFSwizard::get_frequency(gtfs, method = "detailed") |>
     dplyr::mutate(hour = as.numeric(hour)) |>
-    dplyr::filter(is.finite(hour), is.finite(frequency))
+    dplyr::filter(is.finite(hour), is.finite(frequency),
+                  is.finite(pattern_frequency), pattern_frequency > 0)
   if(!nrow(data)){
     gw_stop("no frequency data are available to plot.")
   }
@@ -75,6 +76,8 @@ plot_frequency <- function(gtfs){
 #' @param route Optional character vector of route IDs. `NULL` includes all
 #'   routes after applying `top_n`.
 #' @param top_n Maximum number of routes to display when `route` is `NULL`.
+#' @param max_patterns Maximum number of the most frequent service patterns
+#'   to display. Use `Inf` to display all patterns.
 #' @return A `ggplot` object.
 #'
 #' @examples
@@ -85,7 +88,7 @@ plot_frequency <- function(gtfs){
 #'
 #' @seealso [GTFSwizard::get_frequency()]
 #' @export
-plot_routefrequency <- function(gtfs, route = NULL, top_n = 25L){
+plot_routefrequency <- function(gtfs, route = NULL, top_n = 25L, max_patterns = 12L){
   gw_assert_int(top_n, "top_n", lower = 1L)
   requested_routes <- route
   if(!is.null(route)){
@@ -100,6 +103,7 @@ plot_routefrequency <- function(gtfs, route = NULL, top_n = 25L){
     gw_stop("no route-frequency data are available to plot.")
   }
   data <- data |>
+    limit_plot_patterns(max_patterns) |>
     dplyr::filter(is.finite(.data$hour), is.finite(.data$frequency)) |>
     dplyr::group_by(.data$route_id, .data$service_pattern, .data$hour) |>
     dplyr::summarise(frequency = sum(.data$frequency), .groups = "drop")
@@ -152,6 +156,8 @@ plot_routefrequency <- function(gtfs, route = NULL, top_n = 25L){
 #' Plot System Headway by Hour
 #'
 #' @param gtfs A GTFS object.
+#' @param max_patterns Maximum number of the most frequent service patterns
+#'   to display. Use `Inf` to display all patterns.
 #' @return A `ggplot` object with headway in minutes.
 #'
 #' @examples
@@ -159,7 +165,7 @@ plot_routefrequency <- function(gtfs, route = NULL, top_n = 25L){
 #'
 #' @seealso [GTFSwizard::get_headways()]
 #' @export
-plot_headways <- function(gtfs){
+plot_headways <- function(gtfs, max_patterns = 12L){
   colors <- gtfswizard_colors()
   data <- GTFSwizard::get_headways(gtfs, method = "by_hour") |>
     dplyr::mutate(
@@ -170,7 +176,8 @@ plot_headways <- function(gtfs){
       is.finite(.data$hour),
       is.finite(.data$headway_minutes),
       is.finite(.data$weight)
-    )
+    ) |>
+    limit_plot_patterns(max_patterns)
   if(!nrow(data)){
     gw_stop("no headway data are available to plot.")
   }
@@ -194,7 +201,8 @@ plot_headways <- function(gtfs){
       yintercept = overall, color = colors[["coral"]],
       linetype = "dashed", linewidth = 0.8
     ) +
-    ggplot2::scale_color_manual(values = pattern_values) +
+    ggplot2::scale_color_manual(values = pattern_values,
+      guide = ggplot2::guide_legend(ncol = min(4L, length(pattern_values)))) +
     ggplot2::labs(
       title = "System Headway",
       subtitle = paste("Overall weighted mean:", round(overall, 1), "minutes"),

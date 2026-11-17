@@ -6,23 +6,26 @@
 \title{GTFS Data for Barcelona (Bus System), Spain}
 \format{
 A \code{wizardgtfs} object containing \code{feed_info}, \code{agency}, \code{routes},
-\code{stops}, \code{transfers}, \code{shapes}, \code{trips}, \code{calendar_dates}, \code{calendar},
-\code{frequencies}, \code{stop_times}, and the internal \code{dates_services} lookup.
+\code{stops}, \code{shapes}, \code{trips}, \code{calendar_dates}, \code{calendar}, \code{stop_times},
+and the internal \code{dates_services} lookup.
 }
 \source{
-TMB, Barcelona. Publisher website: \url{https://www.tmb.cat}.
+AMB Mobilitat. Publisher website: \url{https://www.ambmobilitat.cat}.
 }
 \description{
-A historical TMB bus feed supplied with the package for transit analysis.
-It contains 114 routes, 54,554 trips, 3,425 stops, 1,274,618 stop-time
-records, and 97,331 shape points. It is a snapshot, not a current timetable.
+A historical AMB Mobilitat bus feed for the Barcelona metropolitan area.
+It contains six agencies, 128 routes, 25,122 trips, 3,385 stops, 776,187
+stop-time records, and 134,170 shape points. It is a historical snapshot.
 }
 \details{
-Imported from the supplied \code{bcn_bus_gtfs.zip} using \code{\link[=read_gtfs]{read_gtfs()}}.
-The publisher is TMB and the feed version is \code{220431122023002}.
-Publisher metadata states service dates from 2023-12-31 to 2024-08-26;
-the calendar lookup also includes 2024-08-27. Dates and identifiers are
-retained from the imported feed.
+Imported from \verb{es-barcelona-autos-castellbisbal-gtfs-892.zip}
+using \code{\link[=read_gtfs]{read_gtfs()}}. The publisher is AMBMobilitat and the feed version
+is \code{20240621}. Import removes 48 trips with fewer than two stop-time
+records. Publisher metadata states validity from 2024-06-21 to 2024-06-26;
+the supplied calendars cover 2017-01-27 through 2026-12-31 and produce
+239 service patterns. These source calendar ranges are preserved. For a
+representative analysis of the published snapshot, filter to its stated
+validity dates with \code{\link[=filter_date]{filter_date()}}.
 }
 \examples{
 data(bcn_bus_gtfs)

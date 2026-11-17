@@ -82,31 +82,13 @@ get_dwelltimes <- function(gtfs, max_dwelltime = 90, method = "by_trip", ...){
 
 get_dwelltime_byhour <- function(gtfs, max_dwelltime = 90){
 
-  dwell_time_data(gtfs, max_dwelltime) %>%
-    dplyr::group_by(hour, service_pattern, pattern_frequency) %>%
-    dplyr::reframe(
-      average.dwelltime = mean(dwell_time),
-      trips = dplyr::n(),
-      .groups = "drop"
-    ) %>%
+  summarize_dwell_time(gtfs, max_dwelltime, "hour") %>%
     dplyr::select(hour, trips, average.dwelltime, service_pattern, pattern_frequency)
 
 }
 
 get_dwelltime_byroute <- function(gtfs, max_dwelltime = 90){
-  data <- dwell_time_data(gtfs, max_dwelltime)
-  data %>%
-    dplyr::group_by(
-      dplyr::across(dplyr::all_of(c(
-        "route_id", direction_field(data),
-        "service_pattern", "pattern_frequency"
-      )))
-    ) %>%
-    dplyr::reframe(
-      average.dwelltime = mean(dwell_time),
-      trips = dplyr::n(),
-      .groups = "drop"
-    ) %>%
+  summarize_dwell_time(gtfs, max_dwelltime, c("route_id", direction_field(gtfs$trips))) %>%
     dplyr::select(
       route_id, dplyr::any_of("direction_id"), trips,
       average.dwelltime, service_pattern, pattern_frequency
@@ -115,19 +97,7 @@ get_dwelltime_byroute <- function(gtfs, max_dwelltime = 90){
 }
 
 get_dwelltime_bytrip <- function(gtfs, max_dwelltime = 90){
-  data <- dwell_time_data(gtfs, max_dwelltime)
-  data %>%
-    dplyr::group_by(
-      dplyr::across(dplyr::all_of(c(
-        "route_id", "trip_id",
-        direction_field(data),
-        "service_pattern", "pattern_frequency"
-      )))
-    ) %>%
-    dplyr::reframe(
-      average.dwelltime = mean(dwell_time),
-      .groups = "drop"
-    ) %>%
+  summarize_dwell_time(gtfs, max_dwelltime, c("route_id", "trip_id", direction_field(gtfs$trips))) %>%
     dplyr::select(
       route_id, trip_id, dplyr::any_of("direction_id"),
       average.dwelltime, service_pattern, pattern_frequency
@@ -145,11 +115,21 @@ get_dwelltime_detailed <- function(gtfs, max_dwelltime = 90){
 
 }
 
-dwell_time_data <- function(gtfs, max_dwelltime){
+summarize_dwell_time <- function(gtfs, max_dwelltime, fields){
   gtfs <- ensure_wizardgtfs(gtfs)
-  service_pattern <- GTFSwizard::get_servicepattern(gtfs)
+  dwell_time_data(gtfs, max_dwelltime, include_patterns = FALSE) |>
+    dplyr::group_by(dplyr::across(dplyr::all_of(c(fields, "service_id")))) |>
+    dplyr::summarise(total_dwell = sum(.data$dwell_time), trips = dplyr::n(), .groups = "drop") |>
+    dplyr::inner_join(get_servicepattern(gtfs), by = "service_id", relationship = "many-to-many") |>
+    dplyr::group_by(dplyr::across(dplyr::all_of(c(fields, "service_pattern", "pattern_frequency")))) |>
+    dplyr::summarise(average.dwelltime = sum(.data$total_dwell) / sum(.data$trips),
+                     trips = sum(.data$trips), .groups = "drop")
+}
 
-  gtfs$stop_times %>%
+dwell_time_data <- function(gtfs, max_dwelltime, include_patterns = TRUE){
+  gtfs <- ensure_wizardgtfs(gtfs)
+
+  data <- gtfs$stop_times %>%
     dplyr::filter(!arrival_time == '' & !departure_time == "") %>%
     dplyr::mutate(
       arrival_seconds = gtfs_time_to_seconds(arrival_time),
@@ -162,9 +142,14 @@ dwell_time_data <- function(gtfs, max_dwelltime){
       dwell_time >= 0,
       dwell_time <= max_dwelltime
     ) %>%
-    dplyr::left_join(gtfs$trips, by = "trip_id") %>%
+    dplyr::select(trip_id, stop_id, hour, dwell_time) %>%
     dplyr::left_join(
-      service_pattern,
+      gtfs$trips[, c("trip_id", "route_id", "service_id", direction_field(gtfs$trips)), drop = FALSE],
+      by = "trip_id"
+    )
+  if(!include_patterns) return(data)
+  dplyr::inner_join(
+      data, GTFSwizard::get_servicepattern(gtfs),
       by = "service_id",
       relationship = "many-to-many"
     )

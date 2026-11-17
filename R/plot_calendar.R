@@ -9,6 +9,10 @@
 #'   no active service as zero trips; `"service_pattern"` uses a discrete color
 #'   for each service pattern and labels dates with no active service as
 #'   `"No service"`.
+#' @param max_patterns Maximum number of service patterns given individual
+#'   colors when `fill = "service_pattern"`. Remaining patterns share an
+#'   `"Other service patterns"` category. Dates and original pattern IDs remain
+#'   available in the plot data.
 #'
 #' @return A `ggplot` object.
 #'
@@ -23,10 +27,11 @@
 #' @seealso [GTFSwizard::get_servicepattern()]
 #' @export
 plot_calendar <- function(gtfs, ncol = 4, facet_by_year = FALSE,
-                          fill = c("trips", "service_pattern")){
+                          fill = c("trips", "service_pattern"), max_patterns = 20L){
   gtfs <- ensure_wizardgtfs(gtfs)
   gw_assert_int(ncol, "ncol", lower = 1L)
   gw_assert_flag(facet_by_year, "facet_by_year")
+  gw_assert_int(max_patterns, "max_patterns", lower = 1L)
   fill <- match.arg(fill)
   colors <- gtfswizard_colors()
 
@@ -35,6 +40,7 @@ plot_calendar <- function(gtfs, ncol = 4, facet_by_year = FALSE,
     dplyr::count(.data$service_id, name = "trips")
   trip_counts <- stats::setNames(trips_per_service$trips, trips_per_service$service_id)
   data <- service_pattern_date_table(gtfs)
+  if(!nrow(data)) gw_stop("no active calendar dates are available to plot.")
   data$count <- vapply(data$service_ids, function(service_ids){
     sum(trip_counts[service_ids], na.rm = TRUE)
   }, numeric(1))
@@ -56,19 +62,29 @@ plot_calendar <- function(gtfs, ncol = 4, facet_by_year = FALSE,
 
   plot <- ggplot2::ggplot(data, ggplot2::aes(weekday, -week_of_month))
   if(fill == "service_pattern"){
-    pattern_levels <- unique(data$service_pattern)
+    active_patterns <- sort(table(data$service_pattern[data$service_pattern != "No service"]),
+                            decreasing = TRUE)
+    individual <- utils::head(names(active_patterns), max_patterns)
+    data$.calendar_pattern <- ifelse(
+      data$service_pattern %in% c(individual, "No service"),
+      data$service_pattern, "Other service patterns"
+    )
+    plot$data <- data
+    pattern_levels <- unique(data$.calendar_pattern)
     pattern_values <- stats::setNames(
       gtfswizard_palette(length(pattern_levels)),
       pattern_levels
     )
     pattern_values["No service"] <- "#F0F2F3"
+    pattern_values["Other service patterns"] <- "#87939D"
     plot <- plot +
       ggplot2::geom_tile(
-        ggplot2::aes(fill = service_pattern),
+        ggplot2::aes(fill = .data$.calendar_pattern),
         color = "white", linewidth = 0.4
       ) +
       ggplot2::scale_fill_manual(
-        values = pattern_values, na.value = "#F0F2F3", drop = FALSE
+        values = pattern_values, na.value = "#F0F2F3", drop = FALSE,
+        guide = ggplot2::guide_legend(ncol = min(4L, length(pattern_levels)), byrow = TRUE)
       )
   } else {
     plot <- plot +

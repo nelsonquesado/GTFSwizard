@@ -23,6 +23,16 @@ gtfswizard_palette <- function(n){
   grDevices::hcl.colors(n, palette = "Dynamic")
 }
 
+limit_plot_patterns <- function(data, max_patterns){
+  if(identical(max_patterns, Inf)) return(data)
+  gw_assert_int(max_patterns, "max_patterns", lower = 1L)
+  patterns <- data |>
+    dplyr::distinct(.data$service_pattern, .data$pattern_frequency) |>
+    dplyr::arrange(dplyr::desc(.data$pattern_frequency), .data$service_pattern) |>
+    utils::head(max_patterns)
+  data[data$service_pattern %in% patterns$service_pattern, , drop = FALSE]
+}
+
 theme_gtfswizard <- function(base_size = 11){
   colors <- gtfswizard_colors()
   ggplot2::theme_minimal(base_size = base_size) +

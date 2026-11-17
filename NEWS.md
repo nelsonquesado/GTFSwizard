@@ -9,8 +9,23 @@
 * The explorer now uses OpenStreetMap tiles and keeps empty-corridor notices
   in the plot rather than repeating warnings in the console.
 
-* Added the embedded `bcn_bus_gtfs` dataset: a historical Barcelona TMB bus
-  feed with 114 routes, 54,554 trips, and 3,425 stops, stored with xz compression.
+* Added the embedded `bcn_bus_gtfs` dataset from the supplied AMB Mobilitat
+  archive `es-barcelona-autos-castellbisbal-gtfs-892.zip`: six agencies,
+  128 routes, 25,122 retained trips, and 3,385 stops. The dataset uses xz
+  compression; import excludes 48 trips with fewer than two stop-time records.
+  All supplied calendar years (2017-2026) are retained.
+* Stop-level headways process one service pattern at a time, and stop
+  frequencies and dwell summaries aggregate services before expanding patterns,
+  reducing memory use
+  on feeds with many patterns. Services without active dates are omitted from
+  service-pattern analyses rather than producing missing-weight warnings.
+* `plot_calendar()` adds `max_patterns` to bound categorical legends without
+  removing dates. Less frequent patterns share an "Other service patterns" color.
+  Route-frequency, headway, trip-duration, and service-supply plots also accept
+  `max_patterns`, defaulting to the 12 most frequent patterns; `Inf` shows all.
+* Selecting the full date range in the explorer preserves every source trip;
+  date comparisons no longer depend on the internal Date storage type. The
+  scheduled-hours slider rounds its upper bound up to include the final hour.
 
 * `read_gtfs()` and `write_gtfs()` now open native file-selection windows when
   their paths are omitted in interactive R sessions. Output filenames receive a

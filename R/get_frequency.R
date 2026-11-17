@@ -29,23 +29,32 @@ get_frequency <- function(gtfs, method = "by_trip"){
   choices <- c("by_trip", "by_route", "by_shape", "by_stop", "detailed")
   method <- normalize_method(method, choices, "by_trip")
   gtfs <- ensure_wizardgtfs(gtfs)
-  instances <- trip_instance_starts(gtfs) |>
+  starts <- trip_instance_starts(gtfs)
+  if(method == "by_stop"){
+    direction <- direction_field(gtfs$trips)
+    counts <- starts |> dplyr::count(trip_id, name = "departures")
+    calls <- gtfs$stop_times |>
+      dplyr::distinct(trip_id, stop_id) |>
+      dplyr::left_join(counts, by = "trip_id") |>
+      dplyr::left_join(
+        gtfs$trips[, c("trip_id", "service_id", direction), drop = FALSE], by = "trip_id"
+      ) |>
+      dplyr::group_by(dplyr::across(dplyr::all_of(c("stop_id", direction, "service_id")))) |>
+      dplyr::summarise(daily.frequency = sum(.data$departures), .groups = "drop") |>
+      dplyr::inner_join(get_servicepattern(gtfs), by = "service_id", relationship = "many-to-many")
+    groups <- c("stop_id", direction, "service_pattern", "pattern_frequency")
+    return(calls |>
+      dplyr::group_by(dplyr::across(dplyr::all_of(groups))) |>
+      dplyr::summarise(daily.frequency = sum(.data$daily.frequency), .groups = "drop"))
+  }
+  instances <- starts |>
     dplyr::left_join(gtfs$trips, by = "trip_id") |>
-    dplyr::left_join(
+    dplyr::inner_join(
       get_servicepattern(gtfs), by = "service_id",
       relationship = "many-to-many"
     )
   direction <- direction_field(instances)
 
-  if(method == "by_stop"){
-    calls <- gtfs$stop_times |>
-      dplyr::distinct(trip_id, stop_id)
-    data <- dplyr::left_join(calls, instances, by = "trip_id")
-    groups <- c("stop_id", direction, "service_pattern", "pattern_frequency")
-    return(data |>
-      dplyr::group_by(dplyr::across(dplyr::all_of(groups))) |>
-      dplyr::summarise(daily.frequency = dplyr::n(), .groups = "drop"))
-  }
   if(method == "by_shape"){
     if(!"shape_id" %in% names(instances)){
       gw_stop("`by_shape` requires `trips$shape_id`.")

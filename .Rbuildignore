@@ -19,3 +19,4 @@
 ^revdep$
 ^README\.md$
 ^tools$
+^data/.*\.zip$

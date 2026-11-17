@@ -69,7 +69,7 @@ get_durations_byroute <- function(gtfs){
   trip_duration_table(gtfs) %>%
     dplyr::left_join(gtfs$trips,
                      by = 'trip_id') %>%
-    dplyr::left_join(service_pattern,
+    dplyr::inner_join(service_pattern,
                      by = 'service_id',
                      relationship = 'many-to-many') %>%
     dplyr::group_by(
@@ -91,7 +91,7 @@ get_durations_bytrip <- function(gtfs){
   trip_duration_table(gtfs) %>%
     dplyr::left_join(gtfs$trips,
                      by = 'trip_id') %>%
-    dplyr::left_join(service_pattern,
+    dplyr::inner_join(service_pattern,
                      by = 'service_id',
                      relationship = 'many-to-many') %>%
     dplyr::select(
@@ -124,19 +124,23 @@ get_durations_detailed <- function(gtfs){
       duration = lead_arrival_time - departure_seconds
     ) %>%
     dplyr::ungroup() %>%
-    dplyr::left_join(gtfs$trips, by = 'trip_id') %>%
+    dplyr::mutate(arrival_time = seconds_to_gtfs_time(lead_arrival_time)) %>%
+    dplyr::select(trip_id, arrival_time, hour, from_stop_id, to_stop_id, duration) %>%
     dplyr::left_join(
+      gtfs$trips[, c("trip_id", "route_id", "service_id", direction_field(gtfs$trips)), drop = FALSE],
+      by = 'trip_id'
+    ) %>%
+    stats::na.omit() %>%
+    dplyr::inner_join(
       service_pattern,
       by = 'service_id',
       relationship = 'many-to-many'
     ) %>%
-    dplyr::mutate(arrival_time = seconds_to_gtfs_time(lead_arrival_time)) %>%
     dplyr::select(dplyr::all_of(c(
       "route_id", "trip_id", direction_field(gtfs$trips),
       "arrival_time", "hour", "from_stop_id", "to_stop_id",
       "duration", "service_pattern", "pattern_frequency"
-    ))) %>%
-    stats::na.omit()
+    )))
 
 }
 

@@ -4,7 +4,7 @@
 \alias{plot_routefrequency}
 \title{Plot Route Frequency by Hour}
 \usage{
-plot_routefrequency(gtfs, route = NULL, top_n = 25L)
+plot_routefrequency(gtfs, route = NULL, top_n = 25L, max_patterns = 12L)
 }
 \arguments{
 \item{gtfs}{A GTFS object.}
@@ -13,6 +13,9 @@ plot_routefrequency(gtfs, route = NULL, top_n = 25L)
 routes after applying `top_n`.}
 
 \item{top_n}{Maximum number of routes to display when `route` is `NULL`.}
+
+\item{max_patterns}{Maximum number of the most frequent service patterns
+to display. Use `Inf` to display all patterns.}
 }
 \value{
 A `ggplot` object.

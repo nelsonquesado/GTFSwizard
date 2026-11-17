@@ -4,12 +4,15 @@
 \alias{plot_routeduration}
 \title{Plot Scheduled Trip Duration by Route}
 \usage{
-plot_routeduration(gtfs, top_n = 20L)
+plot_routeduration(gtfs, top_n = 20L, max_patterns = 12L)
 }
 \arguments{
 \item{gtfs}{A GTFS object.}
 
 \item{top_n}{Maximum number of routes to display.}
+
+\item{max_patterns}{Maximum number of the most frequent service patterns
+to display. Use `Inf` to display all patterns.}
 }
 \value{
 A `ggplot` object. Each observation is one scheduled trip; boxes

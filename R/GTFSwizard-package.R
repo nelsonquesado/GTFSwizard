@@ -16,9 +16,10 @@
 #' @section Example feeds:
 #' [for_rail_gtfs] is a compact feed suitable for examples. [for_bus_gtfs]
 #' supports larger-network checks and demonstrations.
-#' [bcn_bus_gtfs] provides a historical TMB bus feed from Barcelona, Spain.
+#' [bcn_bus_gtfs] provides a historical AMB Mobilitat bus feed from Barcelona, Spain.
 #'
 #' @seealso [wizardgtfs-methods]
 #' @md
+#' @encoding UTF-8
 #' @keywords internal
 "_PACKAGE"

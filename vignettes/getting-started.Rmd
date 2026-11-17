@@ -22,18 +22,30 @@ The package includes two real examples from Fortaleza, Brazil.
 `for_rail_gtfs` is small enough for learning and examples; `for_bus_gtfs` is
 useful for checking workflows on a larger bus network.
 
-`bcn_bus_gtfs` adds a historical Barcelona TMB bus snapshot from 2023-2024,
-with 114 routes, 54,554 trips, and 3,425 stops. All three are embedded
+`bcn_bus_gtfs` adds a historical AMB Mobilitat bus snapshot from Barcelona,
+published on 2024-06-21, with six agencies, 128 routes, 25,122 retained trips,
+and 3,385 stops. All three are embedded
 `wizardgtfs` objects and can be used without downloading a feed.
 
 ```{r}
+library(GTFSwizard)
 data(bcn_bus_gtfs, package = "GTFSwizard")
 head(bcn_bus_gtfs$routes)
 ```
 
-```{r}
-library(GTFSwizard)
+The AMB object preserves the complete source calendar (2017-2026), while its publisher
+states a validity window of 2024-06-21 through 2024-06-26. Keep that distinction
+when interpreting results. The following filter is optional and creates a
+separate analysis object:
 
+```{r}
+barcelona_snapshot <- filter_date(
+  bcn_bus_gtfs, seq(as.Date("2024-06-21"), as.Date("2024-06-26"), by = "day")
+)
+nrow(barcelona_snapshot$trips)
+```
+
+```{r}
 gtfs <- for_rail_gtfs
 summary(gtfs)
 ```

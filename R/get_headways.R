@@ -33,36 +33,43 @@ get_headways <- function(gtfs, method = "by_trip"){
   direction <- direction_field(trips)
 
   if(method %in% c("by_stop", "detailed")){
-    data <- stop_call_instances(gtfs) |>
-      dplyr::left_join(trips, by = "trip_id") |>
-      dplyr::left_join(
-        patterns, by = "service_id", relationship = "many-to-many"
-      )
+    calls <- stop_call_instances(gtfs) |>
+      dplyr::left_join(trips, by = "trip_id")
     grouping <- c(
       "route_id", direction, "stop_id", "service_pattern", "pattern_frequency"
     )
-    data <- calculate_headway_rows(data, grouping, "time_seconds")
-    data$hour <- floor(data$time_seconds / 3600)
-    if(method == "detailed"){
-      fields <- c(
-        "route_id", "trip_id", direction, "stop_id", "hour",
-        "headway_minutes", "service_pattern", "pattern_frequency"
-      )
-      return(data[, fields, drop = FALSE])
-    }
     groups <- c("stop_id", direction, "service_pattern", "pattern_frequency")
-    return(data |>
-      dplyr::group_by(dplyr::across(dplyr::all_of(groups))) |>
-      dplyr::summarise(
-        headway_minutes = mean(headway_minutes),
-        valid_trips = dplyr::n(),
-        .groups = "drop"
-      ))
+    process <- function(pattern){
+      data <- calls[calls$service_id %in% pattern$service_id, , drop = FALSE]
+      data$service_pattern <- rep(pattern$service_pattern[1], nrow(data))
+      data$pattern_frequency <- rep(pattern$pattern_frequency[1], nrow(data))
+      data <- calculate_headway_rows(data, grouping, "time_seconds")
+      data$hour <- floor(data$time_seconds / 3600)
+      if(method == "detailed"){
+        fields <- c(
+          "route_id", "trip_id", direction, "stop_id", "hour",
+          "headway_minutes", "service_pattern", "pattern_frequency"
+        )
+        return(data[, fields, drop = FALSE])
+      }
+      data |>
+        dplyr::group_by(dplyr::across(dplyr::all_of(groups))) |>
+        dplyr::summarise(
+          headway_minutes = mean(headway_minutes), valid_trips = dplyr::n(),
+          .groups = "drop"
+        )
+    }
+    active <- patterns[!is.na(patterns$service_id), , drop = FALSE]
+    parts <- split(active, active$service_pattern)
+    if(!length(parts)) return(process(active))
+    result <- dplyr::bind_rows(lapply(parts, process))
+    if(method == "detailed") return(result)
+    return(dplyr::arrange(result, dplyr::across(dplyr::all_of(groups))))
   }
 
   data <- trip_instance_starts(gtfs) |>
     dplyr::left_join(trips, by = "trip_id") |>
-    dplyr::left_join(
+    dplyr::inner_join(
       patterns, by = "service_id", relationship = "many-to-many"
     )
   grouping <- c(

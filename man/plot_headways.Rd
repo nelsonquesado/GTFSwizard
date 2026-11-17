@@ -4,10 +4,13 @@
 \alias{plot_headways}
 \title{Plot System Headway by Hour}
 \usage{
-plot_headways(gtfs)
+plot_headways(gtfs, max_patterns = 12L)
 }
 \arguments{
 \item{gtfs}{A GTFS object.}
+
+\item{max_patterns}{Maximum number of the most frequent service patterns
+to display. Use `Inf` to display all patterns.}
 }
 \value{
 A `ggplot` object with headway in minutes.

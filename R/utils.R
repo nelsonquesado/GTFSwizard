@@ -1067,7 +1067,7 @@ stop_call_instances <- function(gtfs){
     dplyr::arrange(trip_id, stop_sequence) |>
     dplyr::mutate(.call_seconds = gtfs_time_to_seconds(arrival_time)) |>
     dplyr::select(trip_id, stop_id, stop_sequence, .call_seconds)
-  dplyr::left_join(calls, starts, by = "trip_id") |>
+  dplyr::left_join(calls, starts, by = "trip_id", relationship = "many-to-many") |>
     dplyr::mutate(time_seconds = start_seconds + .call_seconds - .base_start) |>
     dplyr::filter(!is.na(time_seconds))
 }

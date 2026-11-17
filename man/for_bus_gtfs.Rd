@@ -3,7 +3,7 @@
 \docType{data}
 \name{for_bus_gtfs}
 \alias{for_bus_gtfs}
-\title{GTFS Data for Fortaleza (Bus System), Brazil.}
+\title{GTFS Data for Fortaleza (Bus System), Brazil}
 \format{
 An object of class \code{wizardgtfs}, containing multiple data frames:
 \describe{

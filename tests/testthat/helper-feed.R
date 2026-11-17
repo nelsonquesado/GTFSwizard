@@ -41,3 +41,30 @@ minimal_feed <- function(){
     build_shapes = TRUE
   )
 }
+
+frequency_planning_feed <- function(){
+  g <- minimal_feed()
+  second <- g$trips
+  second$trip_id <- c("T3", "T4")
+  second$service_id <- "W"
+  g$trips$direction_id <- c(0L, 1L)
+  second$direction_id <- c(0L, 1L)
+  g$trips <- dplyr::bind_rows(g$trips, second)
+  calls <- g$stop_times
+  calls$trip_id <- ifelse(calls$trip_id == "T1", "T3", "T4")
+  g$stop_times <- dplyr::bind_rows(g$stop_times, calls)
+  g$stop_times$arrival_time <- rep(c("00:00:00", "00:01:00", "00:02:00"), 4)
+  g$stop_times$departure_time <- g$stop_times$arrival_time
+  g$calendar[, c("saturday", "sunday")] <- 0L
+  weekend <- g$calendar
+  weekend$service_id <- "W"
+  weekend[, c("monday", "tuesday", "wednesday", "thursday", "friday")] <- 0L
+  weekend[, c("saturday", "sunday")] <- 1L
+  g$calendar <- dplyr::bind_rows(g$calendar, weekend)
+  g$frequencies <- tibble::tibble(
+    trip_id = c("T1", "T2", "T3", "T4"),
+    start_time = c("07:30:00", "07:30:00", "09:00:00", "09:00:00"),
+    end_time = "22:00:00", headway_secs = 600L
+  )
+  as_wizardgtfs(unclass(g), build_shapes = FALSE)
+}

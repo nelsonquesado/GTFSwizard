@@ -84,7 +84,7 @@ get_distances_byroute <- function(gtfs){
   distances <-
     gtfs$trips %>%
     dplyr::left_join(distances, by = 'shape_id') %>%
-    dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
+    dplyr::inner_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
     dplyr::group_by(
       dplyr::across(dplyr::all_of(c(
         "route_id", direction_field(gtfs$trips),
@@ -111,7 +111,7 @@ get_distances_bytrip <- function(gtfs){
   distances <-
     gtfs$trips %>%
     dplyr::left_join(distances, by = 'shape_id') %>%
-    dplyr::left_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
+    dplyr::inner_join(service_pattern, by = 'service_id', relationship = 'many-to-many') %>%
     dplyr::select(
       dplyr::all_of(c(
         "route_id", "trip_id", direction_field(gtfs$trips), "distance",

@@ -109,7 +109,8 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
   stop_time_seconds <- gtfs_time_to_seconds(c(
     gtfs$stop_times$arrival_time, gtfs$stop_times$departure_time
   ))
-  hour_limits <- range(floor(stop_time_seconds[is.finite(stop_time_seconds)] / 3600))
+  hour_limits <- range(stop_time_seconds[is.finite(stop_time_seconds)] / 3600)
+  hour_limits <- c(floor(hour_limits[1]), ceiling(hour_limits[2]))
   if(!all(is.finite(hour_limits))){
     hour_limits <- c(0, 24)
   }
@@ -729,7 +730,7 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
       dates <- input$selected_dates
       if(!is.null(dates) && length(dates) == 2L && !anyNA(dates)){
         selected_dates <- seq(as.Date(dates[1]), as.Date(dates[2]), by = "day")
-        if(!identical(range(selected_dates), date_range)){
+        if(!all(range(selected_dates) == date_range)){
           selected_dates <- selected_dates[
             selected_dates %in% as.Date(g$dates_services$date)
           ]
@@ -1197,7 +1198,7 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
     }, interactive = FALSE)
 
     output$headway_plot <- render_plot({
-      safe_output("Headway plot", GTFSwizard::plot_headways(plot_gtfs()))
+      safe_output("Headway plot", GTFSwizard::plot_headways(plot_gtfs(), max_patterns = Inf))
     })
     output$headway_plot_ui <- shiny::renderUI({
       n <- length(unique(GTFSwizard::get_servicepattern(plot_gtfs())$service_pattern))
@@ -1244,7 +1245,8 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
       safe_output("Route-duration plot", {
       GTFSwizard::plot_routeduration(
         plot_gtfs(),
-        top_n = as.integer(value_or(input$route_duration_top_n, 15L))
+        top_n = as.integer(value_or(input$route_duration_top_n, 15L)),
+        max_patterns = Inf
       )
       })
     }, interactive = FALSE)
@@ -1261,7 +1263,8 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
       safe_output("Service-supply plot", {
       GTFSwizard::plot_servicesupply(
         plot_gtfs(),
-        top_n = as.integer(value_or(input$service_supply_top_n, 15L))
+        top_n = as.integer(value_or(input$service_supply_top_n, 15L)),
+        max_patterns = Inf
       )
       })
     }, interactive = FALSE)
@@ -1278,7 +1281,8 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
       safe_output("Calendar plot", {
       fill <- if(isTRUE(input$calendar_fill_pattern)) "service_pattern" else "trips"
       GTFSwizard::plot_calendar(
-        dashboard_gtfs(), facet_by_year = TRUE, fill = fill
+        dashboard_gtfs(), facet_by_year = TRUE, fill = fill,
+        max_patterns = as.integer(value_or(input$plot_pattern_top_n, 12L))
       )
       })
     }, interactive = FALSE)
@@ -1367,7 +1371,8 @@ explore_gtfs.wizardgtfs <- function(gtfs, plotly = FALSE){
       g <- plot_gtfs()
       GTFSwizard::plot_routefrequency(
         g,
-        top_n = as.integer(value_or(input$route_frequency_top_n, 25L))
+        top_n = as.integer(value_or(input$route_frequency_top_n, 25L)),
+        max_patterns = Inf
       )
       })
     })
@@ -1399,7 +1404,7 @@ planning_system_indicators <- function(gtfs, route_indicators = NULL){
     trip_schedule <- planning_trip_schedule(gtfs)
     trip_instances <- planning_trip_instances(gtfs, trip_schedule) |>
       dplyr::left_join(gtfs$trips[, c("trip_id", "service_id")], by = "trip_id") |>
-      dplyr::left_join(get_servicepattern(gtfs), by = "service_id",
+      dplyr::inner_join(get_servicepattern(gtfs), by = "service_id",
                        relationship = "many-to-many")
   }
   intervals <- trip_instances |>
@@ -1488,7 +1493,7 @@ planning_route_indicators <- function(gtfs, top_n = 30L){
   trip_schedule <- planning_trip_schedule(gtfs)
   trip_instances <- planning_trip_instances(gtfs, trip_schedule) |>
     dplyr::left_join(gtfs$trips, by = "trip_id") |>
-    dplyr::left_join(
+    dplyr::inner_join(
       patterns, by = "service_id", relationship = "many-to-many"
     )
 
@@ -1505,7 +1510,7 @@ planning_route_indicators <- function(gtfs, top_n = 30L){
     )
   trip_metrics <- trip_schedule |>
     dplyr::left_join(gtfs$trips, by = "trip_id") |>
-    dplyr::left_join(
+    dplyr::inner_join(
       patterns, by = "service_id", relationship = "many-to-many"
     )
   durations <- trip_metrics |>

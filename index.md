@@ -53,7 +53,8 @@ remotes::install_github(
 ## Quick Start
 
 The package includes Fortaleza rail and bus feeds and `bcn_bus_gtfs`, a
-historical Barcelona TMB bus feed with 114 routes, 54,554 trips, and 3,425 stops.
+historical Barcelona AMB Mobilitat bus feed with six agencies, 128 routes,
+25,122 trips, and 3,385 stops.
 The main workflows can be tried without downloading external data.
 
 ```r

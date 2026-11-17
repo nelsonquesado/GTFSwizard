@@ -8,7 +8,8 @@ plot_calendar(
   gtfs,
   ncol = 4,
   facet_by_year = FALSE,
-  fill = c("trips", "service_pattern")
+  fill = c("trips", "service_pattern"),
+  max_patterns = 20L
 )
 }
 \arguments{
@@ -22,6 +23,11 @@ plot_calendar(
 no active service as zero trips; `"service_pattern"` uses a discrete color
 for each service pattern and labels dates with no active service as
 `"No service"`.}
+
+\item{max_patterns}{Maximum number of service patterns given individual
+colors when `fill = "service_pattern"`. Remaining patterns share an
+`"Other service patterns"` category. Dates and original pattern IDs remain
+available in the plot data.}
 }
 \value{
 A `ggplot` object.

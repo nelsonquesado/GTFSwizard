@@ -417,12 +417,15 @@ GTFSwizard::latlon2epsg(get_shapes_sf(for_bus_gtfs)$shapes)
 ## Objects
 GTFSwizard includes three historical `wizardgtfs` datasets: `for_rail_gtfs`
 (Fortaleza rail), `for_bus_gtfs` (Fortaleza bus), and `bcn_bus_gtfs` (Barcelona
-TMB bus). The Barcelona snapshot covers 2023-2024 and contains 114 routes,
-54,554 trips, and 3,425 stops. These datasets are examples, not current timetables.
+AMB Mobilitat bus). The Barcelona snapshot was published on 2024-06-21 and
+contains six agencies, 128 routes, 25,122 trips, and 3,385 stops after import.
+Its source calendars span 2017-2026; use the publisher's 2024-06-21 to 2024-06-26
+validity window for snapshot analyses. These datasets are historical examples.
 
 ```r
 data(bcn_bus_gtfs)
 head(bcn_bus_gtfs$routes)
+snapshot <- filter_date(bcn_bus_gtfs, seq(as.Date("2024-06-21"), as.Date("2024-06-26"), by = "day"))
 # explore_gtfs(bcn_bus_gtfs)
 ```
 

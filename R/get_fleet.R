@@ -88,7 +88,7 @@ fleet_event_table <- function(gtfs, by_route = FALSE){
     ) |>
     dplyr::mutate(starts = start_seconds, ends = start_seconds + .duration) |>
     dplyr::left_join(gtfs$trips, by = "trip_id") |>
-    dplyr::left_join(
+    dplyr::inner_join(
       get_servicepattern(gtfs), by = "service_id",
       relationship = "many-to-many"
     )
