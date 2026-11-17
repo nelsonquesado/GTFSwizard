@@ -18,7 +18,10 @@ test_that("validation reports notices without modifying a source archive", {
     },
     .package = "GTFSwizard"
   )
-  result <- validate_gtfs(zip, validator_jar = jar, output_dir = output)
+  expect_output(
+    result <- validate_gtfs(zip, validator_jar = jar, output_dir = output),
+    "errors found"
+  )
   expect_s3_class(result, "gtfs_validation")
   expect_true(result$has_errors)
   expect_equal(result$notices$code, "bad_fk")
@@ -50,7 +53,10 @@ test_that("validation exports an object and treats system errors as incomplete",
     },
     .package = "GTFSwizard"
   )
-  result <- validate_gtfs(feed, jar, output)
+  expect_output(
+    result <- validate_gtfs(feed, jar, output),
+    "incomplete or unknown"
+  )
   expect_true(is.na(result$has_errors))
   expect_equal(result$system_notices$code, "io_error")
   expect_identical(feed, original)
