@@ -7,11 +7,11 @@ title: GTFSwizard
 # GTFSwizard
 
 ##### Source version 1.2.2 (prepared: 2026-11-16)
-##### CRAN version 1.2.1 (published: 2026-08-21)
+##### CRAN version 1.2.2
 
 [![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![Development version: 1.2.2](https://img.shields.io/badge/dev%20version-1.2.2-0073B7.svg)](https://github.com/nelsonquesado/GTFSwizard)
-[![CRAN version](https://www.r-pkg.org/badges/version/GTFSwizard)](https://CRAN.R-project.org/package=GTFSwizard)
+[![CRAN version: 1.2.2](https://img.shields.io/badge/CRAN-1.2.2-blue.svg)](https://CRAN.R-project.org/package=GTFSwizard)
 [![R CMD check](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml)
 [![Coverage](https://codecov.io/gh/nelsonquesado/GTFSwizard/branch/main/graph/badge.svg)](https://app.codecov.io/gh/nelsonquesado/GTFSwizard)
 [![License: GPL-3](https://img.shields.io/cran/l/GTFSwizard.svg)](https://CRAN.R-project.org/package=GTFSwizard)

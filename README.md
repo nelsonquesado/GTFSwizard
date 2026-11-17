@@ -1,10 +1,10 @@
 <img align="right" src="https://raw.githubusercontent.com/OPATP/GTFSwizard/main/figs/GTFSwizard_logo.png" alt="GTFSwizard logo" height="180">
 ##### Source version 1.2.2 (prepared: 2026-11-16)
-##### CRAN version 1.2.1 (published: 2026-08-21)
+##### CRAN version 1.2.2
 
 [![Lifecycle: experimental](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![Development version: 1.2.2](https://img.shields.io/badge/dev%20version-1.2.2-0073B7.svg)](https://github.com/nelsonquesado/GTFSwizard)
-[![CRAN version](https://www.r-pkg.org/badges/version/GTFSwizard)](https://CRAN.R-project.org/package=GTFSwizard)
+[![CRAN version: 1.2.2](https://img.shields.io/badge/CRAN-1.2.2-blue.svg)](https://CRAN.R-project.org/package=GTFSwizard)
 [![R CMD check](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/nelsonquesado/GTFSwizard/actions/workflows/R-CMD-check.yaml)
 [![Coverage](https://codecov.io/gh/nelsonquesado/GTFSwizard/branch/main/graph/badge.svg)](https://app.codecov.io/gh/nelsonquesado/GTFSwizard)
 [![License: GPL-3](https://img.shields.io/cran/l/GTFSwizard.svg)](https://CRAN.R-project.org/package=GTFSwizard)
@@ -16,8 +16,7 @@ GTFSwizard is a set of tools for creating, exploring, and manipulating [General 
 Its main purpose is to give researchers and practitioners a straightforward way to explore and simulate changes within GTFS files, which represent public transportation schedules and geographic data. The package lets users filter data by routes, trips, stops, and time, generate spatial visualizations, and analyze transit networks, including headways, dwell times, route frequencies, travel times, corridors, and hubs. Functions are also available to delay, change the speed of, split, and merge trips and feeds. This is ongoing work, with new features planned.
 
 ## Installation
-The source version is **1.2.2**, prepared for submission. The published CRAN
-version remains **1.2.1**.
+Version **1.2.2** is available on CRAN.
 
 ``` r
 # CRAN version:
@@ -497,7 +496,7 @@ GTFSwizard mainly uses [dplyr](https://CRAN.R-project.org/package=dplyr) for dat
 The following citation refers to the CRAN release. Use `citation("GTFSwizard")`
 to obtain the citation for the installed version, including a development version.
 
-- Quesado Filho, N. O.; Guimaraes, C. G. C.; de Oliveira Neto, F. M. (2026). _GTFSwizard: Creating, Exploring and Manipulating GTFS Files._ R package version 1.2.1. [doi:10.32614/CRAN.package.GTFSwizard](https://cran.r-project.org/package=GTFSwizard).
+- Quesado Filho, N. O.; Guimaraes, C. G. C.; de Oliveira Neto, F. M. (2026). _GTFSwizard: Creating, Exploring and Manipulating GTFS Files._ R package version 1.2.2. [doi:10.32614/CRAN.package.GTFSwizard](https://cran.r-project.org/package=GTFSwizard).
 
 A BibTeX entry for LaTeX users is
 ``` tex
@@ -505,7 +504,7 @@ A BibTeX entry for LaTeX users is
     title = {GTFSwizard: Creating, Exploring and Manipulating GTFS Files},
     author = {N. O. {Quesado Filho} and C. G. C. {Guimaraes} and F. M. {de Oliveira Neto}},
     year = {2026},
-    note = {R package version 1.2.1},
+    note = {R package version 1.2.2},
     url = {https://cran.r-project.org/package=GTFSwizard},
     doi = {10.32614/CRAN.package.GTFSwizard}}
 ```
